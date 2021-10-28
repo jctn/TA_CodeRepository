@@ -1,4 +1,4 @@
-﻿Shader "Code Repository/Screen_Aligned Billboard"
+﻿Shader "Code Repository/Base/Screen_Aligned Billboard"
 {
     Properties
     {
