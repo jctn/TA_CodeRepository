@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace CustomLensFlare
 {
@@ -145,10 +146,20 @@ namespace CustomLensFlare
                 vertices.Add(new Vector3(halfSize.x, halfSize.y, 0));
                 vertices.Add(new Vector3(-halfSize.x, halfSize.y, 0));
 
-                uvs.Add(rect.position + new Vector2(0, rect.height));
-                uvs.Add(rect.position + rect.size);
-                uvs.Add(rect.position + new Vector2(rect.width, 0));
-                uvs.Add(rect.position);
+                if(SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2 || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3)
+                {
+                    uvs.Add(rect.position);
+                    uvs.Add(rect.position + new Vector2(rect.width, 0));
+                    uvs.Add(rect.position + rect.size);
+                    uvs.Add(rect.position + new Vector2(0, rect.height));
+                }
+                else
+                {
+                    uvs.Add(rect.position + new Vector2(0, rect.height));
+                    uvs.Add(rect.position + rect.size);
+                    uvs.Add(rect.position + new Vector2(rect.width, 0));
+                    uvs.Add(rect.position);
+                }
 
                 vertColors.Add(flareData.FlareColor);
                 vertColors.Add(flareData.FlareColor);

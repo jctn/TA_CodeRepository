@@ -119,7 +119,11 @@
 				if (angle < 0) // 自动旋转， 根据dir向量
 				{
 					float2 dir = normalize(sunScreenPos);
-					angle = atan2(dir.y, dir.x) + HALF_PI; //加half pi，保证贴图v直线sun
+# if UNITY_UV_STARTS_AT_TOP
+					angle = atan2(dir.y, dir.x) + HALF_PI; //dx 加half pi
+#else
+					angle = atan2(dir.y, dir.x) - HALF_PI; //opengl 减half pi，保证贴图v指向sun， atan2返回[-PI, PI]
+#endif
 				}
 
 				//flare面片大小
