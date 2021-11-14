@@ -30,10 +30,20 @@ public class PostFXPassFeature : ScriptableRendererFeature
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             CommandBuffer cmd = CommandBufferPool.Get(CMDSTR);
-            cmd.GetTemporaryRT(mTemporaryColorTexture.id, renderingData.cameraData.cameraTargetDescriptor, FilterMode.Point);
-            cmd.Blit(mSource, mTemporaryColorTexture.Identifier());
-            cmd.Blit(mTemporaryColorTexture.Identifier(), mSource);
-            context.ExecuteCommandBuffer(cmd);
+            if(PostFXManager.Instance.PostFXCount > 0)
+            {
+                cmd.BeginSample(CMDSTR);
+                cmd.GetTemporaryRT(mTemporaryColorTexture.id, renderingData.cameraData.cameraTargetDescriptor, FilterMode.Bilinear);
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+
+                PostFXManager.Instance.RenderPostFX(context, cmd, mSource, mTemporaryColorTexture, ref renderingData);
+
+                cmd.Blit(mTemporaryColorTexture.Identifier(), mSource);
+                cmd.EndSample(CMDSTR);
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+            }
             CommandBufferPool.Release(cmd);
         }
 

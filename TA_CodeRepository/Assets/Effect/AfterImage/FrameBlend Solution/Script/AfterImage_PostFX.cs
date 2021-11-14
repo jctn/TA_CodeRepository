@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 
-public class AfterImage : MonoBehaviour
+public class AfterImage_PostFX : PostFXBase
 {
     [Range(0.0f, 0.5f)]
     [Header("残影消散速度")]
@@ -20,7 +21,6 @@ public class AfterImage : MonoBehaviour
     public GameObject Player;
 
     private int mMaskDownSample = 1;
-    private CommandBuffer mCmd;
     private Renderer[] meshRenderers;
     private RenderTexture mAfterImageRt;
     private RenderTexture mMaskRt;
@@ -39,24 +39,8 @@ public class AfterImage : MonoBehaviour
         Init();
     }
 
-    private void OnEnable()
-    {
-        RenderPipelineManager.beginCameraRendering += RenderAfterImage;
-    }
-
-    private void OnDisable()
-    {
-        RenderPipelineManager.beginCameraRendering -= RenderAfterImage;
-    }
-
     private void OnDestroy()
     {
-        if(mCmd != null)
-        {
-            mCmd.Release();
-            mCmd = null;
-        }
-
         if(mAfterImageRt != null)
         {
             RenderTexture.ReleaseTemporary(mAfterImageRt);
@@ -71,44 +55,9 @@ public class AfterImage : MonoBehaviour
 
         if(mAfterImageMat != null)
         {
-            Destroy(mAfterImageMat);
+            DestroyImmediate(mAfterImageMat);
             mAfterImageMat = null;
         }
-    }
-
-    private void RenderAfterImage(ScriptableRenderContext context, Camera camera)
-    {
-        //if (mAfterImageMat != null && mAfterImageRt != null && mCmd != null)
-        //{
-        //    //当前帧人物遮罩
-        //    context.ExecuteCommandBuffer(mCmd);
-
-        //    mFrameCount++;
-        //    if (mFrameCount >= AfterImageInterval)
-        //    {
-        //        mFrameCount -= AfterImageInterval;
-        //        mAfterImageMat.SetFloat(mID_IsWriteAfterImage, 1f);
-        //    }
-        //    else
-        //    {
-        //        mAfterImageMat.SetFloat(mID_IsWriteAfterImage, 0f);
-        //    }
-
-        //    //扣取当前帧人物
-        //    mAfterImageMat.SetTexture(mID_MaskTex, mMaskRt);
-        //    mAfterImageMat.SetFloat(mID_AfterImageRemoveSpeed, AfterImageRemoveSpeed);
-        //    Graphics.Blit(source, mAfterImageRt, mAfterImageMat, 1);
-
-        //    //当前帧和残影叠加
-        //    mAfterImageMat.SetTexture(mID_AfterImageRT, mAfterImageRt);
-        //    mAfterImageMat.SetFloat(mID_AfterImageIntensity, AfterImageIntensity);
-        //    mAfterImageMat.SetFloat(mID_BlurRadius, BlurRadius);
-        //    Graphics.Blit(source, destination, mAfterImageMat, 2);
-        //}
-        //else
-        //{
-        //    Graphics.Blit(source, destination);
-        //}
     }
 
     private void Init()
@@ -142,20 +91,51 @@ public class AfterImage : MonoBehaviour
                 mID_BlurRadius = Shader.PropertyToID("_BlurRadius");
             }
         }
+    }
 
-        if (mCmd == null)
+    public override void Render(ScriptableRenderContext context, CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetHandle dest, ref RenderingData renderingData)
+    {
+        cmd = CommandBufferPool.Get("AfterImage");
+        if (renderingData.cameraData.camera.cameraType == CameraType.Game && mAfterImageMat != null && mAfterImageRt != null)
         {
-            mCmd = new CommandBuffer();
-            mCmd.name = "AfterImage";
-            mCmd.SetRenderTarget(mMaskRt, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
-            mCmd.ClearRenderTarget(true, true, Color.clear);
-            if(meshRenderers != null && mAfterImageMat != null)
+            //当前帧人物遮罩
+            cmd.SetRenderTarget(mMaskRt, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+            cmd.ClearRenderTarget(true, true, Color.clear);
+            if (meshRenderers != null && mAfterImageMat != null)
             {
                 for (int i = 0; i < meshRenderers.Length; i++)
                 {
-                    mCmd.DrawRenderer(meshRenderers[i], mAfterImageMat, 0, 0);
+                    cmd.DrawRenderer(meshRenderers[i], mAfterImageMat, 0, 0);
                 }
             }
+
+            mFrameCount++;
+            if (mFrameCount >= AfterImageInterval)
+            {
+                mFrameCount -= AfterImageInterval;
+                mAfterImageMat.SetFloat(mID_IsWriteAfterImage, 1f);
+            }
+            else
+            {
+                mAfterImageMat.SetFloat(mID_IsWriteAfterImage, 0f);
+            }
+
+            //扣取当前帧人物
+            mAfterImageMat.SetTexture(mID_MaskTex, mMaskRt);
+            mAfterImageMat.SetFloat(mID_AfterImageRemoveSpeed, AfterImageRemoveSpeed);
+            cmd.Blit(source, mAfterImageRt, mAfterImageMat, 1);
+
+            //当前帧和残影叠加
+            mAfterImageMat.SetTexture(mID_AfterImageRT, mAfterImageRt);
+            mAfterImageMat.SetFloat(mID_AfterImageIntensity, AfterImageIntensity);
+            mAfterImageMat.SetFloat(mID_BlurRadius, BlurRadius);
+            cmd.Blit(source, dest.Identifier(), mAfterImageMat, 2);
         }
+        else
+        {
+            cmd.Blit(source, dest.Identifier());
+        }
+        context.ExecuteCommandBuffer(cmd);
+        CommandBufferPool.Release(cmd);
     }
 }
