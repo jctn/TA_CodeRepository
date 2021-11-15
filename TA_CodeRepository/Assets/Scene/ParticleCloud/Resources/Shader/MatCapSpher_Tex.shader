@@ -1,4 +1,4 @@
-﻿Shader "Unlit/MatCapSphere"
+﻿Shader "ParticleCloud/MatCapSpher_Tex"
 {
     Properties
     {

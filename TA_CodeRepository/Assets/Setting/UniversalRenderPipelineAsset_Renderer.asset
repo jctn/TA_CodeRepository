@@ -13,6 +13,19 @@ MonoBehaviour:
   m_Name: PostFXPassFeature
   m_EditorClassIdentifier: 
   m_Active: 1
+--- !u!114 &-4205172354079780217
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6b4ab64a264e1e642b694b4c0a70b557, type: 3}
+  m_Name: FlowOutLinePassFeatureS
+  m_EditorClassIdentifier: 
+  m_Active: 1
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -27,7 +40,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_RendererFeatures:
   - {fileID: -7747670531616425990}
-  m_RendererFeatureMap: fab73d4eb3be7a94
+  - {fileID: 8090664459216618823}
+  - {fileID: -4205172354079780217}
+  m_RendererFeatureMap: fab73d4eb3be7a9447057ca075d047708712c81f063aa4c5
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   shaders:
     blitPS: {fileID: 4800000, guid: c17132b1f77d20942aa75f8429c0f8bc, type: 3}
@@ -50,3 +65,22 @@ MonoBehaviour:
     failOperation: 0
     zFailOperation: 0
   m_ShadowTransparentReceive: 1
+--- !u!114 &8090664459216618823
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1bd2b32a1cd8f03468b52de7c4c9327c, type: 3}
+  m_Name: ParicleCloudFeature
+  m_EditorClassIdentifier: 
+  m_Active: 1
+  MSetting:
+    PassEvent: 450
+    CullCameraTag: MainCamera
+    MatCapSphereMesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+    LightMat: {fileID: 2100000, guid: 9a8877b3976ef8a4f809824a9246f3e1, type: 2}
+    EdgeMat: {fileID: 2100000, guid: d5c3a08d7bd8c264aae68387c6f24fbe, type: 2}
