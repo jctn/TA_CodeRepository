@@ -1,4 +1,4 @@
-﻿Shader "SaintSeiya2/Effect/FlowOutLineS/Blur"
+﻿Shader "Code Repository/Effect/FlowOutLineS/Blur"
 {
  
 	Properties

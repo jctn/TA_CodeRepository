@@ -143,7 +143,7 @@
                 float frenel = 1 - saturate(dot(viewdir, worldNor));
                 frenel = pow(frenel, _RimStrength);
 
-                float3 lightDirW = normalize(_LightDir);
+                float3 lightDirW = normalize(_LightDir.xyz);
                 float nDotL = saturate(dot(worldNor, lightDirW));
 
                 float3 halfDir = normalize(lightDirW + viewdir);

@@ -293,17 +293,17 @@ namespace FlowOutline
 
             if (mSolidShader == null)
             {
-                mSolidShader = Shader.Find("SaintSeiya2/Effect/FlowOutLineS/SolidColor");
+                mSolidShader = Shader.Find("Code Repository/Effect/FlowOutLineS/SolidColor");
             }
 
             if(mBlurShader == null)
             {
-                mBlurShader = Shader.Find("SaintSeiya2/Effect/FlowOutLineS/Blur");
+                mBlurShader = Shader.Find("Code Repository/Effect/FlowOutLineS/Blur");
             }
 
             if(mBillboardsShader == null)
             {
-                mBillboardsShader = Shader.Find("SaintSeiya2/Effect/FlowOutLineS/Billboard");
+                mBillboardsShader = Shader.Find("Code Repository/Effect/FlowOutLineS/Billboard");
             }
             UpdateMaskMat();
             UpdateSilhouetteMat();

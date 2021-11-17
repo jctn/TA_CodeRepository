@@ -1,4 +1,4 @@
-﻿Shader "SaintSeiya2/Effect/FlowOutLineS/Billboard"
+﻿Shader "Code Repository/Effect/FlowOutLineS/Billboard"
 {
     Properties
 	{

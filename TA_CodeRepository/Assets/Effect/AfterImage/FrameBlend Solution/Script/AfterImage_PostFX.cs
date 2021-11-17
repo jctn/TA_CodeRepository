@@ -79,7 +79,7 @@ public class AfterImage_PostFX : PostFXBase
 
         if (mAfterImageMat == null)
         {
-            Shader afterImageShader = Shader.Find("Hidden/AfterImage");
+            Shader afterImageShader = Shader.Find("Code Repository/Effect/AfterImage_BlendFrame");
             if (afterImageShader != null)
             {
                 mAfterImageMat = new Material(afterImageShader);

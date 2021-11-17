@@ -1,4 +1,4 @@
-﻿Shader "SaintSeiya2/Effect/FlowOutLineS/SolidColor"
+﻿Shader "Code Repository/Effect/FlowOutLineS/SolidColor"
 {
     Properties
 	{

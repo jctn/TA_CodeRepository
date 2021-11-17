@@ -50,7 +50,7 @@ public class ParticleCloud_Tex : MonoBehaviour
     {
         if(mMatCapSphereMat == null)
         {
-            mMatCapSphereMat = new Material(Shader.Find("ParticleCloud/MatCapSpher_Tex"));
+            mMatCapSphereMat = new Material(Shader.Find("Code Repository/ParticleCloud/MatCapSpher_Tex"));
         }
         IniteMatrix();
         RenderPipelineManager.beginFrameRendering += RenderMatCaps;

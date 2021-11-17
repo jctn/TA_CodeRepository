@@ -1,4 +1,4 @@
-﻿Shader "Hidden/AfterImage"
+﻿Shader "Code Repository/Effect/AfterImage_BlendFrame"
 {
     Properties
     {
