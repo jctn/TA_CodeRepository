@@ -2,7 +2,7 @@
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
-[ExecuteAlways]
+[ExecuteInEditMode]
 public abstract class PostFXBase : MonoBehaviour
 {
     public virtual void OnEnable()

@@ -95,10 +95,10 @@ public class AfterImage_PostFX : PostFXBase
 
     public override void Render(ScriptableRenderContext context, CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetHandle dest, ref RenderingData renderingData)
     {
-        cmd = CommandBufferPool.Get("AfterImage");
         if (renderingData.cameraData.camera.cameraType == CameraType.Game && mAfterImageMat != null && mAfterImageRt != null)
         {
             //当前帧人物遮罩
+            cmd.BeginSample("AfterImage");
             cmd.SetRenderTarget(mMaskRt, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
             cmd.ClearRenderTarget(true, true, Color.clear);
             if (meshRenderers != null && mAfterImageMat != null)
@@ -130,12 +130,11 @@ public class AfterImage_PostFX : PostFXBase
             mAfterImageMat.SetFloat(mID_AfterImageIntensity, AfterImageIntensity);
             mAfterImageMat.SetFloat(mID_BlurRadius, BlurRadius);
             cmd.Blit(source, dest.Identifier(), mAfterImageMat, 2);
+            cmd.EndSample("AfterImage");
         }
         else
         {
             cmd.Blit(source, dest.Identifier());
         }
-        context.ExecuteCommandBuffer(cmd);
-        CommandBufferPool.Release(cmd);
     }
 }
