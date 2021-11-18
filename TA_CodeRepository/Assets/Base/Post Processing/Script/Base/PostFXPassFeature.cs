@@ -22,6 +22,16 @@ public class PostFXPassFeature : ScriptableRendererFeature
             mSource = source;
         }
 
+        protected RenderTextureDescriptor GetDescriptor(RenderTextureDescriptor descriptor, int width, int height)
+        {
+            RenderTextureDescriptor desc = descriptor;
+            desc.msaaSamples = 1;
+            desc.depthBufferBits = 0;
+            desc.width = width;
+            desc.height = height;
+            return desc;
+        }
+
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
             
@@ -29,26 +39,12 @@ public class PostFXPassFeature : ScriptableRendererFeature
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            //if(PostFXManager.Instance.PostFXCount > 0)
-            //{
-            //    CommandBuffer cmd = CommandBufferPool.Get(CMDSTR);
-            //    cmd.BeginSample(CMDSTR);
-            //    cmd.GetTemporaryRT(mTemporaryColorTexture.id, renderingData.cameraData.cameraTargetDescriptor, FilterMode.Bilinear);
-            //    context.ExecuteCommandBuffer(cmd);
-            //    cmd.Clear();
-
-            //    PostFXManager.Instance.RenderPostFX(context, cmd, mSource, mTemporaryColorTexture, ref renderingData);
-
-            //    cmd.Blit(mTemporaryColorTexture.Identifier(), mSource);
-            //    cmd.EndSample(CMDSTR);
-            //    context.ExecuteCommandBuffer(cmd);
-            //    cmd.Clear();
-            //    CommandBufferPool.Release(cmd);
-            //}
             if (PostFXManager.Instance.PostFXCount > 0)
             {
                 CommandBuffer cmd = CommandBufferPool.Get(CMDSTR);
-                cmd.GetTemporaryRT(mTemporaryColorTexture.id, renderingData.cameraData.cameraTargetDescriptor, FilterMode.Bilinear);
+                RenderTextureDescriptor camDesc = renderingData.cameraData.cameraTargetDescriptor;
+                RenderTextureDescriptor desc = GetDescriptor(camDesc, camDesc.width, camDesc.height);
+                cmd.GetTemporaryRT(mTemporaryColorTexture.id, desc, FilterMode.Bilinear);
                 PostFXManager.Instance.RenderPostFX(context, cmd, mSource, mTemporaryColorTexture, ref renderingData);
                 cmd.Blit(mTemporaryColorTexture.Identifier(), mSource);
                 context.ExecuteCommandBuffer(cmd);
