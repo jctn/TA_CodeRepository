@@ -2,75 +2,79 @@ Shader "Code Repository/Post Processing/DepthOfField"
 {
 	Properties 
 	{
-		_BaseMap ("Example Texture", 2D) = "white" {}
-		_BaseColor ("Example Colour", Color) = (0, 0.66, 0.73, 1)
+		_MainTex("Source", 2D) = "white" {}
 	}
 	SubShader 
 	{
-		Tags 
-		{
-			"RenderPipeline"="UniversalPipeline"
-			"RenderType"="Opaque"
-			"Queue"="Geometry"
-		}
+		Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline"}
+		ZTest Always
+		ZWrite Off 
+		Cull Off
 
 		HLSLINCLUDE
-			#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+			#include "Common.hlsl"
 
-			CBUFFER_START(UnityPerMaterial)
-			float4 _BaseMap_ST;
-			float4 _BaseColor;
-			CBUFFER_END
+			float4 _MainTex_TexelSize;
+			float _BlurRange;
+
+			half4 BlurFragment (Varyings input) : SV_Target
+			{
+				half3 col = SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv).rgb;
+				half3 sum = half3(0, 0, 0);
+				sum += 0.4 * col;
+				sum += 0.2 * SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv + half2(1, 0) * _MainTex_TexelSize.xy * _BlurRange).rgb;
+				sum += 0.2 * SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv + half2(-1, 0) * _MainTex_TexelSize.xy * _BlurRange).rgb;
+				sum += 0.1 * SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv + half2(2, 0) * _MainTex_TexelSize.xy * _BlurRange).rgb;
+				sum += 0.1 * SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv + half2(-2, 0) * _MainTex_TexelSize.xy * _BlurRange).rgb;
+
+				sum += 0.4 * col;
+				sum += 0.2 * SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv + half2(0, 1) * _MainTex_TexelSize.xy * _BlurRange).rgb;
+				sum += 0.2 * SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv + half2(0, -1) * _MainTex_TexelSize.xy * _BlurRange).rgb;
+				sum += 0.1 * SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv + half2(0, 2) * _MainTex_TexelSize.xy * _BlurRange).rgb;
+				sum += 0.1 * SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv + half2(0, -2) * _MainTex_TexelSize.xy * _BlurRange).rgb;
+
+				sum /= 2;
+				return half4(sum, 1);
+			}
+
+			half4 MergeFragment (Varyings input) : SV_Target
+			{
+				half3 col = SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv).rgb;
+				half3 sum = half3(0, 0, 0);
+				sum += 0.4 * col;
+				sum += 0.2 * SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv + half2(1, 0) * _MainTex_TexelSize.xy * _BlurRange).rgb;
+				sum += 0.2 * SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv + half2(-1, 0) * _MainTex_TexelSize.xy * _BlurRange).rgb;
+				sum += 0.1 * SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv + half2(2, 0) * _MainTex_TexelSize.xy * _BlurRange).rgb;
+				sum += 0.1 * SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv + half2(-2, 0) * _MainTex_TexelSize.xy * _BlurRange).rgb;
+
+				sum += 0.4 * col;
+				sum += 0.2 * SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv + half2(0, 1) * _MainTex_TexelSize.xy * _BlurRange).rgb;
+				sum += 0.2 * SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv + half2(0, -1) * _MainTex_TexelSize.xy * _BlurRange).rgb;
+				sum += 0.1 * SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv + half2(0, 2) * _MainTex_TexelSize.xy * _BlurRange).rgb;
+				sum += 0.1 * SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv + half2(0, -2) * _MainTex_TexelSize.xy * _BlurRange).rgb;
+
+				sum /= 2;
+				return half4(sum, 1);
+			}
 		ENDHLSL
 
-		Pass {
-			Name "Unlit"
-			//Tags { "LightMode"="SRPDefaultUnlit" } // (is default anyway)
+		Pass 
+		{
+			Name "Blur"
 
 			HLSLPROGRAM
-			#pragma vertex UnlitPassVertex
-			#pragma fragment UnlitPassFragment
+				#pragma vertex Vert
+				#pragma fragment BlurFragment
+			ENDHLSL
+		}
 
-			// Structs
-			struct Attributes 
-			{
-				float4 positionOS	: POSITION;
-				float2 uv		    : TEXCOORD0;
-				float4 color		: COLOR;
-			};
+		Pass 
+		{
+			Name "Merge"
 
-			struct Varyings 
-			{
-				float4 positionCS 	: SV_POSITION;
-				float2 uv		    : TEXCOORD0;
-				float4 color		: COLOR;
-			};
-
-			// Textures, Samplers & Global Properties
-			TEXTURE2D(_BaseMap);
-			SAMPLER(sampler_BaseMap);
-
-			// Vertex Shader
-			Varyings UnlitPassVertex(Attributes IN) 
-			{
-				Varyings OUT;
-
-				VertexPositionInputs positionInputs = GetVertexPositionInputs(IN.positionOS.xyz);
-				OUT.positionCS = positionInputs.positionCS;
-				// Or :
-				//OUT.positionCS = TransformObjectToHClip(IN.positionOS.xyz);
-				OUT.uv = TRANSFORM_TEX(IN.uv, _BaseMap);
-				OUT.color = IN.color;
-				return OUT;
-			}
-
-			// Fragment Shader
-			half4 UnlitPassFragment(Varyings IN) : SV_Target 
-			{
-				half4 baseMap = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, IN.uv);
-
-				return baseMap * _BaseColor * IN.color;
-			}
+			HLSLPROGRAM
+				#pragma vertex Vert
+				#pragma fragment MergeFragment
 			ENDHLSL
 		}
 	}

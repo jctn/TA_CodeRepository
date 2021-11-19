@@ -654,9 +654,9 @@ MonoBehaviour:
   FocusDistance: 5
   Dof: 4
   SmoothRange: 0.5
-  BlurRange: 3
+  BlurRange: 1
   Iteration: 2
-  DownSample: 367
+  DownSample: 2
 --- !u!1 &1811099836
 GameObject:
   m_ObjectHideFlags: 0
