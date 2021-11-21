@@ -7,8 +7,11 @@ using UnityEngine.Rendering.Universal;
 [ExecuteInEditMode]
 public class DepthOfField : PostFXBase
 {
+    [Min(0f)]
     public float FocusDistance = 5f;
+    [Min(0f)]
     public float Dof = 4f;
+    [Min(0f)]
     public float SmoothRange = 0.5f;
 
     [Min(0)]
@@ -23,6 +26,9 @@ public class DepthOfField : PostFXBase
     Material mDofMat;
 
     int mID_BlurRange = Shader.PropertyToID("_BlurRange");
+    int mID_FocusDistance = Shader.PropertyToID("_FocusDistance");
+    int mID_Dof = Shader.PropertyToID("_Dof");
+    int mID_SmoothRange = Shader.PropertyToID("_SmoothRange");
 
     private void Start()
     {
@@ -40,6 +46,9 @@ public class DepthOfField : PostFXBase
         if(mDofMat != null)
         {
             mDofMat.SetFloat(mID_BlurRange, BlurRange);
+            mDofMat.SetFloat(mID_FocusDistance, FocusDistance);
+            mDofMat.SetFloat(mID_Dof, Dof);
+            mDofMat.SetFloat(mID_SmoothRange, Mathf.Max(SmoothRange, 0.001f));
 
             cmd.BeginSample("Dof");
             int w = Mathf.Max(1, renderingData.cameraData.cameraTargetDescriptor.width / DownSample);
@@ -82,7 +91,7 @@ public class DepthOfField : PostFXBase
             cmd.EndSample("Blur");
 
             cmd.BeginSample("Merge");
-            cmd.Blit(source, dest.id);
+            cmd.Blit(source, dest.id, mDofMat, 1);
             cmd.ReleaseTemporaryRT(RT1.id);
             cmd.EndSample("Merge");
 
