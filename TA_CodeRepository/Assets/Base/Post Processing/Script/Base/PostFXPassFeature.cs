@@ -68,7 +68,10 @@ public class PostFXPassFeature : ScriptableRendererFeature
 
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
-        mPostFXPass.Setup(renderer.cameraColorTarget);
-        renderer.EnqueuePass(mPostFXPass);
+        if(renderingData.cameraData.camera.cameraType == CameraType.Game)
+        {
+            mPostFXPass.Setup(renderer.cameraColorTarget);
+            renderer.EnqueuePass(mPostFXPass);
+        }
     }
 }

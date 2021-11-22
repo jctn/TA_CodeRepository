@@ -16,7 +16,7 @@ public class DepthOfField : PostFXBase
 
     [Min(0)]
     public float BlurRange = 3f;
-    [Min(0)]
+    [Range(0, 4)]
     public int Iteration = 2;
     [Min(1)]
     public int DownSample = 2;

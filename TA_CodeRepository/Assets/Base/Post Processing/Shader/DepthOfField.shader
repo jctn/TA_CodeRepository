@@ -47,7 +47,7 @@ Shader "Code Repository/Post Processing/DepthOfField"
 			half4 MergeFragment (Varyings input) : SV_Target
 			{
 				float depth = SAMPLE_TEXTURE2D(_CameraDepthTexture, sampler_LinearClamp, input.uv).x;
-				depth = Linear01Depth(depth, _ZBufferParams) * _ProjectionParams.z;
+				depth = LinearEyeDepth(depth, _ZBufferParams);
 				float near = _FocusDistance - _Dof / 2;
 				float far = _FocusDistance + _Dof / 2;
 				float lerpFactor = 0;
