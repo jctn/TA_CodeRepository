@@ -1,4 +1,4 @@
-Shader "Code Repository/Scene/Planar Shadow" 
+Shader "Code Repository/Scene/Planar Shadow_Point" 
 {
 	Properties 
 	{
@@ -104,12 +104,16 @@ Shader "Code Repository/Scene/Planar Shadow"
 			{
 				Varyings OUT;
 				float3 planarNormal = _PlaneNormal;
-				float ndotl = dot(planarNormal, _MainLightPosition.xyz);
-				float3x4 M =  float3x4(1 - planarNormal.x * _MainLightPosition.x / ndotl, -planarNormal.y * _MainLightPosition.x / ndotl, -planarNormal.z * _MainLightPosition.x / ndotl, -_PlaneDTerm * _MainLightPosition.x / ndotl,
-								-planarNormal.x * _MainLightPosition.y / ndotl, 1 - planarNormal.y * _MainLightPosition.y / ndotl, -planarNormal.z * _MainLightPosition.y / ndotl, -_PlaneDTerm * _MainLightPosition.y / ndotl,
-								-planarNormal.x * _MainLightPosition.z / ndotl, -planarNormal.y * _MainLightPosition.z / ndotl, 1 - planarNormal.z * _MainLightPosition.z / ndotl, -_PlaneDTerm * _MainLightPosition.z / ndotl);
+				float3 sourcePos = _AdditionalLightsPosition[0].xyz;
+				float ndots = dot(planarNormal, sourcePos);
+				//https://zhuanlan.zhihu.com/p/94555744
+				float4x4 M =  float4x4(ndots + _PlaneDTerm - planarNormal.x * sourcePos.x, -planarNormal.y * sourcePos.x, -planarNormal.z * sourcePos.x, -_PlaneDTerm*sourcePos.x,
+										-planarNormal.x * sourcePos.y, ndots + _PlaneDTerm - planarNormal.y * sourcePos.y, -planarNormal.x * sourcePos.y, -_PlaneDTerm*sourcePos.y,
+										-planarNormal.x * sourcePos.z, -planarNormal.y * sourcePos.z, ndots + _PlaneDTerm - planarNormal.z * sourcePos.z, -_PlaneDTerm*sourcePos.z,
+										-planarNormal.x, -planarNormal.y, -planarNormal.z, ndots);
 				float4 posW = float4(TransformObjectToWorld(IN.positionOS.xyz), 1);
-				OUT.positionCS = TransformWorldToHClip(mul(M, posW).xyz);
+				float4 shadowPosW = mul(M, posW);
+				OUT.positionCS = TransformWorldToHClip(shadowPosW.xyz / shadowPosW.w);
 				return OUT;
 			}
 

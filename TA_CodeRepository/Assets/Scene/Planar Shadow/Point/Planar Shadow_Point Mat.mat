@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Planar Shadow Mat
-  m_Shader: {fileID: 4800000, guid: 347c4964590e63a4fbfe758f6a420932, type: 3}
+  m_Name: Planar Shadow_Point Mat
+  m_Shader: {fileID: 4800000, guid: d584e5831c0687e4e9c50ac23e38ac88, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -71,11 +71,11 @@ Material:
     - _WorkflowMode: 1
     - _ZWrite: 1
     m_Colors:
-    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+    - _BaseColor: {r: 0.042452812, g: 0.7441918, b: 1, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _PlaneNormal: {r: 0, g: 1, b: 0, a: 1}
-    - _ShadowColor: {r: 0.09999997, g: 0.09999997, b: 0.09999997, a: 1}
+    - _ShadowColor: {r: 0, g: 0, b: 0, a: 1}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
 --- !u!114 &383852981992572011
 MonoBehaviour:
