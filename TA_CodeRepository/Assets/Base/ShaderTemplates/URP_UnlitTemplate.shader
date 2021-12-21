@@ -29,7 +29,16 @@ Shader "Custom/URP_Unlit"
 		Pass {
 			Name "Unlit"
 			//Tags { "LightMode"="SRPDefaultUnlit" } // (is default anyway)
-
+			//Stencil
+			//{
+			//	Ref referenceValue //参考值
+			//	ReadMask  readMask  //读取掩码，取值范围也是0-255的整数，默认值为255，二进制位11111111，即读取的时候不对referenceValue和stencilBufferValue产生效果，读取的还是原始值,(ref & readMask) comparisonFunction (stencilBufferValue & readMask)
+			//	WriteMask writeMask  //输出掩码，当写入模板缓冲时进行掩码操作（按位与【&】），writeMask取值范围是0-255的整数，默认值也是255，即当修改stencilBufferValue值时，写入的仍然是原始值
+			//	Comp comparisonFunction  //条件，关键字有，Greater（>），GEqual（>=），Less（<），LEqual（<=），Equal（=），NotEqual（!=），Always（总是满足），Never（总是不满足）
+			//	Pass stencilOperation  //条件满足后的处理，Keep，Invert
+			//	Fail stencilOperation  //条件不满足后的处理
+			//	ZFail stencilOperation  //深度测试失败后的处理
+			//}
 			HLSLPROGRAM
 			#pragma vertex UnlitPassVertex
 			#pragma fragment UnlitPassFragment
