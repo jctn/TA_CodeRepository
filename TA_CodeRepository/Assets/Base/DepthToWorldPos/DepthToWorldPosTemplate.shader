@@ -44,8 +44,10 @@ Shader "Code Repository/Base/DepthToWorldPosTemplate"
 				return worldPos.xyz;
 			}
 
+			
 			//屏幕射线插值方式(https://blog.csdn.net/puppet_master/article/details/77489948),效率比逆矩阵好
 
+			//https://zhuanlan.zhihu.com/p/92315967
 		ENDHLSL
 
 		Pass {
