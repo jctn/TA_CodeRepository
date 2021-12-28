@@ -5,8 +5,8 @@ Shader "Custom/URP_Unlit"
 {
 	Properties 
 	{
-		_BaseMap ("Example Texture", 2D) = "white" {}
-		_BaseColor ("Example Colour", Color) = (0, 0.66, 0.73, 1)
+		_BaseMap ("BaseMap", 2D) = "white" {}
+		_BaseColor ("BaseColor", Color) = (1, 1, 1, 1)
 	}
 	SubShader 
 	{
