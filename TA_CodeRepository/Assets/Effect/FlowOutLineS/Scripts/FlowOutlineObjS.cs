@@ -29,19 +29,12 @@ namespace FlowOutline
         public bool ShowOutline = false;
 
         [Header("模糊参数")]
-        //剪影RT降采样
-        [Range(0, 5)]
-        public int SilhouetteDownSample = 3;
         [Range(0f, 5f)]
         public float BlurRadiusX = 1.6f;
         [Range(0f, 5f)]
         public float BlurRadiusY = 1.6f;
         [Header("y方向只向上方模糊")]
         public bool IsUPBlur = true;
-        //迭代次数
-        [Header("模糊迭代次数")]
-        [Range(0f, 5f)]
-        public int Iteration = 1;
 
         [Header("扭曲参数")]
         //模糊步长
@@ -91,33 +84,6 @@ namespace FlowOutline
             }
         }
 
-        private Material mSilhouetteMat;
-        public Material SilhouetteMat
-        {
-            get
-            {
-                return mSilhouetteMat;
-            }
-        }
-
-        private Material mBlurMat;
-        public Material BlurMat
-        {
-            get
-            {
-                return mBlurMat;
-            }
-        }
-
-        private RenderTexture mSilhouetteTex;
-        public RenderTexture SilhouetteTex
-        {
-            get
-            {
-                return mSilhouetteTex;
-            }
-        }
-
         private Material mBillboardsMat;
         public Material BillboardsMat
         {
@@ -144,11 +110,9 @@ namespace FlowOutline
         private static int mID_SolidZTest = Shader.PropertyToID("_ZTest");
         private static int mID_SolidZWrite = Shader.PropertyToID("_ZWrite");
         private static int mID_SolidColorMask = Shader.PropertyToID("_ColorMask");
-        private static int mID_SolidColorHDRFactor = Shader.PropertyToID("_SolidColorHDRFactor");
         private static int mID_DistortTimeFactor = Shader.PropertyToID("_DistortTimeFactor");
         private static int mID_DistortFactor = Shader.PropertyToID("_DistortFactor");
         private static int mID_DistortNoiseTilingAndOffset = Shader.PropertyToID("_NoiseTex_TO");
-        private static int mID_SilhouetteTex = Shader.PropertyToID("_SilhouetteTex");
         private static int mID_NoiseTex = Shader.PropertyToID("_NoiseTex");
         private static int mID_MsakTexMask = Shader.PropertyToID("_MsakTexMask");
         private static int mID_BillboardSize = Shader.PropertyToID("_BillboardSize");
@@ -156,13 +120,14 @@ namespace FlowOutline
         //private static int mID_BillboardDstBlend = Shader.PropertyToID("_BillboardDstBlend");
         private static int mID_BillboardZTest = Shader.PropertyToID("_BillboardZTest");
         private static int mID_AlphaFactor = Shader.PropertyToID("_AlphaFactor");
+        private static int mID_FlowOutLineColor = Shader.PropertyToID("_FlowOutLineColor");
+        private static int mID_ColorHDRFactor = Shader.PropertyToID("_ColorHDRFactor");
 
         private Transform p;
         //[HideInInspector]
         //public bool ForceUnRegistered;
         private int mIndex;
         private Shader mSolidShader;
-        private Shader mBlurShader;
         private Shader mBillboardsShader;
         private Vector4 mMsakTexMask;
         private GameObject mBillboardGO;
@@ -280,7 +245,6 @@ namespace FlowOutline
         {
             if(mRegistered)
             {
-                UpdateSilhouetteTex();
                 UpdateMats();
                 UpdateBillboard();
             }     
@@ -296,18 +260,11 @@ namespace FlowOutline
                 mSolidShader = Shader.Find("Code Repository/Effect/FlowOutLineS/SolidColor");
             }
 
-            if(mBlurShader == null)
-            {
-                mBlurShader = Shader.Find("Code Repository/Effect/FlowOutLineS/Blur");
-            }
-
             if(mBillboardsShader == null)
             {
                 mBillboardsShader = Shader.Find("Code Repository/Effect/FlowOutLineS/Billboard");
             }
             UpdateMaskMat();
-            UpdateSilhouetteMat();
-            UpdateBlurMat();
             UpdateBillboardsMat();
         }
 
@@ -345,38 +302,6 @@ namespace FlowOutline
             }
         }
 
-        private void UpdateSilhouetteMat()
-        {
-            if(mSilhouetteMat == null && mSolidShader != null)
-            {
-                mSilhouetteMat = new Material(mSolidShader);
-                mSilhouetteMat.SetFloat("_ZTest", (float)CompareFunction.Disabled);
-                mSilhouetteMat.SetFloat("_ZWrite", 0f);
-                mSilhouetteMat.SetFloat("_ColorMask", (float)ColorWriteMask.All);
-            }
-
-            if(mSilhouetteMat != null)
-            {
-                Color tempColor = OutLineColor;
-                if(OpenBreathing)
-                {
-                    float a = Mathf.Sin(2 * Mathf.PI * BreathingFrequency * (Time.time - mActiveTime));
-                    a = a * 0.5f + 0.5f;
-                    tempColor.a *= a;
-                }
-                mSilhouetteMat.SetColor(mID_SolidColor, tempColor);
-                mSilhouetteMat.SetFloat(mID_SolidColorHDRFactor, OutLineColorHDRFactor);
-            }
-        }
-
-        private void UpdateBlurMat()
-        {
-            if(mBlurMat == null && mBlurShader != null)
-            {
-                mBlurMat = new Material(mBlurShader);
-            }
-        }
-
         public void UpdateBillboardsMat()
         {
             if(mBillboardsMat == null && mBillboardsShader != null)
@@ -386,7 +311,16 @@ namespace FlowOutline
             
             if(mBillboardsMat != null)
             {
-                mBillboardsMat.SetTexture(mID_SilhouetteTex, mSilhouetteTex);
+                Color tempColor = OutLineColor;
+                if (OpenBreathing)
+                {
+                    float a = Mathf.Sin(2 * Mathf.PI * BreathingFrequency * (Time.time - mActiveTime));
+                    a = a * 0.5f + 0.5f;
+                    tempColor.a *= a;
+                }
+
+                mBillboardsMat.SetColor(mID_FlowOutLineColor, tempColor);
+                mBillboardsMat.SetFloat(mID_ColorHDRFactor, OutLineColorHDRFactor);
                 mBillboardsMat.SetVector(mID_MsakTexMask, mMsakTexMask);
                 mBillboardsMat.SetFloat(mID_DistortTimeFactor, DistortTimeFactor);
                 mBillboardsMat.SetVector(mID_DistortFactor, new Vector4(DistortRangeX, DistortRangeY, DistortStrengthX, DistortStrengthy));
@@ -398,20 +332,6 @@ namespace FlowOutline
                 mBillboardsMat.SetFloat(mID_BillboardZTest, (float)BillboardZTest);
                 mBillboardsMat.SetFloat(mID_AlphaFactor, ColorIntensity);
                 mBillboardsMat.renderQueue = BillboardRenderQueue;
-            }
-        }
-
-        private void UpdateSilhouetteTex()
-        {
-            int w = Screen.width >> SilhouetteDownSample;
-            int h = Screen.height >> SilhouetteDownSample;
-            if (mSilhouetteTex == null || mSilhouetteTex.width != w || mSilhouetteTex.height != h)
-            {
-                if(mSilhouetteTex != null)
-                {
-                    RenderTexture.ReleaseTemporary(mSilhouetteTex);
-                }
-                mSilhouetteTex = RenderTexture.GetTemporary(w, h, 0, RenderTextureFormat.ARGBHalf);
             }
         }
 
@@ -447,23 +367,14 @@ namespace FlowOutline
             FlowOutlineMgrS.Instance.UnRegisterFlowOutlineObj(p);
             DestroyObj(mBillboardGO);
             mBillboardGO = null;
-            if(mSilhouetteTex != null)
-            {
-                RenderTexture.ReleaseTemporary(mSilhouetteTex);
-                mSilhouetteTex = null;
-            }
         }
 
         private void OnDestroy()
         {
             DestroyObj(mMaskMat);
-            DestroyObj(mSilhouetteMat);
-            DestroyObj(mBlurMat);
             DestroyObj(mBillboardsMat);
 
             mMaskMat = null;
-            mSilhouetteMat = null;
-            mBlurMat = null;
             mBillboardsMat = null;
         }
 

@@ -26,6 +26,10 @@ MonoBehaviour:
   m_Name: FlowOutLinePassFeatureS
   m_EditorClassIdentifier: 
   m_Active: 1
+  MSetting:
+    BlurMat: {fileID: 2100000, guid: 648eb6a4b255ea142ad05d9f43acd1b0, type: 2}
+    BlurDownSample: 3
+    Iteration: 2
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0

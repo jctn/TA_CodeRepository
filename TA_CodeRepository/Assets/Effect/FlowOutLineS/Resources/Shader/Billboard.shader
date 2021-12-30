@@ -2,8 +2,9 @@
 {
     Properties
 	{
+		_FlowOutLineColor("FlowOutLineColor", Color) = (1, 1, 1, 1)
+        _ColorHDRFactor("ColorHDR模拟", Float) = 0		
         _NoiseTex("_NoiseTex", 2D) = "white" {}
-        _SilhouetteTex("_SilhouetteTex", 2D) = "white" {}
         _DistortFactor("xy=Range, zw=strength", Vector) = (0, 1, 0, 1)
         _DistortTimeFactor("_DistortTimeFactor", Float) = 1
         _MsakTexMask("_MsakTexMask", Vector) = (0, 0, 0, 0)
@@ -44,8 +45,8 @@
                 float2 uv1 : TEXCOORD1;
             };
 
-			TEXTURE2D(_SilhouetteTex);            
-			SAMPLER(sampler_SilhouetteTex);
+			TEXTURE2D(_TemporaryRT0);            
+			SAMPLER(sampler_TemporaryRT0);
 
 			TEXTURE2D(_MaskTex);            
 			SAMPLER(sampler_MaskTex);
@@ -54,6 +55,8 @@
 			SAMPLER(sampler_NoiseTex);
 
 			CBUFFER_START(UnityPerMaterial)
+			half4 _FlowOutLineColor;
+			float _ColorHDRFactor;
             float4 _DistortFactor;
             float _DistortTimeFactor;
             float4 _NoiseTex_TO;
@@ -72,7 +75,7 @@
 				return o;
             }
 
-            float4 frag (v2f i) : SV_Target
+            half4 frag (v2f i) : SV_Target
             {
                 float2 screenUV = i.uv.xy / i.uv.w;
                 //float2 newUV = screenUV * _NoiseTex_TO.xy + _NoiseTex_TO.zw;
@@ -84,11 +87,13 @@
 				uv.xy -= noise;
 				uv.xy = lerp(screenUV, uv, _DistortFactor.zw);
 
-                float4 maskColor = SAMPLE_TEXTURE2D(_MaskTex, sampler_MaskTex, screenUV);
-                float4 distortColor = SAMPLE_TEXTURE2D(_SilhouetteTex, sampler_SilhouetteTex, uv);
-                float maskValue = dot(maskColor, _MsakTexMask);
+                half4 maskColor = SAMPLE_TEXTURE2D(_MaskTex, sampler_MaskTex, screenUV);
+                half4 blurColor = SAMPLE_TEXTURE2D(_TemporaryRT0, sampler_TemporaryRT0, uv);
+                half maskValue = dot(maskColor, _MsakTexMask);
+				half outlineValue = dot(blurColor, _MsakTexMask);
+				half4 outlineColor = half4(_FlowOutLineColor.rgb * pow(2, _ColorHDRFactor), _FlowOutLineColor.a) * outlineValue;
                 //return distortColor * step(maskValue, 0);
-                half4 c = distortColor * step(maskValue, 0);
+                half4 c = outlineColor * step(maskValue, 0);
                 c.a = clamp(0, 1, c.a * _AlphaFactor);
                 return c;
             }

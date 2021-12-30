@@ -36,7 +36,6 @@ namespace FlowOutline
                 return FlowOutlineObjs != null && FlowOutlineObjs.Count > 0;
             }
         }
-        public int BlurDownSample = 3;
 
         private const int MAX_ROLE_COUNT = 4;
 
