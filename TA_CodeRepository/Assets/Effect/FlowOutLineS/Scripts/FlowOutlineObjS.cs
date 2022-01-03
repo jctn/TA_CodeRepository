@@ -14,7 +14,7 @@ namespace FlowOutline
         public bool IsSkinedRender = true;
 
         [Header("颜色")]
-        [ColorUsage(true, false)]
+        [ColorUsage(true, true)]
         public Color OutLineColor = Color.white;
         [Range(0f, 10f)]
         public float OutLineColorHDRFactor = 0f;

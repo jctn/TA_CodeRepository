@@ -54,7 +54,7 @@ namespace FlowOutline
                 //mask，mask需要高精度，而Silhouette分辨率不能太高，因为数量可能大，所以不能用Silhouette做mask
                 int maskDown = 0;
                 cmb.BeginSample("Render Mask");
-                cmb.GetTemporaryRT(mMaskTexture.id, scW >> maskDown, scH >> maskDown, 0, FilterMode.Bilinear, RenderTextureFormat.ARGB32);
+                cmb.GetTemporaryRT(mMaskTexture.id, scW >> maskDown, scH >> maskDown, 0, FilterMode.Bilinear, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
                 RenderMask(cmb);
                 cmb.EndSample("Render Mask");
 
@@ -77,8 +77,8 @@ namespace FlowOutline
 
                 int w = scW >> mSetting.BlurDownSample;
                 int h = scH >> mSetting.BlurDownSample;
-                cmb.GetTemporaryRT(mTemporaryColorTexture0.id, w, h, 0, FilterMode.Bilinear, RenderTextureFormat.ARGBHalf);
-                cmb.GetTemporaryRT(mTemporaryColorTexture1.id, w, h, 0, FilterMode.Bilinear, RenderTextureFormat.ARGBHalf);
+                cmb.GetTemporaryRT(mTemporaryColorTexture0.id, w, h, 0, FilterMode.Bilinear, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
+                cmb.GetTemporaryRT(mTemporaryColorTexture1.id, w, h, 0, FilterMode.Bilinear, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
                 cmb.Blit(mMaskTexture.id, mTemporaryColorTexture0.id);
                 cmb.SetGlobalMatrix(mID_BlurParams, blurParams);
                 for (int j = 0; j < mSetting.Iteration; j++)

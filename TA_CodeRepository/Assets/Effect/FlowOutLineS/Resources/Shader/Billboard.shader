@@ -2,7 +2,7 @@
 {
     Properties
 	{
-		_FlowOutLineColor("FlowOutLineColor", Color) = (1, 1, 1, 1)
+		[HDR]_FlowOutLineColor("FlowOutLineColor", Color) = (1, 1, 1, 1)
         _ColorHDRFactor("ColorHDR模拟", Float) = 0		
         _NoiseTex("_NoiseTex", 2D) = "white" {}
         _DistortFactor("xy=Range, zw=strength", Vector) = (0, 1, 0, 1)
