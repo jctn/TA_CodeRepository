@@ -47,7 +47,7 @@ namespace FlowOutline
                 //mask，mask需要高精度，而Silhouette分辨率不能太高，因为数量可能大，所以不能用Silhouette做mask
                 int maskDown = 0;
                 cmb.BeginSample("Render Mask");
-                cmb.GetTemporaryRT(mMaskTexture.id, scW >> maskDown, scH >> maskDown, 0, FilterMode.Bilinear, RenderTextureFormat.ARGB32);
+                cmb.GetTemporaryRT(mMaskTexture.id, scW >> maskDown, scH >> maskDown, 0, FilterMode.Bilinear, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
                 RenderMask(cmb);
                 cmb.EndSample("Render Mask");
 
