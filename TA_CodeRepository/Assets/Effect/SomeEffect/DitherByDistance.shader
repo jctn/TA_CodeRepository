@@ -72,6 +72,10 @@ Shader "Code Repository/Effect/DitherByDistance"
 			{
 				float2 screenPos = (IN.posSS.xy / IN.posSS.w) * _ScreenParams.xy;
 
+				//dither0
+				//float dither = frac((sin(IN.posWS.x + IN.posWS.y) * 99 + 11) * 99);
+				//return dither;
+
 				//dither1
 				//float dither = InterleavedGradientNoise(screenPos, 0);
 
