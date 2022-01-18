@@ -48,7 +48,7 @@ MonoBehaviour:
   rwTexture:
     name: Noise3D3
     rt: {fileID: 0}
-  squareResolution: 256
+  squareResolution: 128
   parameters:
   - name: Tex3D3Res
     value: 256
