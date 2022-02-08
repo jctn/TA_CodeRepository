@@ -98,7 +98,10 @@ Shader "Code Repository/Scene/Planar Shadow_Dir"
 				Pass IncrSat 
 			}
 
-			Offset -1 , 0
+			//https://docs.unity3d.com/Manual/SL-Offset.html
+			//https://blog.csdn.net/linjf520/article/details/94596764
+			//https://www.opengl.org/archives/resources/faq/technical/polygonoffset.htm
+			Offset -1 , -1
 
 			HLSLPROGRAM
 			#pragma vertex Vertex
