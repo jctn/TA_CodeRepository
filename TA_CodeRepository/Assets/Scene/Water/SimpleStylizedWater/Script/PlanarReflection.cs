@@ -4,12 +4,16 @@ using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering;
 
-[ExecuteInEditMode]
+//TODO：rt格式，斜截视锥体，非运行模式相机正确创建，模糊
+//[ExecuteInEditMode]
 public class PlanarReflection : MonoBehaviour
 {
-    private Camera reflectionCamera = null;
-    private RenderTexture reflectionRT = null;
-    private Material reflectionMaterial = null;
+    public int ReflectionTextureDown = 1;
+
+    private Camera mReflectionCamera = null;
+    private RenderTexture mReflectionRT = null;
+    private Renderer mPlaneRender;
+    private int mID_ReflectionTex = Shader.PropertyToID("_ReflectionTex");
 
     private void OnEnable()
     {
@@ -18,76 +22,102 @@ public class PlanarReflection : MonoBehaviour
 
     private void OnDisable()
     {
-        RenderPipelineManager.endCameraRendering -= RenderPipelineManager_beginCameraRendering;
+        RenderPipelineManager.beginCameraRendering -= RenderPipelineManager_beginCameraRendering;
     }
+
+    private void OnDestroy()
+    {
+        if (mReflectionRT != null)
+        {
+            RenderTexture.ReleaseTemporary(mReflectionRT);
+            mReflectionRT = null;
+        }
+
+        if (mReflectionCamera != null)
+        {
+            Destroy(mReflectionCamera);
+            mReflectionCamera = null;
+        }
+    }
+
 
     private void RenderPipelineManager_beginCameraRendering(ScriptableRenderContext arg1, Camera arg2)
     {
-        if(arg2 == Camera.main)
+        if (arg2 == Camera.main)
         {
-            RenderReflection(arg1);
+            RenderReflection(arg1, arg2);
         }
     }
 
-    private void RenderReflection(ScriptableRenderContext context)
+    private void RenderReflection(ScriptableRenderContext context, Camera cam)
     {
-        if (reflectionCamera == null)
+        if (mReflectionCamera == null)
         {
-            var go = new GameObject("Reflection Camera");
-            reflectionCamera = go.AddComponent<Camera>();
-            reflectionCamera.CopyFrom(Camera.main);
+            GameObject go = new GameObject("Reflection Camera");
+            go.transform.SetParent(transform);
+            mReflectionCamera = go.AddComponent<Camera>();
+            mReflectionCamera.CopyFrom(cam);
+            mReflectionCamera.enabled = false;
         }
-        if (reflectionRT == null)
-        {
-            reflectionRT = RenderTexture.GetTemporary(1024, 1024, 24);
-        }
-        //需要实时同步相机的参数，比如编辑器下滚动滚轮，Editor相机的远近裁剪面就会变化
-        UpdateCamearaParams(Camera.main, reflectionCamera);
-        reflectionCamera.targetTexture = reflectionRT;
-        reflectionCamera.enabled = false;
 
-        //根据上文平面定义，需要平面法向量和平面上任意点，此处使用transform.up为法向量，transform.position为平面上的点
-        //即需要保证平面模型的原点在平面上，否则可以尝试增加offset偏移
+        int w = Screen.width / ReflectionTextureDown;
+        int h = Screen.height / ReflectionTextureDown;
+        if (mReflectionRT == null || mReflectionRT.width != w || mReflectionRT.height != h)
+        {
+            if(mReflectionRT != null)
+            {
+                RenderTexture.ReleaseTemporary(mReflectionRT);
+            }
+            mReflectionRT = RenderTexture.GetTemporary(w, h, 24);
+            mReflectionRT.name = "ReflectionTexture" + transform.name;
+            mReflectionCamera.targetTexture = mReflectionRT;
+
+            if (mPlaneRender == null) mPlaneRender = GetComponent<Renderer>();
+            if (mPlaneRender != null)
+            {
+                MaterialPropertyBlock mpb = new MaterialPropertyBlock();
+                mPlaneRender.GetPropertyBlock(mpb);
+                mpb.SetTexture(mID_ReflectionTex, mReflectionRT);
+                mPlaneRender.SetPropertyBlock(mpb);
+            }
+        }
+        UpdateCamearaParams(cam, mReflectionCamera);
         var reflectM = CaculateReflectMatrix(transform.up, transform.position);
-
-        reflectionCamera.worldToCameraMatrix = Camera.main.worldToCameraMatrix * reflectM;
-
-        //需要将背面裁剪反过来，因为仅改变了顶点，没有改变法向量，绕序反向，裁剪会不对
+        mReflectionCamera.worldToCameraMatrix = cam.worldToCameraMatrix * reflectM;
+        mReflectionCamera.transform.position = reflectM.MultiplyPoint(cam.transform.position);
+        //绕序反向，故裁剪反向
         GL.invertCulling = true;
-        UniversalRenderPipeline.RenderSingleCamera(context, reflectionCamera);
+        UniversalRenderPipeline.RenderSingleCamera(context, mReflectionCamera);
         GL.invertCulling = false;
-
-        if (reflectionMaterial == null)
-        {
-            var renderer = GetComponent<Renderer>();
-            reflectionMaterial = renderer.sharedMaterial;
-        }
-        reflectionMaterial.SetTexture("_ReflectionTex", reflectionRT);
     }
 
+    //https://zhuanlan.zhihu.com/p/92633614
     Matrix4x4 CaculateReflectMatrix(Vector3 normal, Vector3 positionOnPlane)
     {
         var d = -Vector3.Dot(normal, positionOnPlane);
-        var reflectM = new Matrix4x4();
-        reflectM.m00 = 1 - 2 * normal.x * normal.x;
-        reflectM.m01 = -2 * normal.x * normal.y;
-        reflectM.m02 = -2 * normal.x * normal.z;
+        var reflectM = Matrix4x4.identity;
+
+        var x2 = 2 * normal.x * normal.x;
+        var y2 = 2 * normal.y * normal.y;
+        var z2 = 2 * normal.z * normal.z;
+        var xy2 = -2 * normal.x * normal.y;
+        var xz2 = -2 * normal.x * normal.z;
+        var yz2 = -2 * normal.y * normal.z;
+
+        reflectM.m00 = 1 - x2;
+        reflectM.m11 = 1 - y2;
+        reflectM.m22 = 1 - z2;
+
+        reflectM.m01 = xy2;
+        reflectM.m02 = xz2;
+        reflectM.m10 = xy2;
+        reflectM.m12 = yz2;
+        reflectM.m20 = xz2;
+        reflectM.m21 = yz2;
+
         reflectM.m03 = -2 * d * normal.x;
-
-        reflectM.m10 = -2 * normal.x * normal.y;
-        reflectM.m11 = 1 - 2 * normal.y * normal.y;
-        reflectM.m12 = -2 * normal.y * normal.z;
         reflectM.m13 = -2 * d * normal.y;
-
-        reflectM.m20 = -2 * normal.x * normal.z;
-        reflectM.m21 = -2 * normal.y * normal.z;
-        reflectM.m22 = 1 - 2 * normal.z * normal.z;
         reflectM.m23 = -2 * d * normal.z;
-
-        reflectM.m30 = 0;
-        reflectM.m31 = 0;
-        reflectM.m32 = 0;
-        reflectM.m33 = 1;
         return reflectM;
     }
 
@@ -100,9 +130,9 @@ public class PlanarReflection : MonoBehaviour
         destCamera.backgroundColor = srcCamera.backgroundColor;
         destCamera.farClipPlane = srcCamera.farClipPlane;
         destCamera.nearClipPlane = srcCamera.nearClipPlane;
-        destCamera.orthographic = srcCamera.orthographic;
         destCamera.fieldOfView = srcCamera.fieldOfView;
         destCamera.aspect = srcCamera.aspect;
+        destCamera.orthographic = srcCamera.orthographic;
         destCamera.orthographicSize = srcCamera.orthographicSize;
 
         UniversalAdditionalCameraData destAdditionalData = destCamera.GetUniversalAdditionalCameraData();
