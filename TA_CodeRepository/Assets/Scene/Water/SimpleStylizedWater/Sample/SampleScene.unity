@@ -290,13 +290,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1450702188}
-  m_LocalRotation: {x: 0.102060795, y: -0, z: -0, w: 0.9947782}
-  m_LocalPosition: {x: 0, y: 2.7, z: -10}
+  m_LocalRotation: {x: 0.2011301, y: -0, z: -0, w: 0.97956455}
+  m_LocalPosition: {x: 0, y: 5.98, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 11.716001, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 23.206001, y: 0, z: 0}
 --- !u!114 &1450702192
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -338,8 +338,8 @@ GameObject:
   m_Component:
   - component: {fileID: 1585196339}
   - component: {fileID: 1585196338}
-  - component: {fileID: 1585196337}
   - component: {fileID: 1585196335}
+  - component: {fileID: 1585196337}
   m_Layer: 0
   m_Name: Water
   m_TagString: Untagged

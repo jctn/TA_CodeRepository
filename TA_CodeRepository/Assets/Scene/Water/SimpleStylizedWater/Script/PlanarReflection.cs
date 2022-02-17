@@ -4,11 +4,12 @@ using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering;
 
-//TODO：rt格式，斜截视锥体，非运行模式相机正确创建，模糊
-//[ExecuteInEditMode]
+[ExecuteInEditMode]
 public class PlanarReflection : MonoBehaviour
 {
     public int ReflectionTextureDown = 1;
+    public bool BlurReflectionTex = true;
+
 
     private Camera mReflectionCamera = null;
     private RenderTexture mReflectionRT = null;
@@ -35,7 +36,11 @@ public class PlanarReflection : MonoBehaviour
 
         if (mReflectionCamera != null)
         {
-            Destroy(mReflectionCamera);
+#if UNITY_EDITOR
+            DestroyImmediate(mReflectionCamera.gameObject);
+#else
+            Destroy(mReflectionCamera.gameObject);
+#endif
             mReflectionCamera = null;
         }
     }
@@ -49,14 +54,35 @@ public class PlanarReflection : MonoBehaviour
         }
     }
 
-    private void RenderReflection(ScriptableRenderContext context, Camera cam)
+    static RenderTextureDescriptor CreateRenderTextureDescriptor(Camera camera, int w, int h, bool needsAlpha)
+    {
+        RenderTextureDescriptor desc = new RenderTextureDescriptor(w, h);
+        RenderTextureFormat renderTextureFormatDefault = RenderTextureFormat.Default;
+        bool use32BitHDR = !needsAlpha && RenderingUtils.SupportsRenderTextureFormat(RenderTextureFormat.RGB111110Float);
+        RenderTextureFormat hdrFormat = (use32BitHDR) ? RenderTextureFormat.RGB111110Float : RenderTextureFormat.DefaultHDR;
+        desc.colorFormat = camera.allowHDR && UniversalRenderPipeline.asset.supportsHDR ? hdrFormat : renderTextureFormatDefault;
+        desc.depthBufferBits = 24;
+        int msaaSamples = 1;
+        if (camera.allowMSAA && UniversalRenderPipeline.asset.msaaSampleCount > 1)
+            msaaSamples = (camera.targetTexture != null) ? camera.targetTexture.antiAliasing : UniversalRenderPipeline.asset.msaaSampleCount;
+        desc.msaaSamples = msaaSamples;
+        desc.sRGB = (QualitySettings.activeColorSpace == ColorSpace.Linear);
+
+        desc.enableRandomWrite = false;
+        desc.bindMS = false;
+        desc.useDynamicScale = camera.allowDynamicResolution;
+        return desc;
+    }
+
+    private void RenderReflection(ScriptableRenderContext context, Camera sourceCam)
     {
         if (mReflectionCamera == null)
         {
             GameObject go = new GameObject("Reflection Camera");
             go.transform.SetParent(transform);
+            go.hideFlags = HideFlags.DontSave;
             mReflectionCamera = go.AddComponent<Camera>();
-            mReflectionCamera.CopyFrom(cam);
+            mReflectionCamera.CopyFrom(sourceCam);
             mReflectionCamera.enabled = false;
         }
 
@@ -68,7 +94,7 @@ public class PlanarReflection : MonoBehaviour
             {
                 RenderTexture.ReleaseTemporary(mReflectionRT);
             }
-            mReflectionRT = RenderTexture.GetTemporary(w, h, 24);
+            mReflectionRT = RenderTexture.GetTemporary(CreateRenderTextureDescriptor(sourceCam, w, h, false));
             mReflectionRT.name = "ReflectionTexture" + transform.name;
             mReflectionCamera.targetTexture = mReflectionRT;
 
@@ -81,10 +107,19 @@ public class PlanarReflection : MonoBehaviour
                 mPlaneRender.SetPropertyBlock(mpb);
             }
         }
-        UpdateCamearaParams(cam, mReflectionCamera);
+        UpdateCamearaParams(sourceCam, mReflectionCamera);
         var reflectM = CaculateReflectMatrix(transform.up, transform.position);
-        mReflectionCamera.worldToCameraMatrix = cam.worldToCameraMatrix * reflectM;
-        mReflectionCamera.transform.position = reflectM.MultiplyPoint(cam.transform.position);
+        mReflectionCamera.worldToCameraMatrix = sourceCam.worldToCameraMatrix * reflectM;
+        mReflectionCamera.transform.position = reflectM.MultiplyPoint(sourceCam.transform.position);
+
+        //近裁剪面的斜切.
+        //https://blog.csdn.net/puppet_master/article/details/80808486
+        //https://zhuanlan.zhihu.com/p/74529106
+        float d = Vector3.Dot(transform.up, transform.position);
+        Vector4 planeWS = new Vector4(transform.up.x, transform.up.y, transform.up.z, d);//平面
+        Vector4 planeVS = mReflectionCamera.worldToCameraMatrix.inverse.transpose * planeWS;
+        mReflectionCamera.projectionMatrix = mReflectionCamera.CalculateObliqueMatrix(planeVS);
+
         //绕序反向，故裁剪反向
         GL.invertCulling = true;
         UniversalRenderPipeline.RenderSingleCamera(context, mReflectionCamera);
@@ -141,5 +176,10 @@ public class PlanarReflection : MonoBehaviour
             destAdditionalData.requiresColorOption = CameraOverrideOption.Off;
             destAdditionalData.requiresDepthOption = CameraOverrideOption.Off;
         }
+    }
+
+    private void DualKawaseBlur()
+    {
+
     }
 }
