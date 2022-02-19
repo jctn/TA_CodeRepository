@@ -54,7 +54,7 @@ public class PlanarReflection : MonoBehaviour
         }
     }
 
-    static RenderTextureDescriptor CreateRenderTextureDescriptor(Camera camera, int w, int h, bool needsAlpha)
+    private RenderTextureDescriptor CreateRenderTextureDescriptor(Camera camera, int w, int h, bool needsAlpha)
     {
         RenderTextureDescriptor desc = new RenderTextureDescriptor(w, h);
         RenderTextureFormat renderTextureFormatDefault = RenderTextureFormat.Default;
