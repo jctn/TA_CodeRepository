@@ -359,7 +359,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8f10d33e964982345b10423db4072f53, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ReflectionTextureDown: 1
+  ReflectionTextureDown: 2
+  BlurReflectionTex: 1
+  BlurRadius: 0
+  Iteration: 1
+  RTDownScaling: 3
 --- !u!23 &1585196337
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -378,7 +382,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: 2b48d548a14d78444bff0ccba02963b1, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

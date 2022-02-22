@@ -153,6 +153,10 @@ public class PlanarReflection : MonoBehaviour
         GL.invertCulling = true;
         UniversalRenderPipeline.RenderSingleCamera(context, mReflectionCamera);
         GL.invertCulling = false;
+        if(BlurReflectionTex)
+        {
+            DualKawaseBlur(context, sourceCam);
+        }
     }
 
     //https://zhuanlan.zhihu.com/p/92633614
@@ -222,6 +226,7 @@ public class PlanarReflection : MonoBehaviour
 
     bool mInit = false;
 
+    //https://github.com/QianMo/X-PostProcessing-Library/blob/master/Assets/X-PostProcessing/Effects/DualKawaseBlur/DualKawaseBlur.cs
     private void DualKawaseBlur(ScriptableRenderContext context, Camera sourceCam)
     {
         DualKawaseBlur_Init();
@@ -256,8 +261,8 @@ public class PlanarReflection : MonoBehaviour
         mDualKawaseBlurMat.SetFloat(mID_Offset, BlurRadius);
 
         CommandBuffer cmd = CommandBufferPool.Get(PROFILER_TAG);
-        int w = (int)(Screen.width / RTDownScaling);
-        int h = (int)(Screen.height / RTDownScaling);
+        int w = (int)(mReflectionRT.width / RTDownScaling);
+        int h = (int)(mReflectionRT.height / RTDownScaling);
 
         //downsample
         int lastDown = 0;
@@ -284,7 +289,7 @@ public class PlanarReflection : MonoBehaviour
 
         //upsample
         int lastup = mPyramid[Iteration - 1].down;
-        for (int i = Iteration - 2; i >= 0; i++)
+        for (int i = Iteration - 2; i >= 0; i--)
         {
             int up = mPyramid[i].up;
             cmd.Blit(lastup, up, mDualKawaseBlurMat, 1);

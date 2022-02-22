@@ -1,86 +1,136 @@
+//https://github.com/QianMo/X-PostProcessing-Library/blob/master/Assets/X-PostProcessing/Effects/DualKawaseBlur/Shader/DualKawaseBlur.shader
 Shader "Code Repository/Scene/SimpleStylizedWater/Reflection_DualKawaseBlur" 
 {
 	Properties 
 	{
-		_BaseMap ("BaseMap", 2D) = "white" {}
-		_BaseColor ("BaseColor", Color) = (1, 1, 1, 1)
+		_MainTex ("MainTex", 2D) = "white" {}
 	}
 	SubShader 
 	{
 		Tags 
 		{
 			"RenderPipeline"="UniversalPipeline"
-			"RenderType"="Opaque"
-			"Queue"="Geometry"
 		}
 
-		HLSLINCLUDE
-			#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+		Cull Off ZWrite Off ZTest Always
 
-			CBUFFER_START(UnityPerMaterial)
-			float4 _BaseMap_ST;
-			float4 _BaseColor;
-			CBUFFER_END
+		HLSLINCLUDE
+		#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+
+		half _Offset;
+		float4 _MainTex_TexelSize;
+		TEXTURE2D(_MainTex);            
+		SAMPLER(sampler_MainTex);
+
+		struct Attributes 
+		{
+			float4 positionOS	: POSITION;
+			float2 uv		    : TEXCOORD0;
+		};
+
+		struct Varyings_DownSample
+		{
+			float4 positionCS: SV_POSITION;
+			float2 uv: TEXCOORD0;
+			float4 uv01: TEXCOORD1;
+			float4 uv23: TEXCOORD2;
+		};
+	
+	
+		struct Varyings_UpSample
+		{
+			float4 positionCS: SV_POSITION;
+			float4 uv01: TEXCOORD0;
+			float4 uv23: TEXCOORD1;
+			float4 uv45: TEXCOORD2;
+			float4 uv67: TEXCOORD3;
+		};
+
+		Varyings_DownSample Vert_DownSample(Attributes v)
+		{
+			Varyings_DownSample o;
+			o.positionCS = TransformObjectToHClip(v.positionOS.xyz);	
+			
+			float2 uv = v.uv;		
+			_MainTex_TexelSize *= 0.5;
+			float2 offset = float2(1 + _Offset, 1 + _Offset);
+			o.uv = uv;
+			o.uv01.xy = uv - _MainTex_TexelSize.xy * offset;
+			o.uv01.zw = uv + _MainTex_TexelSize.xy * offset;
+			o.uv23.xy = uv - float2(_MainTex_TexelSize.x, -_MainTex_TexelSize.y) * offset;
+			o.uv23.zw = uv + float2(_MainTex_TexelSize.x, -_MainTex_TexelSize.y) * offset;
+		
+			return o;
+		}
+
+		half4 Frag_DownSample(Varyings_DownSample i): SV_Target
+		{
+			half4 sum = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv) * 4;
+			sum += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv01.xy);
+			sum += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv01.zw);
+			sum += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv23.xy);
+			sum += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv23.zw);
+		
+			return sum * 0.125;
+		}
+
+		Varyings_UpSample Vert_UpSample(Attributes v)
+		{
+			Varyings_UpSample o;
+			o.positionCS = TransformObjectToHClip(v.positionOS.xyz);
+		
+			float2 uv = v.uv;
+			_MainTex_TexelSize *= 0.5;
+			float2 offset = float2(1 + _Offset, 1 + _Offset);
+		
+			o.uv01.xy = uv + float2(-_MainTex_TexelSize.x * 2, 0) * offset;
+			o.uv01.zw = uv + float2(-_MainTex_TexelSize.x, _MainTex_TexelSize.y) * offset;
+			o.uv23.xy = uv + float2(0, _MainTex_TexelSize.y * 2) * offset;
+			o.uv23.zw = uv + _MainTex_TexelSize.xy * offset;
+			o.uv45.xy = uv + float2(_MainTex_TexelSize.x * 2, 0) * offset;
+			o.uv45.zw = uv + float2(_MainTex_TexelSize.x, -_MainTex_TexelSize.y) * offset;
+			o.uv67.xy = uv + float2(0, -_MainTex_TexelSize.y * 2) * offset;
+			o.uv67.zw = uv - _MainTex_TexelSize.xy * offset;
+		
+			return o;
+		}
+	
+		half4 Frag_UpSample(Varyings_UpSample i): SV_Target
+		{
+			half4 sum = 0;
+			sum += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv01.xy);
+			sum += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv01.zw) * 2;
+			sum += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv23.xy);
+			sum += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv23.zw) * 2;
+			sum += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv45.xy);
+			sum += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv45.zw) * 2;
+			sum += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv67.xy);
+			sum += SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv67.zw) * 2;
+		
+			return sum * 0.0833;
+		}
 		ENDHLSL
 
-		Pass {
-			Name "Unlit"
-			//Tags { "LightMode"="SRPDefaultUnlit" } // (is default anyway)
-			//Stencil
-			//{
-			//	Ref referenceValue //参考值
-			//	ReadMask  readMask  //读取掩码，取值范围也是0-255的整数，默认值为255，二进制位11111111，即读取的时候不对referenceValue和stencilBufferValue产生效果，读取的还是原始值,(ref & readMask) comparisonFunction (stencilBufferValue & readMask)
-			//	WriteMask writeMask  //输出掩码，当写入模板缓冲时进行掩码操作（按位与【&】），writeMask取值范围是0-255的整数，默认值也是255，即当修改stencilBufferValue值时，写入的仍然是原始值
-			//	Comp comparisonFunction  //条件，关键字有，Greater（>），GEqual（>=），Less（<），LEqual（<=），Equal（=），NotEqual（!=），Always（总是满足），Never（总是不满足）
-			//	Pass stencilOperation  //条件满足后的处理，Keep，Invert
-			//	Fail stencilOperation  //条件不满足后的处理
-			//	ZFail stencilOperation  //深度测试失败后的处理
-			//}
+		Pass
+		{
 			HLSLPROGRAM
-			#pragma vertex UnlitPassVertex
-			#pragma fragment UnlitPassFragment
-
-			// Structs
-			struct Attributes 
-			{
-				float4 positionOS	: POSITION;
-				float2 uv		    : TEXCOORD0;
-				float4 color		: COLOR;
-			};
-
-			struct Varyings 
-			{
-				float4 positionCS 	: SV_POSITION;
-				float2 uv		    : TEXCOORD0;
-				float4 color		: COLOR;
-			};
-
-			// Textures, Samplers & Global Properties
-			TEXTURE2D(_BaseMap);
-			SAMPLER(sampler_BaseMap);
-
-			// Vertex Shader
-			Varyings UnlitPassVertex(Attributes IN) 
-			{
-				Varyings OUT;
-
-				VertexPositionInputs positionInputs = GetVertexPositionInputs(IN.positionOS.xyz);
-				OUT.positionCS = positionInputs.positionCS;
-				// Or :
-				//OUT.positionCS = TransformObjectToHClip(IN.positionOS.xyz);
-				OUT.uv = TRANSFORM_TEX(IN.uv, _BaseMap);
-				OUT.color = IN.color;
-				return OUT;
-			}
-
-			// Fragment Shader
-			half4 UnlitPassFragment(Varyings IN) : SV_Target 
-			{
-				half4 baseMap = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, IN.uv);
-
-				return baseMap * _BaseColor * IN.color;
-			}
+			
+			#pragma vertex Vert_DownSample
+			#pragma fragment Frag_DownSample
+			
 			ENDHLSL
+			
+		}
+		
+		Pass
+		{
+			HLSLPROGRAM
+			
+			#pragma vertex Vert_UpSample
+			#pragma fragment Frag_UpSample
+			
+			ENDHLSL
+			
 		}
 	}
 }
