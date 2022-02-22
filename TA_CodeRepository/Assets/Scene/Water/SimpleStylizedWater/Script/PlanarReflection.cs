@@ -9,7 +9,12 @@ public class PlanarReflection : MonoBehaviour
 {
     public int ReflectionTextureDown = 1;
     public bool BlurReflectionTex = true;
-
+    [Range(0f, 15f)]
+    public float BlurRadius = 5f;
+    [Range(1, 4)]
+    public int Iteration = 4;
+    [Range(1f, 10f)]
+    public float RTDownScaling = 2f;
 
     private Camera mReflectionCamera = null;
     private RenderTexture mReflectionRT = null;
@@ -43,6 +48,17 @@ public class PlanarReflection : MonoBehaviour
 #endif
             mReflectionCamera = null;
         }
+
+        if (mDualKawaseBlurMat != null)
+        {
+#if UNITY_EDITOR
+            DestroyImmediate(mDualKawaseBlurMat);
+#else
+            Destroy(mDualKawaseBlurMat);
+#endif
+            mDualKawaseBlurMat = null;
+        }
+
     }
 
 
@@ -71,6 +87,19 @@ public class PlanarReflection : MonoBehaviour
         desc.enableRandomWrite = false;
         desc.bindMS = false;
         desc.useDynamicScale = camera.allowDynamicResolution;
+        return desc;
+    }
+
+    private RenderTextureDescriptor CreateBlurRenderTextureDescriptor(Camera camera, int w, int h, bool needsAlpha)
+    {
+        RenderTextureDescriptor desc = new RenderTextureDescriptor(w, h);
+        RenderTextureFormat renderTextureFormatDefault = RenderTextureFormat.Default;
+        bool use32BitHDR = !needsAlpha && RenderingUtils.SupportsRenderTextureFormat(RenderTextureFormat.RGB111110Float);
+        RenderTextureFormat hdrFormat = (use32BitHDR) ? RenderTextureFormat.RGB111110Float : RenderTextureFormat.DefaultHDR;
+        desc.colorFormat = camera.allowHDR && UniversalRenderPipeline.asset.supportsHDR ? hdrFormat : renderTextureFormatDefault;
+        desc.depthBufferBits = 0;
+        desc.msaaSamples = 1;
+        desc.sRGB = (QualitySettings.activeColorSpace == ColorSpace.Linear);
         return desc;
     }
 
@@ -178,8 +207,98 @@ public class PlanarReflection : MonoBehaviour
         }
     }
 
-    private void DualKawaseBlur()
+    struct Level
     {
+        public int down;
+        public int up;
+    }
 
+    private const string PROFILER_TAG = "Reflection_DualKawaseBlur";
+    private Shader mDualKawaseBlurShader;
+    private Material mDualKawaseBlurMat;
+    private const int MaxPyramidSize = 16;
+    Level[] mPyramid;
+    int mID_Offset = Shader.PropertyToID("_Offset");
+
+    bool mInit = false;
+
+    private void DualKawaseBlur(ScriptableRenderContext context, Camera sourceCam)
+    {
+        DualKawaseBlur_Init();
+        DualKawaseBlur_Render(context, sourceCam);
+    }
+
+    void DualKawaseBlur_Init()
+    {
+        if(!mInit)
+        {
+            mDualKawaseBlurShader = Shader.Find("Code Repository/Scene/SimpleStylizedWater/Reflection_DualKawaseBlur");
+            if (mDualKawaseBlurShader != null)
+            {
+                mDualKawaseBlurMat = new Material(mDualKawaseBlurShader);
+            }
+
+            mPyramid = new Level[MaxPyramidSize];
+            for (int i = 0; i < MaxPyramidSize; i++)
+            {
+                mPyramid[i] = new Level
+                {
+                    down = Shader.PropertyToID("_Reflection_BlurMipDown" + i),
+                    up = Shader.PropertyToID("_Reflection_BlurMipUp" + i)
+                };
+            }
+            mInit = true;
+        }
+    }
+
+    void DualKawaseBlur_Render(ScriptableRenderContext context, Camera sourceCam)
+    {
+        mDualKawaseBlurMat.SetFloat(mID_Offset, BlurRadius);
+
+        CommandBuffer cmd = CommandBufferPool.Get(PROFILER_TAG);
+        int w = (int)(Screen.width / RTDownScaling);
+        int h = (int)(Screen.height / RTDownScaling);
+
+        //downsample
+        int lastDown = 0;
+        for(int i = 0; i < Iteration; i++)
+        {
+            RenderTextureDescriptor descriptor = CreateBlurRenderTextureDescriptor(sourceCam, w, h, false);
+            int down = mPyramid[i].down;
+            int up = mPyramid[i].up;
+            cmd.GetTemporaryRT(down, descriptor, FilterMode.Bilinear);
+            cmd.GetTemporaryRT(up, descriptor, FilterMode.Bilinear);
+
+            if(i == 0)
+            {
+                cmd.Blit(mReflectionRT, down, mDualKawaseBlurMat, 0);
+            }
+            else
+            {
+                cmd.Blit(lastDown, down, mDualKawaseBlurMat, 0);
+            }
+            lastDown = down;
+            w = Mathf.Max(1, w / 2);
+            h = Mathf.Max(1, h / 2);
+        }
+
+        //upsample
+        int lastup = mPyramid[Iteration - 1].down;
+        for (int i = Iteration - 2; i >= 0; i++)
+        {
+            int up = mPyramid[i].up;
+            cmd.Blit(lastup, up, mDualKawaseBlurMat, 1);
+            lastup = up;
+        }
+        cmd.Blit(lastup, mReflectionRT, mDualKawaseBlurMat, 1);
+
+        //CleanUp
+        for(int i = 0; i < Iteration; i++)
+        {
+            cmd.ReleaseTemporaryRT(mPyramid[i].down);
+            cmd.ReleaseTemporaryRT(mPyramid[i].up);
+        }
+        context.ExecuteCommandBuffer(cmd);
+        CommandBufferPool.Release(cmd);
     }
 }
