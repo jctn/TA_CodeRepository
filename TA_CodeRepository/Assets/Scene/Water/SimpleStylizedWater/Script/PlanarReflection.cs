@@ -66,7 +66,7 @@ public class PlanarReflection : MonoBehaviour
 
     private void RenderPipelineManager_beginCameraRendering(ScriptableRenderContext arg1, Camera arg2)
     {
-        if (arg2 == Camera.main || arg2.cameraType == CameraType.SceneView)
+        if (arg2 == Camera.main)
         {
             RenderReflection(arg1, arg2);
         }
