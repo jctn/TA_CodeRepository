@@ -7,6 +7,8 @@ using UnityEngine.Rendering;
 [ExecuteInEditMode]
 public class PlanarReflection : MonoBehaviour
 {
+    public LayerMask LayersToReflect = -1;
+    [Min(1)]
     public int ReflectionTextureDown = 1;
     public bool BlurReflectionTex = true;
     [Range(0f, 15f)]
@@ -64,7 +66,7 @@ public class PlanarReflection : MonoBehaviour
 
     private void RenderPipelineManager_beginCameraRendering(ScriptableRenderContext arg1, Camera arg2)
     {
-        if (arg2 == Camera.main)
+        if (arg2 == Camera.main || arg2.cameraType == CameraType.SceneView)
         {
             RenderReflection(arg1, arg2);
         }
@@ -111,12 +113,20 @@ public class PlanarReflection : MonoBehaviour
             go.transform.SetParent(transform);
             go.hideFlags = HideFlags.DontSave;
             mReflectionCamera = go.AddComponent<Camera>();
-            mReflectionCamera.CopyFrom(sourceCam);
             mReflectionCamera.enabled = false;
+            mReflectionCamera.cullingMask = ~(1 << 4) & LayersToReflect.value;
+            mReflectionCamera.cameraType = CameraType.Reflection;
+
+            UniversalAdditionalCameraData destAdditionalData = mReflectionCamera.GetUniversalAdditionalCameraData();
+            if (destAdditionalData != null)
+            {
+                destAdditionalData.requiresColorOption = CameraOverrideOption.Off;
+                destAdditionalData.requiresDepthOption = CameraOverrideOption.Off;
+            }
         }
 
-        int w = Screen.width / ReflectionTextureDown;
-        int h = Screen.height / ReflectionTextureDown;
+        int w = Mathf.Max(Screen.width / ReflectionTextureDown, 1);
+        int h = Mathf.Max(Screen.height / ReflectionTextureDown, 1);
         if (mReflectionRT == null || mReflectionRT.width != w || mReflectionRT.height != h)
         {
             if(mReflectionRT != null)
@@ -202,13 +212,6 @@ public class PlanarReflection : MonoBehaviour
         destCamera.aspect = srcCamera.aspect;
         destCamera.orthographic = srcCamera.orthographic;
         destCamera.orthographicSize = srcCamera.orthographicSize;
-
-        UniversalAdditionalCameraData destAdditionalData = destCamera.GetUniversalAdditionalCameraData();
-        if(destAdditionalData != null)
-        {
-            destAdditionalData.requiresColorOption = CameraOverrideOption.Off;
-            destAdditionalData.requiresDepthOption = CameraOverrideOption.Off;
-        }
     }
 
     struct Level
@@ -224,8 +227,6 @@ public class PlanarReflection : MonoBehaviour
     Level[] mPyramid;
     int mID_Offset = Shader.PropertyToID("_Offset");
 
-    bool mInit = false;
-
     //https://github.com/QianMo/X-PostProcessing-Library/blob/master/Assets/X-PostProcessing/Effects/DualKawaseBlur/DualKawaseBlur.cs
     private void DualKawaseBlur(ScriptableRenderContext context, Camera sourceCam)
     {
@@ -235,14 +236,17 @@ public class PlanarReflection : MonoBehaviour
 
     void DualKawaseBlur_Init()
     {
-        if(!mInit)
+        if(mDualKawaseBlurShader == null)
         {
             mDualKawaseBlurShader = Shader.Find("Code Repository/Scene/SimpleStylizedWater/Reflection_DualKawaseBlur");
-            if (mDualKawaseBlurShader != null)
-            {
-                mDualKawaseBlurMat = new Material(mDualKawaseBlurShader);
-            }
+        }
+        if (mDualKawaseBlurMat == null && mDualKawaseBlurShader != null)
+        {
+            mDualKawaseBlurMat = new Material(mDualKawaseBlurShader);
+        }
 
+        if(mPyramid == null)
+        {
             mPyramid = new Level[MaxPyramidSize];
             for (int i = 0; i < MaxPyramidSize; i++)
             {
@@ -252,7 +256,6 @@ public class PlanarReflection : MonoBehaviour
                     up = Shader.PropertyToID("_Reflection_BlurMipUp" + i)
                 };
             }
-            mInit = true;
         }
     }
 
