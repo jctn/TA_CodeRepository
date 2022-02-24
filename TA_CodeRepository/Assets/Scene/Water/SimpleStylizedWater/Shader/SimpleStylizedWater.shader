@@ -8,12 +8,17 @@
 		_FlowSpeed ("FlowSpeed", Float) = 0.2
 		[Header(Reflection)]
 		_DisturbanceIntensity ("DisturbanceIntensity", Float) = 0.1
+		_ReflectionIntensity ("ReflectionIntensity", Float) = 1
 		[Header(Specular)]
 		_SpecularStart ("SpecularStart", Float) = 0
 		_SpecularEnd ("SpecularEnd", Float) = 100
 		_SpecularCol ("SpecularCol", Color) = (1, 1, 1, 1)
 		_SpecularScale ("SpecularScale", Float) = 1
 		_SpecularIntensity ("SpecularIntensity", Float) = 1
+		[Header(UnderWater)]
+		_UnderWaterTex ("UnderWaterTex", 2D) = "white" {}
+		_DisturbanceIntensity_UnderWater ("UnderWaterDisturbanceIntensity", Float) = 0.1
+		_WaterDepth ("WaterDepth", Float) = -1
 	}
 	SubShader 
 	{
@@ -31,11 +36,15 @@
 			half _BumpScale;
 			half _FlowSpeed;
 			half _DisturbanceIntensity;
+			half _ReflectionIntensity;
 			float _SpecularStart;
 			float _SpecularEnd;
 			half4 _SpecularCol;
 			half _SpecularScale;
 			half _SpecularIntensity;
+			half _DisturbanceIntensity_UnderWater;
+			float4 _UnderWaterTex_ST;
+			half _WaterDepth;
 			CBUFFER_END
 		ENDHLSL
 
@@ -69,6 +78,9 @@
 			TEXTURE2D(_ReflectionTex);
 			SAMPLER(sampler_ReflectionTex);
 	
+			TEXTURE2D(_UnderWaterTex);
+			SAMPLER(sampler_UnderWaterTex);
+
 			Varyings Vertex(Attributes IN) 
 			{
 				Varyings OUT;
@@ -77,7 +89,7 @@
 				float3 posWS = TransformObjectToWorld(IN.positionOS.xyz);
 				float3 normalWS = TransformObjectToWorldNormal(IN.normal);
 				float3 tangentWS = TransformWorldToObjectDir(IN.tangent.xyz);
-				float3 binormalWS = cross(normalWS, tangentWS) * IN.tangent.w;
+				float3 binormalWS = SafeNormalize(cross(normalWS, tangentWS) * IN.tangent.w);
 				OUT.TtoW0 = float4(tangentWS.x, binormalWS.x, normalWS.x, posWS.x);
 				OUT.TtoW1 = float4(tangentWS.y, binormalWS.y, normalWS.y, posWS.y);
 				OUT.TtoW2 = float4(tangentWS.z, binormalWS.z, normalWS.z, posWS.z);
@@ -110,10 +122,16 @@
 				float3 viewDirWS = SafeNormalize(_WorldSpaceCameraPos.xyz - posWS);
 				float3 halfDir = SafeNormalize(_MainLightPosition.xyz + viewDirWS);
 				float NDotH = max(0, dot(normalWS, halfDir));
-				half3 specularCol = pow(NDotH, _SpecularScale * 256) * _SpecularIntensity * _SpecularCol * specularAttenuation;
-				//return half4(specularCol, 1);
+				half3 specularCol = pow(NDotH, _SpecularScale * 256) * _SpecularIntensity * _SpecularCol.rgb * specularAttenuation;
 
-				half3 finalCol = reflectionTex.rgb + specularCol;
+				//UnderWater
+				float2 underaWaterUV = posWS.xz * _UnderWaterTex_ST.xy + _UnderWaterTex_ST.zw + normalWS.xz * _DisturbanceIntensity_UnderWater;
+				half4 underWaterCol = SAMPLE_TEXTURE2D(_UnderWaterTex, sampler_UnderWaterTex, underaWaterUV);
+
+				//Fresnel
+				float fresnel = pow(max(0, dot(SafeNormalize(float3(IN.TtoW0.z, IN.TtoW1.z, IN.TtoW2.z)), viewDirWS)), _ReflectionIntensity);
+
+				half3 finalCol = reflectionTex.rgb * (1 - fresnel)  + specularCol + underWaterCol.rgb * fresnel;
 				return half4(finalCol, 1);
 			}
 			ENDHLSL
