@@ -66,6 +66,8 @@ Shader "Code Repository/Effect/ClipBaseScreen"
 
 			half4 UnlitPassFragment(Varyings IN) : SV_Target 
 			{
+				//https://blog.csdn.net/sgnyyy/article/details/70039412
+				//float2 screenPos = IN.positionCS.xy;
 				float2 screenPos = (IN.posSS.xy / IN.posSS.w) * _ScreenParams.xy;
 				float2 grid = floor(screenPos * _Grid) * 0.5;
 				//float2 grid = floor(IN.positionCS.xy * _Grid) * 0.5;

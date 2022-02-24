@@ -66,7 +66,7 @@ public class PlanarReflection : MonoBehaviour
 
     private void RenderPipelineManager_beginCameraRendering(ScriptableRenderContext arg1, Camera arg2)
     {
-        if (arg2 == Camera.main)
+        if (arg2 == Camera.main || arg2.cameraType == CameraType.SceneView)
         {
             RenderReflection(arg1, arg2);
         }
@@ -111,7 +111,7 @@ public class PlanarReflection : MonoBehaviour
         {
             GameObject go = new GameObject("Reflection Camera");
             go.transform.SetParent(transform);
-            go.hideFlags = HideFlags.DontSave;
+            go.hideFlags = HideFlags.HideAndDontSave;
             mReflectionCamera = go.AddComponent<Camera>();
             mReflectionCamera.enabled = false;
             mReflectionCamera.cullingMask = ~(1 << 4) & LayersToReflect.value;
@@ -154,10 +154,10 @@ public class PlanarReflection : MonoBehaviour
         //近裁剪面的斜切.
         //https://blog.csdn.net/puppet_master/article/details/80808486
         //https://zhuanlan.zhihu.com/p/74529106
-        float d = Vector3.Dot(transform.up, transform.position);
+        float d = -Vector3.Dot(transform.up, transform.position);
         Vector4 planeWS = new Vector4(transform.up.x, transform.up.y, transform.up.z, d);//平面
         Vector4 planeVS = mReflectionCamera.worldToCameraMatrix.inverse.transpose * planeWS;
-        mReflectionCamera.projectionMatrix = mReflectionCamera.CalculateObliqueMatrix(planeVS);
+        mReflectionCamera.projectionMatrix = sourceCam.CalculateObliqueMatrix(planeVS);
 
         //绕序反向，故裁剪反向
         GL.invertCulling = true;
@@ -173,7 +173,7 @@ public class PlanarReflection : MonoBehaviour
     Matrix4x4 CaculateReflectMatrix(Vector3 normal, Vector3 positionOnPlane)
     {
         var d = -Vector3.Dot(normal, positionOnPlane);
-        var reflectM = Matrix4x4.identity;
+        var reflectVM = Matrix4x4.identity;
 
         var x2 = 2 * normal.x * normal.x;
         var y2 = 2 * normal.y * normal.y;
@@ -182,21 +182,21 @@ public class PlanarReflection : MonoBehaviour
         var xz2 = -2 * normal.x * normal.z;
         var yz2 = -2 * normal.y * normal.z;
 
-        reflectM.m00 = 1 - x2;
-        reflectM.m11 = 1 - y2;
-        reflectM.m22 = 1 - z2;
+        reflectVM.m00 = 1 - x2;
+        reflectVM.m11 = 1 - y2;
+        reflectVM.m22 = 1 - z2;
 
-        reflectM.m01 = xy2;
-        reflectM.m02 = xz2;
-        reflectM.m10 = xy2;
-        reflectM.m12 = yz2;
-        reflectM.m20 = xz2;
-        reflectM.m21 = yz2;
+        reflectVM.m01 = xy2;
+        reflectVM.m02 = xz2;
+        reflectVM.m10 = xy2;
+        reflectVM.m12 = yz2;
+        reflectVM.m20 = xz2;
+        reflectVM.m21 = yz2;
 
-        reflectM.m03 = -2 * d * normal.x;
-        reflectM.m13 = -2 * d * normal.y;
-        reflectM.m23 = -2 * d * normal.z;
-        return reflectM;
+        reflectVM.m03 = -2 * d * normal.x;
+        reflectVM.m13 = -2 * d * normal.y;
+        reflectVM.m23 = -2 * d * normal.z;
+        return reflectVM;
     }
 
     private void UpdateCamearaParams(Camera srcCamera, Camera destCamera)
