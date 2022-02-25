@@ -412,9 +412,9 @@ MonoBehaviour:
     m_Bits: 4294967295
   ReflectionTextureDown: 2
   BlurReflectionTex: 1
-  BlurRadius: 0.5
+  BlurRadius: 0
   Iteration: 1
-  RTDownScaling: 2
+  RTDownScaling: 1
 --- !u!23 &1585196337
 MeshRenderer:
   m_ObjectHideFlags: 0

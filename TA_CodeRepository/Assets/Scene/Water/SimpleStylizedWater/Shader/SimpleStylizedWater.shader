@@ -7,6 +7,8 @@
 		_BumpScale ("BumpScale", Float) = 1
 		_FlowSpeed ("FlowSpeed", Float) = 0.2
 		[Header(Reflection)]
+		_DisturbanceStart("DisturbanceStart", Float) = 0
+		_DisturbanceEnd("DisturbanceEnd", Float) = 100
 		_DisturbanceIntensity ("DisturbanceIntensity", Float) = 0.1
 		_ReflectionIntensity ("ReflectionIntensity", Float) = 1
 		[Header(Specular)]
@@ -35,6 +37,8 @@
 			float4 _NormalMap_ST;
 			half _BumpScale;
 			half _FlowSpeed;
+			half _DisturbanceStart;
+			half _DisturbanceEnd;
 			half _DisturbanceIntensity;
 			half _ReflectionIntensity;
 			float _SpecularStart;
@@ -46,6 +50,14 @@
 			float4 _UnderWaterTex_ST;
 			half _WaterDepth;
 			CBUFFER_END
+
+			inline float2 ParallaxOffset( half h, half height, half3 viewDir )
+			{
+				h = h * height - height/2.0;
+				float3 v = normalize(viewDir);
+				v.y += 0.42;
+				return h * (v.xz / v.y);
+			}
 		ENDHLSL
 
 		Pass 
@@ -105,28 +117,34 @@
 				//normal map
 				float2 normalUV0 = posWS.xz * _NormalMap_ST.xy + _NormalMap_ST.zw + _Time.y * _FlowSpeed;
 				half4 packNormal0 = SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, normalUV0);
-				float3 unpackNormal0 = UnpackNormalScale(packNormal0, _BumpScale);
-				float2 normalUV1 = posWS.xz * _NormalMap_ST.xy * 2 + _NormalMap_ST.zw - _Time.y * _FlowSpeed;
+				half3 unpackNormal0 = UnpackNormalScale(packNormal0, _BumpScale);
+				float2 normalUV1 = posWS.xz * _NormalMap_ST.xy * 2 + _NormalMap_ST.zw - _Time.y * _FlowSpeed * 0.5;
 				half4 packNormal = SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, normalUV1);
-				float3 unpackNormal1 = UnpackNormalScale(packNormal, _BumpScale);
-				float3 unpackNormal = SafeNormalize(float3(unpackNormal0.xy + unpackNormal1.xy, unpackNormal0.z * unpackNormal1.z)); //http://wiki.amplify.pt/index.php?title=Unity_Products:Amplify_Shader_Editor/Blend_Normals
-				float3 normalWS = SafeNormalize(float3(dot(IN.TtoW0.xyz, unpackNormal), dot(IN.TtoW1.xyz, unpackNormal), dot(IN.TtoW2.xyz, unpackNormal)));
+				half3 unpackNormal1 = UnpackNormalScale(packNormal, _BumpScale);
+				half3 unpackNormal = SafeNormalize(float3(unpackNormal0.xy + unpackNormal1.xy, unpackNormal0.z * unpackNormal1.z)); //http://wiki.amplify.pt/index.php?title=Unity_Products:Amplify_Shader_Editor/Blend_Normals
+				//float2 normalXY = (unpackNormal0.xy + unpackNormal1.xy) * 0.5;
+				//float normalZ = sqrt(1 - dot(normalXY, normalXY));
+				//float3 unpackNormal = float3(normalXY, normalZ);
+				half3 normalWS = SafeNormalize(float3(dot(IN.TtoW0.xyz, unpackNormal), dot(IN.TtoW1.xyz, unpackNormal), dot(IN.TtoW2.xyz, unpackNormal)));
 
 				//Reflection
-				float2 reflectionUV = screenUV + normalWS.xz * _DisturbanceIntensity / (IN.positionSS.w + 1); // IN.positionSS裁剪坐标系w=view sapce的z的取反
+				float viewDis = distance(posWS, _WorldSpaceCameraPos.xyz);
+				half disturbanceAttenuation = saturate((_DisturbanceEnd - viewDis) / (_DisturbanceEnd - _DisturbanceStart + 1));
+				disturbanceAttenuation = pow(disturbanceAttenuation, 10);
+				float2 reflectionUV = screenUV + normalWS.xz * _DisturbanceIntensity * disturbanceAttenuation;
 				half4 reflectionTex = SAMPLE_TEXTURE2D(_ReflectionTex, sampler_ReflectionTex, reflectionUV);
 
 				//Specular
-				float viewDis = distance(posWS, _WorldSpaceCameraPos.xyz);
 				float specularAttenuation = saturate((_SpecularEnd - viewDis) / (_SpecularEnd - _SpecularStart + 1));
-				float3 viewDirWS = SafeNormalize(_WorldSpaceCameraPos.xyz - posWS);
-				float3 halfDir = SafeNormalize(_MainLightPosition.xyz + viewDirWS);
-				float NDotH = max(0, dot(normalWS, halfDir));
+				half3 viewDirWS = SafeNormalize(_WorldSpaceCameraPos.xyz - posWS);
+				half3 halfDir = SafeNormalize(_MainLightPosition.xyz + viewDirWS);
+				half NDotH = max(0, dot(normalWS, halfDir));
 				half3 specularCol = pow(NDotH, _SpecularScale * 256) * _SpecularIntensity * _SpecularCol.rgb * specularAttenuation;
 
 				//UnderWater
 				float2 underaWaterUV = posWS.xz * _UnderWaterTex_ST.xy + _UnderWaterTex_ST.zw + normalWS.xz * _DisturbanceIntensity_UnderWater;
-				half4 underWaterCol = SAMPLE_TEXTURE2D(_UnderWaterTex, sampler_UnderWaterTex, underaWaterUV);
+				float2 parallaxOffset = ParallaxOffset(_WaterDepth, 1, viewDirWS);
+				half4 underWaterCol = SAMPLE_TEXTURE2D(_UnderWaterTex, sampler_UnderWaterTex, underaWaterUV + parallaxOffset);
 
 				//Fresnel
 				float fresnel = pow(max(0, dot(SafeNormalize(float3(IN.TtoW0.z, IN.TtoW1.z, IN.TtoW2.z)), viewDirWS)), _ReflectionIntensity);
