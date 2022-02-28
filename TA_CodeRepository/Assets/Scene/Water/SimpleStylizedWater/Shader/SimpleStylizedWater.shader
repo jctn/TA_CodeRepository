@@ -51,12 +51,10 @@
 			half _WaterDepth;
 			CBUFFER_END
 
-			inline float2 ParallaxOffset( half h, half height, half3 viewDir )
+			float2 ParallaxMapping(half h, half3 viewDir)
 			{
-				h = h * height - height/2.0;
-				float3 v = normalize(viewDir);
-				v.y += 0.42;
-				return h * (v.xz / v.y);
+				float2 delta = viewDir.xz / viewDir.y * h * 0.1; //除z，视角和和平面法线夹角越大，偏移越大
+				return delta;
 			}
 		ENDHLSL
 
@@ -143,8 +141,8 @@
 
 				//UnderWater
 				float2 underaWaterUV = posWS.xz * _UnderWaterTex_ST.xy + _UnderWaterTex_ST.zw + normalWS.xz * _DisturbanceIntensity_UnderWater;
-				float2 parallaxOffset = ParallaxOffset(_WaterDepth, 1, viewDirWS);
-				half4 underWaterCol = SAMPLE_TEXTURE2D(_UnderWaterTex, sampler_UnderWaterTex, underaWaterUV + parallaxOffset);
+				float2 parallaxOffset = ParallaxMapping(_WaterDepth, viewDirWS);
+				half4 underWaterCol = SAMPLE_TEXTURE2D(_UnderWaterTex, sampler_UnderWaterTex, underaWaterUV - parallaxOffset);
 
 				//Fresnel
 				float fresnel = pow(max(0, dot(SafeNormalize(float3(IN.TtoW0.z, IN.TtoW1.z, IN.TtoW2.z)), viewDirWS)), _ReflectionIntensity);

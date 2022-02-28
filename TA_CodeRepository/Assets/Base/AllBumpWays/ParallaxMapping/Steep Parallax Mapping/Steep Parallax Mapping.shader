@@ -1,4 +1,4 @@
-Shader "Code Repository/Base/SimpleParallaxMapping" 
+Shader "Code Repository/Base/Steep Parallax Mapping" 
 {
 	Properties 
 	{
@@ -8,6 +8,8 @@ Shader "Code Repository/Base/SimpleParallaxMapping"
 		_SpecularCol ("SpecularCol", Color) = (1, 1, 1, 1)
 		_DepthTex ("DepthTex", 2D) = "white" {}
 		_ParallaxScale ("ParallaxScale", Range(0, 1)) = 0.1
+		_MinLayerCount ("MinLayerCount", Float) = 8
+		_MaxLayerCount ("MaxLayerCount", Float) = 32
 		_NormalTex ("NormalTex", 2D) = "white" {}
 		_BumpScale ("BumpScale", Range(0, 20)) = 1
 	}
@@ -29,7 +31,10 @@ Shader "Code Repository/Base/SimpleParallaxMapping"
 			half _SpecularScale;
 			half4 _SpecularCol;
 			half _ParallaxScale;
+			half _MinLayerCount;
+			half _MaxLayerCount;
 			half _BumpScale;
+			uint _DivideZ;
 			CBUFFER_END
 
 
@@ -42,13 +47,27 @@ Shader "Code Repository/Base/SimpleParallaxMapping"
 			TEXTURE2D(_NormalTex);
 			SAMPLER(sampler_NormalTex);
 
-
-			float2 ParallaxMapping(float2 uv, half3 viewDirTS)
+			//https://www.jianshu.com/p/fea6c9fc610f
+			//https://learnopengl-cn.github.io/05%20Advanced%20Lighting/05%20Parallax%20Mapping/#_3
+			//https://zhuanlan.zhihu.com/p/164754522
+			float2 SteepParallaxMapping(float2 uv, half3 viewDirTS)
 			{
-				half h = SAMPLE_TEXTURE2D(_DepthTex, sampler_DepthTex, uv).r;
-				half3 viewDir = normalize(viewDirTS);
-				float2 delta = viewDir.xy / viewDir.z * (h * _ParallaxScale);
-				return uv - delta;//(如果是高度图则为uv + delta)
+				half layerCount = lerp(_MaxLayerCount, _MinLayerCount, pow(abs(viewDirTS.z), 20));
+				float layerDepth = 1 / layerCount;
+				float2 deltaUV = viewDirTS.xy / viewDirTS.z * layerDepth * _ParallaxScale;
+
+				float currentLayerDepth = 0;
+				float2 currentUV = uv;
+				half currentDepth = SAMPLE_TEXTURE2D(_DepthTex, sampler_DepthTex, currentUV).r;
+				//https://forum.unity.com/threads/issues-with-shaderproperty-and-for-loop.344469/
+				[unroll(200)]
+				while(currentDepth > currentLayerDepth)
+				{
+					currentUV -= deltaUV;
+					currentDepth = SAMPLE_TEXTURE2D(_DepthTex, sampler_DepthTex, currentUV).r;
+					currentLayerDepth += layerDepth;
+				}
+				return currentUV;
 			}
 
 		ENDHLSL
@@ -99,7 +118,7 @@ Shader "Code Repository/Base/SimpleParallaxMapping"
 			half4 UnlitPassFragment(Varyings IN) : SV_Target 
 			{
 				float3 posWS = float3(IN.TtoW0.w, IN.TtoW1.w, IN.TtoW2.w);
-				float2 uv = ParallaxMapping(IN.uv, IN.viewDirTS);				
+				float2 uv = SteepParallaxMapping(IN.uv, IN.viewDirTS);				
 				half4 baseMap = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv);
 				half4 packNormal = SAMPLE_TEXTURE2D(_NormalTex, sampler_NormalTex, uv);
 				half3 normalTS = UnpackNormalScale(packNormal, _BumpScale);
