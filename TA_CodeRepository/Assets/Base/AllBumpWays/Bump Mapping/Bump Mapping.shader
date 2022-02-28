@@ -33,16 +33,18 @@ Shader "Code Repository/Base/Bump Mapping"
 			TEXTURE2D(_BumpTex);
 			SAMPLER(sampler_BumpTex);
 
+			//https://www.jianshu.com/p/fea6c9fc610f
+			//凹凸贴图和法线贴图效果类似，只是凹凸贴图需要实时计算法线。凹凸贴图和法线贴图只能改变明暗变化，对于应该不能看见的部分无法实现遮挡（视差可以），https://www.cnblogs.com/jim-game-dev/p/5410529.html
 			half3 CalculateNormal(float2 uv)
 			{
 				float2 du = float2(0.5 * _BumpTex_TexelSize.x, 0);
-				half u1 = SAMPLE_TEXTURE2D(_BumpTex, sampler_BumpTex, uv - du).r;
-				half u2 = SAMPLE_TEXTURE2D(_BumpTex, sampler_BumpTex, uv + du).r;
+				half u1 = 1 - SAMPLE_TEXTURE2D(_BumpTex, sampler_BumpTex, uv - du).r; //这里采样的是深度图，故取反
+				half u2 = 1 - SAMPLE_TEXTURE2D(_BumpTex, sampler_BumpTex, uv + du).r;
 				half3 tu = half3(1, 0, (u2 - u1) * _BumpScale);
 
 				float2 dv = float2(0, 0.5 * _BumpTex_TexelSize.y);
-				half v1 = SAMPLE_TEXTURE2D(_BumpTex, sampler_BumpTex, uv - dv).r;
-				half v2 = SAMPLE_TEXTURE2D(_BumpTex, sampler_BumpTex, uv + dv).r;
+				half v1 = 1 - SAMPLE_TEXTURE2D(_BumpTex, sampler_BumpTex, uv - dv).r;
+				half v2 = 1 - SAMPLE_TEXTURE2D(_BumpTex, sampler_BumpTex, uv + dv).r;
 				half3 tv = half3(0, 1, (v2 - v1) * _BumpScale);
 				
 				return SafeNormalize(cross(tu, tv)); //切线空间
