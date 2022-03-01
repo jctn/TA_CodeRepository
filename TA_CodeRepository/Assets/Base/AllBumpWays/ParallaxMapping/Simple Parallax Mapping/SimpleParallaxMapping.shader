@@ -44,8 +44,8 @@ Shader "Code Repository/Base/SimpleParallaxMapping"
 			TEXTURE2D(_NormalTex);
 			SAMPLER(sampler_NormalTex);
 
-			//https://zhuanlan.zhihu.com/p/128682162
-			//https://zhuanlan.zhihu.com/p/164754522，https://learnopengl-cn.github.io/05%20Advanced%20Lighting/05%20Parallax%20Mapping/
+			//https://zhuanlan.zhihu.com/p/164754522
+			//https://learnopengl-cn.github.io/05%20Advanced%20Lighting/05%20Parallax%20Mapping/
 			//这种简单的视差映射，消耗小，但不准确，对于坡度大的面效果差
 			float2 ParallaxMapping(float2 uv, half3 viewDirTS)
 			{

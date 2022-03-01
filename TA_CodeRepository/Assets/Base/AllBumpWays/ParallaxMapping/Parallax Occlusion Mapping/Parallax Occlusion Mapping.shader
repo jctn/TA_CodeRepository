@@ -1,4 +1,4 @@
-Shader "Code Repository/Base/Steep Parallax Mapping" 
+Shader "Code Repository/Base/Parallax Occlusion Mapping" 
 {
 	Properties 
 	{
@@ -47,10 +47,8 @@ Shader "Code Repository/Base/Steep Parallax Mapping"
 			TEXTURE2D(_NormalTex);
 			SAMPLER(sampler_NormalTex);
 
-			//https://www.jianshu.com/p/fea6c9fc610f
-			//https://learnopengl-cn.github.io/05%20Advanced%20Lighting/05%20Parallax%20Mapping/#_3
-			//https://zhuanlan.zhihu.com/p/164754522
-			float2 SteepParallaxMapping(float2 uv, half3 viewDirTS)
+			//https://segmentfault.com/a/1190000003920502
+			float2 ParallaxOcclusionMapping(float2 uv, half3 viewDirTS)
 			{
 				half layerCount = lerp(_MaxLayerCount, _MinLayerCount, pow(abs(viewDirTS.z), 20));
 				float layerDepth = 1 / layerCount;
@@ -61,13 +59,20 @@ Shader "Code Repository/Base/Steep Parallax Mapping"
 				half currentDepth = SAMPLE_TEXTURE2D(_DepthTex, sampler_DepthTex, currentUV).r;
 				//https://forum.unity.com/threads/issues-with-shaderproperty-and-for-loop.344469/
 				//https://zhuanlan.zhihu.com/p/115871017
-				[unroll(5)]
+				[unroll(30)]
 				while(currentDepth > currentLayerDepth)
 				{
 					currentUV -= deltaUV;
 					currentDepth = SAMPLE_TEXTURE2D(_DepthTex, sampler_DepthTex, currentUV).r;
 					currentLayerDepth += layerDepth;
 				}
+
+				float curDifference = currentDepth - currentLayerDepth;//小于0
+				float2 preUV = currentUV + deltaUV;
+				half preDepth = SAMPLE_TEXTURE2D(_DepthTex, sampler_DepthTex, preUV).r;
+				float preDifference = preDepth - (currentLayerDepth - layerDepth);//大于0
+				float weight = curDifference / (curDifference - preDifference);
+				currentUV = currentUV  * (1 - weight) + preUV * weight;
 				return currentUV;
 			}
 
@@ -119,7 +124,7 @@ Shader "Code Repository/Base/Steep Parallax Mapping"
 			half4 UnlitPassFragment(Varyings IN) : SV_Target 
 			{
 				float3 posWS = float3(IN.TtoW0.w, IN.TtoW1.w, IN.TtoW2.w);
-				float2 uv = SteepParallaxMapping(IN.uv, IN.viewDirTS);				
+				float2 uv = ParallaxOcclusionMapping(IN.uv, IN.viewDirTS);				
 				half4 baseMap = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv);
 				half4 packNormal = SAMPLE_TEXTURE2D(_NormalTex, sampler_NormalTex, uv);
 				half3 normalTS = UnpackNormalScale(packNormal, _BumpScale);
