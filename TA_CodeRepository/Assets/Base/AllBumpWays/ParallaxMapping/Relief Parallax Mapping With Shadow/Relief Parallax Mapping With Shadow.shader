@@ -50,7 +50,7 @@ Shader "Code Repository/Base/Relief Parallax Mapping With Shadow"
 			//¸¡µñÊÓ²îÌùÍ¼
 			//https://www.jianshu.com/p/fea6c9fc610f
 			//https://segmentfault.com/a/1190000003920502
-			float2 ReliefParallaxMapping(float2 uv, half3 viewDirTS)
+			float2 ReliefParallaxMapping(float2 uv, half3 viewDirTS, out float curDepth)
 			{
 				half layerCount = lerp(_MaxLayerCount, _MinLayerCount, abs(viewDirTS.z));
 				float layerDepth = 1 / layerCount;
@@ -92,6 +92,7 @@ Shader "Code Repository/Base/Relief Parallax Mapping With Shadow"
 					}
 				}
 
+				curDepth = currentDepth;
 				return currentUV;
 			}
 
@@ -100,23 +101,20 @@ Shader "Code Repository/Base/Relief Parallax Mapping With Shadow"
 			{
 			   float shadowMultiplier = 1;
 
-			   const float minLayers = 15;
-			   const float maxLayers = 30;
-
 			   // calculate lighting only for surface oriented to the light source
-			   if(dot(vec3(0, 0, 1), L) > 0)
+			   if(dot(half3(0, 0, 1), L) > 0)
 			   {
 				  // calculate initial parameters
 				  float numSamplesUnderSurface    = 0;
 				  shadowMultiplier    = 0;
-				  float numLayers    = mix(maxLayers, minLayers, abs(dot(vec3(0, 0, 1), L)));
+				  float numLayers    = mix(_MaxLayerCount, _MinLayerCount, abs(dot(float3(0, 0, 1), L)));
 				  float layerHeight    = initialHeight / numLayers;
-				  vec2 texStep    = parallaxScale * L.xy / L.z / numLayers;
+				  vec2 texStep    = _ParallaxScale * L.xy / L.z / numLayers;
 
 				  // current parameters
 				  float currentLayerHeight    = initialHeight - layerHeight;
 				  vec2 currentTextureCoords    = initialTexCoord + texStep;
-				  float heightFromTexture    = texture(u_heightTexture, currentTextureCoords).r;
+				  float heightFromTexture    = SAMPLE_TEXTURE2D(_DepthTex, sampler_DepthTex, currentTextureCoords).r;
 				  int stepIndex    = 1;
 
 				  // while point is below depth 0.0 )
@@ -136,7 +134,7 @@ Shader "Code Repository/Base/Relief Parallax Mapping With Shadow"
 					 stepIndex    += 1;
 					 currentLayerHeight    -= layerHeight;
 					 currentTextureCoords    += texStep;
-					 heightFromTexture    = texture(u_heightTexture, currentTextureCoords).r;
+					 heightFromTexture    = SAMPLE_TEXTURE2D_LOD(_DepthTex, sampler_DepthTex, currentTextureCoords).r;
 				  }
 
 				  // Shadowing factor should be 1 if there were no points under the surface
