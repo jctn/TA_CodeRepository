@@ -48,9 +48,9 @@ Shader "Code Repository/Base/Parallax Occlusion Mapping"
 			SAMPLER(sampler_NormalTex);
 
 			//https://segmentfault.com/a/1190000003920502
-			float2 ParallaxOcclusionMapping(float2 uv, half3 viewDirTS)
+			float2 ParallaxOcclusionMapping(float2 uv, float3 viewDirTS)
 			{
-				half layerCount = lerp(_MaxLayerCount, _MinLayerCount, pow(abs(viewDirTS.z), 20));
+				half layerCount = lerp(_MaxLayerCount, _MinLayerCount, abs(viewDirTS.z));
 				float layerDepth = 1 / layerCount;
 				float2 deltaUV = viewDirTS.xy / viewDirTS.z * _ParallaxScale * layerDepth; //总的偏移：viewDirTS.xy / viewDirTS.z * _ParallaxScale，_ParallaxScale越小，偏移越小，效果上为视角越接近平面法线
 
@@ -59,7 +59,7 @@ Shader "Code Repository/Base/Parallax Occlusion Mapping"
 				half currentDepth = SAMPLE_TEXTURE2D(_DepthTex, sampler_DepthTex, currentUV).r;
 				//https://forum.unity.com/threads/issues-with-shaderproperty-and-for-loop.344469/
 				//https://zhuanlan.zhihu.com/p/115871017
-				[unroll(30)]
+				[unroll(15)]
 				while(currentDepth > currentLayerDepth)
 				{
 					currentUV -= deltaUV;
@@ -75,7 +75,6 @@ Shader "Code Repository/Base/Parallax Occlusion Mapping"
 				currentUV = currentUV  * (1 - weight) + preUV * weight;
 				return currentUV;
 			}
-
 		ENDHLSL
 
 		Pass {
