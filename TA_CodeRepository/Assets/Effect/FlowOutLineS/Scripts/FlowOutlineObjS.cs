@@ -152,14 +152,10 @@ namespace FlowOutline
         private static int mID_NoiseTex = Shader.PropertyToID("_NoiseTex");
         private static int mID_MsakTexMask = Shader.PropertyToID("_MsakTexMask");
         private static int mID_BillboardSize = Shader.PropertyToID("_BillboardSize");
-        //private static int mID_BillboardSrcBlend = Shader.PropertyToID("_BillboardSrcBlend");
-        //private static int mID_BillboardDstBlend = Shader.PropertyToID("_BillboardDstBlend");
         private static int mID_BillboardZTest = Shader.PropertyToID("_BillboardZTest");
         private static int mID_AlphaFactor = Shader.PropertyToID("_AlphaFactor");
 
-        private Transform p;
-        //[HideInInspector]
-        //public bool ForceUnRegistered;
+        private Transform mTarget_Transform;
         private int mIndex;
         private Shader mSolidShader;
         private Shader mBlurShader;
@@ -177,22 +173,22 @@ namespace FlowOutline
         {
             if(!CurOrFirstTwo)
             {
-                p = transform.parent;
-                if (p == null || p.parent == null)
+                mTarget_Transform = transform.parent;
+                if (mTarget_Transform == null || mTarget_Transform.parent == null)
                 {
                     Debug.LogWarning("FlowOutLineObj挂载节点不对");
                     return;
                 }
-                p = p.parent;
+                mTarget_Transform = mTarget_Transform.parent;
             }
             else
             {
-                p = transform;
+                mTarget_Transform = transform;
             }
 
             if(IsSkinedRender)
             {
-                mRenderers = p.GetComponentsInChildren<SkinnedMeshRenderer>();
+                mRenderers = mTarget_Transform.GetComponentsInChildren<SkinnedMeshRenderer>();
                 if (mRenderers == null || mRenderers.Length <= 0)
                 {
                     Debug.LogWarning("处理对象无SkinnedMeshRenderer");
@@ -200,12 +196,17 @@ namespace FlowOutline
             }
             else
             {
-                mRenderers = p.GetComponentsInChildren<MeshRenderer>();
+                mRenderers = mTarget_Transform.GetComponentsInChildren<MeshRenderer>();
                 if (mRenderers == null || mRenderers.Length <= 0)
                 {
                     Debug.LogWarning("处理对象无MeshRenderer");
                 }
             }
+
+#if UNITY_EDITOR
+            mCur_CurOrFirstTwo = CurOrFirstTwo;
+            mCur_IsSkinedRender = IsSkinedRender;
+#endif
         }
 
 #if UNITY_EDITOR
@@ -219,27 +220,30 @@ namespace FlowOutline
                 mCur_CurOrFirstTwo = CurOrFirstTwo;
                 mCur_IsSkinedRender = IsSkinedRender;
 
+                mRegistered = false;
+                FlowOutlineMgrS.Instance.UnRegisterFlowOutlineObj(this);
+
                 if (!CurOrFirstTwo)
                 {
-                    p = transform.parent;
-                    if (p == null || p.parent == null)
+                    mTarget_Transform = transform.parent;
+                    if (mTarget_Transform == null || mTarget_Transform.parent == null)
                     {
                         return;
                     }
-                    p = p.parent;
+                    mTarget_Transform = mTarget_Transform.parent;
                 }
                 else
                 {
-                    p = transform;
+                    mTarget_Transform = transform;
                 }
 
                 if (IsSkinedRender)
                 {
-                    mRenderers = p.GetComponentsInChildren<SkinnedMeshRenderer>();
+                    mRenderers = mTarget_Transform.GetComponentsInChildren<SkinnedMeshRenderer>();
                 }
                 else
                 {
-                    mRenderers = p.GetComponentsInChildren<MeshRenderer>();
+                    mRenderers = mTarget_Transform.GetComponentsInChildren<MeshRenderer>();
                 }
             }
         }
@@ -253,17 +257,17 @@ namespace FlowOutline
             bool canRegistered;
             if (Camera.main != null)
             {
-                canRegistered = mRenderers != null && mRenderers.Length > 0 && ((1 << mRenderers[0].gameObject.layer) & Camera.main.cullingMask) != 0;
+                canRegistered = mTarget_Transform != null && mRenderers != null && mRenderers.Length > 0 && ((1 << mRenderers[0].gameObject.layer) & Camera.main.cullingMask) != 0;
             }
             else
             {
-                canRegistered = mRenderers != null && mRenderers.Length > 0;
+                canRegistered = mTarget_Transform != null && mRenderers != null && mRenderers.Length > 0;
             }
             if (!mRegistered)
             {
                 if (canRegistered)
                 {
-                    mRegistered = FlowOutlineMgrS.Instance.RegisterFlowOutlineObj(this, p);
+                    mRegistered = FlowOutlineMgrS.Instance.RegisterFlowOutlineObj(this, mTarget_Transform);
                 }
             }
             else
@@ -271,7 +275,7 @@ namespace FlowOutline
                 if (!canRegistered)
                 {
                     mRegistered = false;
-                    FlowOutlineMgrS.Instance.UnRegisterFlowOutlineObj(p);
+                    FlowOutlineMgrS.Instance.UnRegisterFlowOutlineObj(this);
                 }
             }
         }
@@ -393,8 +397,6 @@ namespace FlowOutline
                 mBillboardsMat.SetVector(mID_DistortNoiseTilingAndOffset, NoiseTilingAndOffset);
                 mBillboardsMat.SetTexture(mID_NoiseTex, NoiseTex);
                 mBillboardsMat.SetVector(mID_BillboardSize, BillboardSize);
-                //mBillboardsMat.SetFloat(mID_BillboardSrcBlend, (float)BillboardSrcBlend);
-                //mBillboardsMat.SetFloat(mID_BillboardDstBlend, (float)BillboardDstBlend);
                 mBillboardsMat.SetFloat(mID_BillboardZTest, (float)BillboardZTest);
                 mBillboardsMat.SetFloat(mID_AlphaFactor, ColorIntensity);
                 mBillboardsMat.renderQueue = BillboardRenderQueue;
@@ -444,7 +446,7 @@ namespace FlowOutline
         private void OnDisable()
         {
             mRegistered = false;
-            FlowOutlineMgrS.Instance.UnRegisterFlowOutlineObj(p);
+            FlowOutlineMgrS.Instance.UnRegisterFlowOutlineObj(this);
             DestroyObj(mBillboardGO);
             mBillboardGO = null;
             if(mSilhouetteTex != null)

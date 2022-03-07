@@ -42,12 +42,13 @@ namespace FlowOutline
 
         public bool RegisterFlowOutlineObj(FlowOutlineObjS outlineObj, Transform p)
         {
+            if (outlineObj == null || p == null) return false;
             if (mFlowOutlineObjsDic.TryGetValue(p, out FlowOutlineObjS obj))
             {
                 if (obj != outlineObj) //重复
                 {
-                    CoreUtils.Destroy(obj.gameObject);
-                    mFlowOutlineObjsDic[p] = outlineObj;
+                    CoreUtils.Destroy(obj);
+                    mFlowOutlineObjsDic.Add(p, outlineObj);
                 }
                 return true;
             }
@@ -59,11 +60,15 @@ namespace FlowOutline
             return false;
         }
 
-        public void UnRegisterFlowOutlineObj(Transform p)
+        public void UnRegisterFlowOutlineObj(FlowOutlineObjS outlineObj)
         {
-            if (p != null)
+            foreach (var pair in mFlowOutlineObjsDic)
             {
-                mFlowOutlineObjsDic.Remove(p);
+                if (pair.Value == outlineObj)
+                {
+                    mFlowOutlineObjsDic.Remove(pair.Key);
+                    break;
+                }
             }
         }
 
