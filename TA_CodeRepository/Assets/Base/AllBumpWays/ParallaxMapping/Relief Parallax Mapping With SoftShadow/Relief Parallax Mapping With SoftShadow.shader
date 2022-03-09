@@ -1,4 +1,4 @@
-Shader "Code Repository/Base/Relief Parallax Mapping" 
+Shader "Code Repository/Base/Relief Parallax Mapping With SoftShadow" 
 {
 	Properties 
 	{
@@ -50,7 +50,7 @@ Shader "Code Repository/Base/Relief Parallax Mapping"
 			//�����Ӳ���ͼ
 			//https://www.jianshu.com/p/fea6c9fc610f
 			//https://segmentfault.com/a/1190000003920502
-			float2 ReliefParallaxMapping(float2 uv, half3 viewDirTS)
+			float2 ReliefParallaxMapping(float2 uv, half3 viewDirTS, out float curDepth)
 			{
 				half layerCount = lerp(_MaxLayerCount, _MinLayerCount, abs(viewDirTS.z));
 				float layerDepth = 1 / layerCount;
@@ -92,9 +92,45 @@ Shader "Code Repository/Base/Relief Parallax Mapping"
 					}
 				}
 
+				curDepth = currentLayerDepth;
 				return currentUV;
 			}
 
+			//https://segmentfault.com/a/1190000003920502
+			float ParallaxSoftShadowMultiplier(float3 L, float2 initialTexCoord, float initialDepth)
+			{
+			   float shadowMultiplier = 0;
+
+			   if(dot(half3(0, 0, 1), L) > 0)
+			   {
+					float numLayers    = lerp(_MaxLayerCount, _MinLayerCount, abs(dot(float3(0, 0, 1), L)));
+					float layerDepth    = initialDepth / numLayers;
+				  	float2 texStep    = _ParallaxScale * L.xy / L.z / numLayers;
+
+				  	//first layer
+					float currentLayerDepth    = initialDepth - layerDepth;
+					float2 currentTextureCoords    = initialTexCoord + texStep;
+					float depthFromTexture    = SAMPLE_TEXTURE2D(_DepthTex, sampler_DepthTex, currentTextureCoords).r;
+					int stepIndex = 1;
+
+					//[unroll(15)]
+					while(currentLayerDepth > 0)
+					{
+						if(depthFromTexture < currentLayerDepth)
+						{
+							float tempShadowMultiplier = (currentLayerDepth - depthFromTexture) * (1 - stepIndex / numLayers);
+							shadowMultiplier = max(shadowMultiplier, tempShadowMultiplier);
+						}
+
+						stepIndex += 1;
+						currentLayerDepth -= layerDepth;
+						currentTextureCoords += texStep;
+						depthFromTexture  = SAMPLE_TEXTURE2D_LOD(_DepthTex, sampler_DepthTex, currentTextureCoords, 0).r;
+					}		
+					shadowMultiplier = 1 - shadowMultiplier;		  
+			   	}
+				return shadowMultiplier;			
+			}			
 		ENDHLSL
 
 		Pass {
@@ -118,6 +154,7 @@ Shader "Code Repository/Base/Relief Parallax Mapping"
 				half4 TtoW1		: TEXCOORD2;
 				half4 TtoW2		: TEXCOORD3;
 				half3 viewDirTS : TEXCOORD4;
+				half3 lightDirTS: TEXCOORD5;
 			};
 
 			Varyings UnlitPassVertex(Attributes IN) 
@@ -136,26 +173,30 @@ Shader "Code Repository/Base/Relief Parallax Mapping"
 				half3 viewDirOS = normalize(TransformWorldToObject(_WorldSpaceCameraPos) - IN.positionOS.xyz);
 				float3 binormalOS = normalize(cross(IN.normal, IN.tangent.xyz) * IN.tangent.w);
 				float3x3 OtoT = float3x3(IN.tangent.xyz, binormalOS, IN.normal);
-				OUT.viewDirTS = mul(OtoT, viewDirOS);
+				OUT.viewDirTS = normalize(mul(OtoT, viewDirOS));
+				OUT.lightDirTS = mul(OtoT, TransformWorldToObjectDir(_MainLightPosition.xyz));
 				return OUT;
 			}
 
 			half4 UnlitPassFragment(Varyings IN) : SV_Target 
 			{
 				float3 posWS = float3(IN.TtoW0.w, IN.TtoW1.w, IN.TtoW2.w);
-				float2 uv = ReliefParallaxMapping(IN.uv, IN.viewDirTS);				
+				float curDepth;
+				float2 uv = ReliefParallaxMapping(IN.uv, normalize(IN.viewDirTS), curDepth);
+				float shadowMultiplier = ParallaxSoftShadowMultiplier(normalize(IN.lightDirTS), uv, curDepth);
+				return shadowMultiplier;
 				half4 baseMap = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv);
 				half4 packNormal = SAMPLE_TEXTURE2D(_NormalTex, sampler_NormalTex, uv);
 				half3 normalTS = UnpackNormalScale(packNormal, _BumpScale);
 				half3 normalWS = SafeNormalize(half3(dot(IN.TtoW0.xyz, normalTS), dot(IN.TtoW1.xyz, normalTS), dot(IN.TtoW2.xyz, normalTS)));
 
 				half NdotL = max(0, dot(normalWS, _MainLightPosition.xyz));
-				half3 diffuseCol = baseMap.rgb * _BaseColor.rgb * _MainLightColor.rgb * NdotL;
+				half3 diffuseCol = baseMap.rgb * _BaseColor.rgb * _MainLightColor.rgb * NdotL * shadowMultiplier;
 
 				half3 viewDirWS = SafeNormalize(_WorldSpaceCameraPos.xyz - posWS);
 				half3 halfDir = SafeNormalize(_MainLightPosition.xyz + viewDirWS);
 				half NDotH = max(0, dot(normalWS, halfDir));
-				half3 specularCol = pow(NDotH, _SpecularScale * 256)  * _SpecularCol.rgb * _MainLightColor.rgb;
+				half3 specularCol = pow(NDotH, _SpecularScale * 256)  * _SpecularCol.rgb * _MainLightColor.rgb * shadowMultiplier;
 				return half4(diffuseCol + specularCol, baseMap.a * _BaseColor.a);
 			}
 			ENDHLSL

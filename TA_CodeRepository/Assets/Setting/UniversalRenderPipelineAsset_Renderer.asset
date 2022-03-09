@@ -44,13 +44,18 @@ MonoBehaviour:
   - {fileID: -4205172354079780217}
   m_RendererFeatureMap: fab73d4eb3be7a9447057ca075d047708712c81f063aa4c5
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
+  xrSystemData: {fileID: 11400000, guid: 60e1133243b97e347b653163a8c01b64, type: 2}
   shaders:
     blitPS: {fileID: 4800000, guid: c17132b1f77d20942aa75f8429c0f8bc, type: 3}
     copyDepthPS: {fileID: 4800000, guid: d6dae50ee9e1bfa4db75f19f99355220, type: 3}
     screenSpaceShadowPS: {fileID: 4800000, guid: 0f854b35a0cf61a429bd5dcfea30eddd,
       type: 3}
     samplingPS: {fileID: 4800000, guid: 04c410c9937594faa893a11dceb85f7e, type: 3}
+    tileDepthInfoPS: {fileID: 0}
+    tileDeferredPS: {fileID: 0}
+    stencilDeferredPS: {fileID: 4800000, guid: e9155b26e1bc55942a41e518703fe304, type: 3}
     fallbackErrorPS: {fileID: 4800000, guid: e6e9a19c3678ded42a3bc431ebef7dbd, type: 3}
+    materialErrorPS: {fileID: 4800000, guid: 5fd9a8feb75a4b5894c241777f519d4e, type: 3}
   m_OpaqueLayerMask:
     serializedVersion: 2
     m_Bits: 4294967295
@@ -65,6 +70,8 @@ MonoBehaviour:
     failOperation: 0
     zFailOperation: 0
   m_ShadowTransparentReceive: 1
+  m_RenderingMode: 0
+  m_AccurateGbufferNormals: 0
 --- !u!114 &8090664459216618823
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -81,6 +88,6 @@ MonoBehaviour:
   MSetting:
     PassEvent: 450
     CullCameraTag: MainCamera
-    MatCapSphereMesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+    MatCapSphereMesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 3}
     LightMat: {fileID: 2100000, guid: 9a8877b3976ef8a4f809824a9246f3e1, type: 2}
     EdgeMat: {fileID: 2100000, guid: d5c3a08d7bd8c264aae68387c6f24fbe, type: 2}

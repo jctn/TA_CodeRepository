@@ -47,14 +47,14 @@ Shader "Code Repository/Base/Relief Parallax Mapping With HardShadow"
 			TEXTURE2D(_NormalTex);
 			SAMPLER(sampler_NormalTex);
 
-			//浮雕视差贴图
+			//锟斤拷锟斤拷锟接诧拷锟斤拷图
 			//https://www.jianshu.com/p/fea6c9fc610f
 			//https://segmentfault.com/a/1190000003920502
 			float2 ReliefParallaxMapping(float2 uv, half3 viewDirTS, out float curDepth)
 			{
 				half layerCount = lerp(_MaxLayerCount, _MinLayerCount, abs(viewDirTS.z));
 				float layerDepth = 1 / layerCount;
-				float2 deltaUV = viewDirTS.xy / viewDirTS.z * _ParallaxScale * layerDepth; //总的偏移：viewDirTS.xy / viewDirTS.z * _ParallaxScale，_ParallaxScale越小，偏移越小，效果上为视角越接近平面法线
+				float2 deltaUV = viewDirTS.xy / viewDirTS.z * _ParallaxScale * layerDepth; //锟杰碉拷偏锟狡ｏ拷viewDirTS.xy / viewDirTS.z * _ParallaxScale锟斤拷_ParallaxScale越小锟斤拷偏锟斤拷越小锟斤拷效锟斤拷锟斤拷为锟接斤拷越锟接斤拷平锟芥法锟斤拷
 
 				float currentLayerDepth = 0;
 				float2 currentUV = uv;
@@ -69,7 +69,7 @@ Shader "Code Repository/Base/Relief Parallax Mapping With HardShadow"
 					currentLayerDepth += layerDepth;
 				}
 
-				//二分查找
+				//锟斤拷锟街诧拷锟斤拷
 				float2 dUV = deltaUV / 2;
 				float dDepth = layerDepth / 2;
 				currentUV += dUV;
@@ -95,95 +95,76 @@ Shader "Code Repository/Base/Relief Parallax Mapping With HardShadow"
 				curDepth = currentLayerDepth;
 				return currentUV;
 			}
-
-			////https://segmentfault.com/a/1190000003920502
-			//float ParallaxSoftShadowMultiplier(float3 L, float2 initialTexCoord, float initialHeight)
-			//{
-			//   float shadowMultiplier = 1;
-
-			//   // calculate lighting only for surface oriented to the light source
-			//   if(dot(half3(0, 0, 1), L) > 0)
-			//   {
-			//	  // calculate initial parameters
-			//	  float numSamplesUnderSurface    = 0;
-			//	  shadowMultiplier    = 0;
-			//	  float numLayers    = mix(_MaxLayerCount, _MinLayerCount, abs(dot(float3(0, 0, 1), L)));
-			//	  float layerHeight    = initialHeight / numLayers;
-			//	  vec2 texStep    = _ParallaxScale * L.xy / L.z / numLayers;
-
-			//	  // current parameters
-			//	  float currentLayerHeight    = initialHeight - layerHeight;
-			//	  vec2 currentTextureCoords    = initialTexCoord + texStep;
-			//	  float heightFromTexture    = SAMPLE_TEXTURE2D(_DepthTex, sampler_DepthTex, currentTextureCoords).r;
-			//	  int stepIndex    = 1;
-
-			//	  // while point is below depth 0.0 )
-			//	  while(currentLayerHeight > 0)
-			//	  {
-			//		 // if point is under the surface
-			//		 if(heightFromTexture < currentLayerHeight)
-			//		 {
-			//			// calculate partial shadowing factor
-			//			numSamplesUnderSurface    += 1;
-			//			float newShadowMultiplier    = (currentLayerHeight - heightFromTexture) *
-			//											 (1.0 - stepIndex / numLayers);
-			//			shadowMultiplier    = max(shadowMultiplier, newShadowMultiplier);
-			//		 }
-
-			//		 // offset to the next layer
-			//		 stepIndex    += 1;
-			//		 currentLayerHeight    -= layerHeight;
-			//		 currentTextureCoords    += texStep;
-			//		 heightFromTexture    = SAMPLE_TEXTURE2D_LOD(_DepthTex, sampler_DepthTex, currentTextureCoords).r;
-			//	  }
-
-			//	  // Shadowing factor should be 1 if there were no points under the surface
-			//	  if(numSamplesUnderSurface < 1)
-			//	  {
-			//		 shadowMultiplier = 1;
-			//	  }
-			//	  else
-			//	  {
-			//		 shadowMultiplier = 1.0 - shadowMultiplier;
-			//	  }
-			//   }
-			//   return shadowMultiplier;
-			//}
-
-
-			//https://segmentfault.com/a/1190000003920502
-			float ParallaxSoftShadowMultiplier(float3 L, float2 initialTexCoord, float initialHeight)
+			
+			//https://www.jianshu.com/p/fea6c9fc610f
+			float ParallaxSoftShadowMultiplier(float3 L, float2 initialTexCoord, float initialDepth)
 			{
-			   float shadowMultiplier = 1;
+			   float shadowMultiplier = 0;
 
 			   if(dot(half3(0, 0, 1), L) > 0)
 			   {
-				  float numLayers    = lerp(_MaxLayerCount, _MinLayerCount, abs(dot(float3(0, 0, 1), L)));
-				  float layerHeight    = initialHeight / numLayers;
-				  float2 texStep    = _ParallaxScale * L.xy / L.z / numLayers;
+					float numLayers    = lerp(_MaxLayerCount, _MinLayerCount, abs(dot(float3(0, 0, 1), L)));
+					float layerDepth    = initialDepth / numLayers;
+				  	float2 texStep    = _ParallaxScale * L.xy / L.z / numLayers;
 
-				  //first layer
-				  float currentLayerHeight    = initialHeight - layerHeight;
-				  float2 currentTextureCoords    = initialTexCoord + texStep;
-				  float heightFromTexture    = SAMPLE_TEXTURE2D(_DepthTex, sampler_DepthTex, currentTextureCoords).r;
+				  	//first layer
+					float currentLayerDepth    = initialDepth - layerDepth;
+					float2 currentTextureCoords    = initialTexCoord + texStep;
+					float depthFromTexture    = SAMPLE_TEXTURE2D(_DepthTex, sampler_DepthTex, currentTextureCoords).r;
+					float numSamplesUnderSurface = 0;
 
-				  //[unroll(15)]
-				  while(currentLayerHeight > 0)
-				  {
-					 //第一个在高度下的层
-					 if(heightFromTexture < currentLayerHeight)
-					 {
-						shadowMultiplier    = 0;
-						break;
-					 }
+					//[unroll(15)]
+					while(currentLayerDepth > 0)
+					{
+						if(depthFromTexture < currentLayerDepth)
+						{
+							numSamplesUnderSurface += 1;
+						}
 
-					 currentLayerHeight    -= layerHeight;
-					 currentTextureCoords    += texStep;
-					 heightFromTexture    = SAMPLE_TEXTURE2D_LOD(_DepthTex, sampler_DepthTex, currentTextureCoords, 0).r;
-				  }
-			   }
-			   return shadowMultiplier;
-			}
+						currentLayerDepth -= layerDepth;
+						currentTextureCoords += texStep;
+						depthFromTexture  = SAMPLE_TEXTURE2D_LOD(_DepthTex, sampler_DepthTex, currentTextureCoords, 0).r;
+					}		
+					shadowMultiplier = 1 - numSamplesUnderSurface / numLayers;		  
+			   	}
+				return shadowMultiplier;			
+			}	
+			
+			// //杈圭紭鏇寸‖
+			// //https://segmentfault.com/a/1190000003920502
+			// float ParallaxSoftShadowMultiplier(float3 L, float2 initialTexCoord, float initialDepth)
+			// {
+			//    float shadowMultiplier = 0;
+
+			//    if(dot(half3(0, 0, 1), L) > 0)
+			//    {
+			// 	   	shadowMultiplier = 1;
+			// 		float numLayers    = lerp(_MaxLayerCount, _MinLayerCount, abs(dot(float3(0, 0, 1), L)));
+			// 		float layerDepth    = initialDepth / numLayers;
+			// 	  	float2 texStep    = _ParallaxScale * L.xy / L.z / numLayers;
+
+			// 	  	//first layer
+			// 		float currentLayerDepth    = initialDepth - layerDepth;
+			// 		float2 currentTextureCoords    = initialTexCoord + texStep;
+			// 		float depthFromTexture    = SAMPLE_TEXTURE2D(_DepthTex, sampler_DepthTex, currentTextureCoords).r;
+			// 		float numSamplesUnderSurface = 0;
+
+			// 		//[unroll(15)]
+			// 		while(currentLayerDepth > 0)
+			// 		{
+			// 			if(depthFromTexture < currentLayerDepth)
+			// 			{
+			// 				shadowMultiplier = 0;
+			// 				break;
+			// 			}
+
+			// 			currentLayerDepth -= layerDepth;
+			// 			currentTextureCoords += texStep;
+			// 			depthFromTexture  = SAMPLE_TEXTURE2D_LOD(_DepthTex, sampler_DepthTex, currentTextureCoords, 0).r;
+			// 		}		  
+			//    	}
+			// 	return shadowMultiplier;			
+			// }					
 		ENDHLSL
 
 		Pass {
@@ -237,6 +218,7 @@ Shader "Code Repository/Base/Relief Parallax Mapping With HardShadow"
 				float curDepth;
 				float2 uv = ReliefParallaxMapping(IN.uv, normalize(IN.viewDirTS), curDepth);
 				float shadowMultiplier = ParallaxSoftShadowMultiplier(normalize(IN.lightDirTS), uv, curDepth);
+				return shadowMultiplier;
 				half4 baseMap = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv);
 				half4 packNormal = SAMPLE_TEXTURE2D(_NormalTex, sampler_NormalTex, uv);
 				half3 normalTS = UnpackNormalScale(packNormal, _BumpScale);

@@ -43,6 +43,13 @@ Shader "Code Repository/Effect/HitStatusShow"
 			#pragma vertex UnlitPassVertex
 			#pragma fragment UnlitPassFragment
 
+			//效果分为3类，1.更改属性2.更改计算方式3.更改附加项
+			//这是互斥的效果，直接影响结果的计算方式
+			#pragma multi_compile _ A B C
+			//这是叠加的效果，实在原有基础上添加颜色
+			#pragma multi_compile _ a b c
+
+
 			// Structs
 			struct Attributes 
 			{
