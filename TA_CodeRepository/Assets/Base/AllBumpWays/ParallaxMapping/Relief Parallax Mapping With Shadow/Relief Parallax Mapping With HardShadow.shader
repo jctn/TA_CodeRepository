@@ -1,4 +1,4 @@
-Shader "Code Repository/Base/Relief Parallax Mapping With Shadow" 
+Shader "Code Repository/Base/Relief Parallax Mapping With HardShadow" 
 {
 	Properties 
 	{
@@ -65,7 +65,7 @@ Shader "Code Repository/Base/Relief Parallax Mapping With Shadow"
 				while(currentDepth > currentLayerDepth)
 				{
 					currentUV -= deltaUV;
-					currentDepth = SAMPLE_TEXTURE2D_LOD(_DepthTex, sampler_DepthTex, currentUV, 0).r;
+					currentDepth = SAMPLE_TEXTURE2D(_DepthTex, sampler_DepthTex, currentUV).r;
 					currentLayerDepth += layerDepth;
 				}
 
@@ -92,64 +92,98 @@ Shader "Code Repository/Base/Relief Parallax Mapping With Shadow"
 					}
 				}
 
-				curDepth = currentDepth;
+				curDepth = currentLayerDepth;
 				return currentUV;
 			}
+
+			////https://segmentfault.com/a/1190000003920502
+			//float ParallaxSoftShadowMultiplier(float3 L, float2 initialTexCoord, float initialHeight)
+			//{
+			//   float shadowMultiplier = 1;
+
+			//   // calculate lighting only for surface oriented to the light source
+			//   if(dot(half3(0, 0, 1), L) > 0)
+			//   {
+			//	  // calculate initial parameters
+			//	  float numSamplesUnderSurface    = 0;
+			//	  shadowMultiplier    = 0;
+			//	  float numLayers    = mix(_MaxLayerCount, _MinLayerCount, abs(dot(float3(0, 0, 1), L)));
+			//	  float layerHeight    = initialHeight / numLayers;
+			//	  vec2 texStep    = _ParallaxScale * L.xy / L.z / numLayers;
+
+			//	  // current parameters
+			//	  float currentLayerHeight    = initialHeight - layerHeight;
+			//	  vec2 currentTextureCoords    = initialTexCoord + texStep;
+			//	  float heightFromTexture    = SAMPLE_TEXTURE2D(_DepthTex, sampler_DepthTex, currentTextureCoords).r;
+			//	  int stepIndex    = 1;
+
+			//	  // while point is below depth 0.0 )
+			//	  while(currentLayerHeight > 0)
+			//	  {
+			//		 // if point is under the surface
+			//		 if(heightFromTexture < currentLayerHeight)
+			//		 {
+			//			// calculate partial shadowing factor
+			//			numSamplesUnderSurface    += 1;
+			//			float newShadowMultiplier    = (currentLayerHeight - heightFromTexture) *
+			//											 (1.0 - stepIndex / numLayers);
+			//			shadowMultiplier    = max(shadowMultiplier, newShadowMultiplier);
+			//		 }
+
+			//		 // offset to the next layer
+			//		 stepIndex    += 1;
+			//		 currentLayerHeight    -= layerHeight;
+			//		 currentTextureCoords    += texStep;
+			//		 heightFromTexture    = SAMPLE_TEXTURE2D_LOD(_DepthTex, sampler_DepthTex, currentTextureCoords).r;
+			//	  }
+
+			//	  // Shadowing factor should be 1 if there were no points under the surface
+			//	  if(numSamplesUnderSurface < 1)
+			//	  {
+			//		 shadowMultiplier = 1;
+			//	  }
+			//	  else
+			//	  {
+			//		 shadowMultiplier = 1.0 - shadowMultiplier;
+			//	  }
+			//   }
+			//   return shadowMultiplier;
+			//}
+
 
 			//https://segmentfault.com/a/1190000003920502
 			float ParallaxSoftShadowMultiplier(float3 L, float2 initialTexCoord, float initialHeight)
 			{
 			   float shadowMultiplier = 1;
 
-			   // calculate lighting only for surface oriented to the light source
 			   if(dot(half3(0, 0, 1), L) > 0)
 			   {
-				  // calculate initial parameters
-				  float numSamplesUnderSurface    = 0;
-				  shadowMultiplier    = 0;
-				  float numLayers    = mix(_MaxLayerCount, _MinLayerCount, abs(dot(float3(0, 0, 1), L)));
+				  float numLayers    = lerp(_MaxLayerCount, _MinLayerCount, abs(dot(float3(0, 0, 1), L)));
 				  float layerHeight    = initialHeight / numLayers;
-				  vec2 texStep    = _ParallaxScale * L.xy / L.z / numLayers;
+				  float2 texStep    = _ParallaxScale * L.xy / L.z / numLayers;
 
-				  // current parameters
+				  //first layer
 				  float currentLayerHeight    = initialHeight - layerHeight;
-				  vec2 currentTextureCoords    = initialTexCoord + texStep;
+				  float2 currentTextureCoords    = initialTexCoord + texStep;
 				  float heightFromTexture    = SAMPLE_TEXTURE2D(_DepthTex, sampler_DepthTex, currentTextureCoords).r;
-				  int stepIndex    = 1;
 
-				  // while point is below depth 0.0 )
+				  //[unroll(15)]
 				  while(currentLayerHeight > 0)
 				  {
-					 // if point is under the surface
+					 //第一个在高度下的层
 					 if(heightFromTexture < currentLayerHeight)
 					 {
-						// calculate partial shadowing factor
-						numSamplesUnderSurface    += 1;
-						float newShadowMultiplier    = (currentLayerHeight - heightFromTexture) *
-														 (1.0 - stepIndex / numLayers);
-						shadowMultiplier    = max(shadowMultiplier, newShadowMultiplier);
+						shadowMultiplier    = 0;
+						break;
 					 }
 
-					 // offset to the next layer
-					 stepIndex    += 1;
 					 currentLayerHeight    -= layerHeight;
 					 currentTextureCoords    += texStep;
-					 heightFromTexture    = SAMPLE_TEXTURE2D_LOD(_DepthTex, sampler_DepthTex, currentTextureCoords).r;
-				  }
-
-				  // Shadowing factor should be 1 if there were no points under the surface
-				  if(numSamplesUnderSurface < 1)
-				  {
-					 shadowMultiplier = 1;
-				  }
-				  else
-				  {
-					 shadowMultiplier = 1.0 - shadowMultiplier;
+					 heightFromTexture    = SAMPLE_TEXTURE2D_LOD(_DepthTex, sampler_DepthTex, currentTextureCoords, 0).r;
 				  }
 			   }
 			   return shadowMultiplier;
 			}
-
 		ENDHLSL
 
 		Pass {
@@ -173,6 +207,7 @@ Shader "Code Repository/Base/Relief Parallax Mapping With Shadow"
 				half4 TtoW1		: TEXCOORD2;
 				half4 TtoW2		: TEXCOORD3;
 				half3 viewDirTS : TEXCOORD4;
+				half3 lightDirTS: TEXCOORD5;
 			};
 
 			Varyings UnlitPassVertex(Attributes IN) 
@@ -191,26 +226,29 @@ Shader "Code Repository/Base/Relief Parallax Mapping With Shadow"
 				half3 viewDirOS = normalize(TransformWorldToObject(_WorldSpaceCameraPos) - IN.positionOS.xyz);
 				float3 binormalOS = normalize(cross(IN.normal, IN.tangent.xyz) * IN.tangent.w);
 				float3x3 OtoT = float3x3(IN.tangent.xyz, binormalOS, IN.normal);
-				OUT.viewDirTS = mul(OtoT, viewDirOS);
+				OUT.viewDirTS = normalize(mul(OtoT, viewDirOS));
+				OUT.lightDirTS = mul(OtoT, TransformWorldToObjectDir(_MainLightPosition.xyz));
 				return OUT;
 			}
 
 			half4 UnlitPassFragment(Varyings IN) : SV_Target 
 			{
 				float3 posWS = float3(IN.TtoW0.w, IN.TtoW1.w, IN.TtoW2.w);
-				float2 uv = ReliefParallaxMapping(IN.uv, IN.viewDirTS);				
+				float curDepth;
+				float2 uv = ReliefParallaxMapping(IN.uv, normalize(IN.viewDirTS), curDepth);
+				float shadowMultiplier = ParallaxSoftShadowMultiplier(normalize(IN.lightDirTS), uv, curDepth);
 				half4 baseMap = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv);
 				half4 packNormal = SAMPLE_TEXTURE2D(_NormalTex, sampler_NormalTex, uv);
 				half3 normalTS = UnpackNormalScale(packNormal, _BumpScale);
 				half3 normalWS = SafeNormalize(half3(dot(IN.TtoW0.xyz, normalTS), dot(IN.TtoW1.xyz, normalTS), dot(IN.TtoW2.xyz, normalTS)));
 
 				half NdotL = max(0, dot(normalWS, _MainLightPosition.xyz));
-				half3 diffuseCol = baseMap.rgb * _BaseColor.rgb * _MainLightColor.rgb * NdotL;
+				half3 diffuseCol = baseMap.rgb * _BaseColor.rgb * _MainLightColor.rgb * NdotL * shadowMultiplier;
 
 				half3 viewDirWS = SafeNormalize(_WorldSpaceCameraPos.xyz - posWS);
 				half3 halfDir = SafeNormalize(_MainLightPosition.xyz + viewDirWS);
 				half NDotH = max(0, dot(normalWS, halfDir));
-				half3 specularCol = pow(NDotH, _SpecularScale * 256)  * _SpecularCol.rgb * _MainLightColor.rgb;
+				half3 specularCol = pow(NDotH, _SpecularScale * 256)  * _SpecularCol.rgb * _MainLightColor.rgb * shadowMultiplier;
 				return half4(diffuseCol + specularCol, baseMap.a * _BaseColor.a);
 			}
 			ENDHLSL

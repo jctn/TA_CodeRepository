@@ -65,7 +65,7 @@ Shader "Code Repository/Base/Relief Parallax Mapping"
 				while(currentDepth > currentLayerDepth)
 				{
 					currentUV -= deltaUV;
-					currentDepth = SAMPLE_TEXTURE2D_LOD(_DepthTex, sampler_DepthTex, currentUV, 0).r;
+					currentDepth = SAMPLE_TEXTURE2D(_DepthTex, sampler_DepthTex, currentUV).r;
 					currentLayerDepth += layerDepth;
 				}
 
