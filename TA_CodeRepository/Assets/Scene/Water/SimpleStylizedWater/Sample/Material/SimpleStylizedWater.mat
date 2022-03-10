@@ -78,9 +78,9 @@ Material:
     - _ReflectionIntensity: 1
     - _Smoothness: 0.5
     - _SmoothnessTextureChannel: 0
-    - _SpecularEnd: 32.12
+    - _SpecularEnd: 66
     - _SpecularHighlights: 1
-    - _SpecularIntensity: 5
+    - _SpecularIntensity: 4
     - _SpecularScale: 0.99
     - _SpecularStart: 0
     - _SrcBlend: 1
@@ -93,7 +93,8 @@ Material:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
-    - _SpecularCol: {r: 0.9056604, g: 0.34583855, b: 0.10679956, a: 1}
+    - _SpecularCol: {r: 1, g: 0.5719801, b: 0, a: 1}
+  m_BuildTextureStacks: []
 --- !u!114 &3479407429778459267
 MonoBehaviour:
   m_ObjectHideFlags: 11

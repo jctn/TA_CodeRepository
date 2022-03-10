@@ -107,6 +107,7 @@
 				return OUT;
 			}
 
+			//元素：反射，水底折射，高光，扰动，流动
 			half4 Fragment(Varyings IN) : SV_Target 
 			{
 				float2 screenUV = IN.positionSS.xy / IN.positionSS.w;

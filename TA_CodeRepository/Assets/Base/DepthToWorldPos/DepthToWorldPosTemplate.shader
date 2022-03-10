@@ -123,7 +123,7 @@ Shader "Code Repository/Base/DepthToWorldPosTemplate"
 				{
 					float2 screenPos = OUT.positionSS.xy / OUT.positionSS.w;
 					float3 farPlaneNDC = float3(screenPos.x * 2 - 1, screenPos.y * 2 - 1, 1);
-					float3 farPlaneClip = farPlaneNDC * _ProjectionParams.z;//在投射投影中，远平面的clip.w = _ProjectionParams.z（视锥体far)，得到位于clip空间的点
+					float3 farPlaneClip = farPlaneNDC * _ProjectionParams.z;//在透视投影中，远平面的clip.w = _ProjectionParams.z（视锥体far)，得到位于clip空间的点
 					OUT.farRayWS = mul((float3x3)UNITY_MATRIX_I_V, mul(unity_CameraInvProjection, farPlaneClip.xyzz).xyz).xyz;//得到指向far plane的向量
 				}
 				else if(_ShowWorldPosWay == 3)
