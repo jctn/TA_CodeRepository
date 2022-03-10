@@ -4,7 +4,7 @@ Shader "Code Repository/Base/Bump Mapping"
 	{
 		_BaseMap ("BaseMap", 2D) = "white" {}
 		_BaseColor ("BaseColor", Color) = (1, 1, 1, 1)
-		_BumpTex ("BumpTex", 2D) = "white" {}
+		_BumpTex ("BumpTex(depthmap)", 2D) = "white" {}
 		_BumpScale ("BumpScale", Range(0, 20)) = 2
 	}
 	SubShader 

@@ -53,7 +53,7 @@ Shader "Code Repository/Base/SimpleParallaxMapping"
 				half3 viewDir = normalize(viewDirTS);
 				float2 delta0 = viewDir.xy / viewDir.z * (h * _ParallaxScale); //除z，视角和和平面法线夹角越大，偏移越大
 				float2 delta1 = viewDir.xy * (h * _ParallaxScale); //不除z，称为带偏移限制的视差贴图( viewDir.xy * h限制在（0-1,0-1）)，防止视角和和平面法线夹角较大时的错误表现
-				return uv - (delta0 * _DivideZ + delta1 * (1 - _DivideZ));//(如果是高度图则为uv + delta)
+				return uv - (delta0 * _DivideZ + delta1 * (1 - _DivideZ));//(如果是高度图则为uv + delta)，深度图，适用于从水平面凹下去的情况，高度图适用于从水平面凸出的情况
 			}
 
 		ENDHLSL

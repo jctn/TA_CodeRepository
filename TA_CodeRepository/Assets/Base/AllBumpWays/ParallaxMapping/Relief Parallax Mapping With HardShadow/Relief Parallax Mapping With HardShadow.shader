@@ -47,14 +47,14 @@ Shader "Code Repository/Base/Relief Parallax Mapping With HardShadow"
 			TEXTURE2D(_NormalTex);
 			SAMPLER(sampler_NormalTex);
 
-			//�����Ӳ���ͼ
+			//浮雕视差贴图
 			//https://www.jianshu.com/p/fea6c9fc610f
 			//https://segmentfault.com/a/1190000003920502
 			float2 ReliefParallaxMapping(float2 uv, half3 viewDirTS, out float curDepth)
 			{
 				half layerCount = lerp(_MaxLayerCount, _MinLayerCount, abs(viewDirTS.z));
 				float layerDepth = 1 / layerCount;
-				float2 deltaUV = viewDirTS.xy / viewDirTS.z * _ParallaxScale * layerDepth; //�ܵ�ƫ�ƣ�viewDirTS.xy / viewDirTS.z * _ParallaxScale��_ParallaxScaleԽС��ƫ��ԽС��Ч����Ϊ�ӽ�Խ�ӽ�ƽ�淨��
+				float2 deltaUV = viewDirTS.xy / viewDirTS.z * _ParallaxScale * layerDepth; //总的偏移：viewDirTS.xy / viewDirTS.z * _ParallaxScale，_ParallaxScale越小，偏移越小，效果上为视角越接近平面法线
 
 				float currentLayerDepth = 0;
 				float2 currentUV = uv;
@@ -69,7 +69,7 @@ Shader "Code Repository/Base/Relief Parallax Mapping With HardShadow"
 					currentLayerDepth += layerDepth;
 				}
 
-				//���ֲ���
+				//二分查找
 				float2 dUV = deltaUV / 2;
 				float dDepth = layerDepth / 2;
 				currentUV += dUV;
@@ -218,7 +218,7 @@ Shader "Code Repository/Base/Relief Parallax Mapping With HardShadow"
 				float curDepth;
 				float2 uv = ReliefParallaxMapping(IN.uv, normalize(IN.viewDirTS), curDepth);
 				float shadowMultiplier = ParallaxSoftShadowMultiplier(normalize(IN.lightDirTS), uv, curDepth);
-				return shadowMultiplier;
+				//return shadowMultiplier;
 				half4 baseMap = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv);
 				half4 packNormal = SAMPLE_TEXTURE2D(_NormalTex, sampler_NormalTex, uv);
 				half3 normalTS = UnpackNormalScale(packNormal, _BumpScale);

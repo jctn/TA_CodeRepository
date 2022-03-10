@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.44354823, g: 0.492855, b: 0.5724448, a: 1}
+  m_IndirectSpecularColor: {r: 0.43804887, g: 0.48602355, b: 0.56630343, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -325,7 +325,6 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 1
   m_VolumeTrigger: {fileID: 0}
-  m_VolumeFrameworkUpdateModeOption: 2
   m_RenderPostProcessing: 0
   m_Antialiasing: 0
   m_AntialiasingQuality: 2
@@ -349,7 +348,7 @@ GameObject:
   - component: {fileID: 249053128}
   - component: {fileID: 249053127}
   m_Layer: 0
-  m_Name: Relief Parallax Mapping With HardShadow (1)
+  m_Name: Relief Parallax Mapping With SoftShadow
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -518,13 +517,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 672041178}
-  m_LocalRotation: {x: 0.8726324, y: -0, z: -0, w: 0.48837775}
+  m_LocalRotation: {x: 0.78298116, y: -0, z: -0, w: 0.6220454}
   m_LocalPosition: {x: 40.25, y: 2.01, z: -0.94}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 1
-  m_LocalEulerAnglesHint: {x: 121.532, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 103.069, y: 0, z: 0}
 --- !u!1 &926606810
 GameObject:
   m_ObjectHideFlags: 0
