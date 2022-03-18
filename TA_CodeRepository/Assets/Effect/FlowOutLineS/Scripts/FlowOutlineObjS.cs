@@ -9,7 +9,7 @@ namespace FlowOutline
     public class FlowOutlineObjS : MonoBehaviour
     {
         [Header("从当前层级还是从上第2个层级开始查找处理对象")]
-        public bool CurOrFirstTwo = false;
+        public bool CurOrFirstTwo = true;
         [Header("处理对象是Meshender还是SkinedMeshrender")]
         public bool IsSkinedRender = true;
 
@@ -25,44 +25,39 @@ namespace FlowOutline
         public bool OpenBreathing = false;
         [Range(0f, 5f)]
         public float BreathingFrequency = 1f;
-        [Header("避免遮挡物体材质的描边")]
+        [Header("避免遮挡物体描边")]
         public bool ShowOutline = false;
+        [Header("以对象自身为遮罩")]
+        public bool OpenMask = true;
 
         [Header("模糊参数")]
-        //剪影RT降采样
-        [Range(0, 5)]
-        public int SilhouetteDownSample = 3;
         [Range(0f, 5f)]
         public float BlurRadiusX = 1.6f;
         [Range(0f, 5f)]
         public float BlurRadiusY = 1.6f;
-        [Header("y方向只向上方模糊")]
-        public bool IsUPBlur = true;
-        //迭代次数
-        [Header("模糊迭代次数")]
-        [Range(0f, 5f)]
-        public int Iteration = 1;
+        [Header("模糊方向受扭曲方向影响")]
+        public bool BlurDirByDistortRange = true;
 
         [Header("扭曲参数")]
-        //模糊步长
-        [Range(0, 5.0f)]
-        public float DistortTimeFactor = 0.85f;
-        [Range(-0.2f, 0.2f)]
+        [Range(-0.5f, 0.5f)]
         public float DistortRangeX = 0.0f;
-        [Range(-0.2f, 0.2f)]
+        [Range(-0.5f, 0.5f)]
         public float DistortRangeY = 0.043f;
         [Range(0, 1.0f)]
         public float DistortStrengthX = 0.0079f;
         [Range(0, 1.0f)]
-        public float DistortStrengthy = 1.0f;
+        public float DistortStrengthY = 1.0f;
         public Texture NoiseTex;
         public Vector4 NoiseTilingAndOffset = new Vector4(15.0f, 6.0f, 0.0f, 0.0f);
+        public float NoiseTexRotation = 0f;
+        public Vector2 NoiseTexFlowDir = new Vector2(0f, 1f);
+        [Range(0, 5.0f)]
+        public float NoiseTexFlowSpeed = 0.85f;
+        public bool DebugNoiseTex = false;
 
         [Header("Billboard参数")]
         public Vector2 BillboardSize = new Vector2(4f, 4f);
         public Vector3 BillboardOffset = new Vector3(0f, 1f, 0f);
-        //public BlendMode BillboardSrcBlend = BlendMode.SrcAlpha;
-        //public BlendMode BillboardDstBlend = BlendMode.OneMinusSrcAlpha;
         public EZTest BillboardZTest = EZTest.on;
         [Min(3000)]
         public int BillboardRenderQueue = 3000;
@@ -88,33 +83,6 @@ namespace FlowOutline
             get
             {
                 return mMaskMat;
-            }
-        }
-
-        private Material mSilhouetteMat;
-        public Material SilhouetteMat
-        {
-            get
-            {
-                return mSilhouetteMat;
-            }
-        }
-
-        private Material mBlurMat;
-        public Material BlurMat
-        {
-            get
-            {
-                return mBlurMat;
-            }
-        }
-
-        private RenderTexture mSilhouetteTex;
-        public RenderTexture SilhouetteTex
-        {
-            get
-            {
-                return mSilhouetteTex;
             }
         }
 
@@ -144,25 +112,41 @@ namespace FlowOutline
         private static int mID_SolidZTest = Shader.PropertyToID("_ZTest");
         private static int mID_SolidZWrite = Shader.PropertyToID("_ZWrite");
         private static int mID_SolidColorMask = Shader.PropertyToID("_ColorMask");
-        private static int mID_SolidColorHDRFactor = Shader.PropertyToID("_SolidColorHDRFactor");
-        private static int mID_DistortTimeFactor = Shader.PropertyToID("_DistortTimeFactor");
         private static int mID_DistortFactor = Shader.PropertyToID("_DistortFactor");
         private static int mID_DistortNoiseTilingAndOffset = Shader.PropertyToID("_NoiseTex_TO");
-        private static int mID_SilhouetteTex = Shader.PropertyToID("_SilhouetteTex");
+        private static int mID_RotationAndFlow = Shader.PropertyToID("_RotationAndFlow");
+        private static int mID_DebugNoise = Shader.PropertyToID("_DebugNoise");
         private static int mID_NoiseTex = Shader.PropertyToID("_NoiseTex");
-        private static int mID_MsakTexMask = Shader.PropertyToID("_MsakTexMask");
+        private static int mID_OpenMask = Shader.PropertyToID("_OpenMask");
         private static int mID_BillboardSize = Shader.PropertyToID("_BillboardSize");
         private static int mID_BillboardZTest = Shader.PropertyToID("_BillboardZTest");
         private static int mID_AlphaFactor = Shader.PropertyToID("_AlphaFactor");
+        private static int mID_FlowOutLineColor = Shader.PropertyToID("_FlowOutLineColor");
+        private static int mID_ColorHDRFactor = Shader.PropertyToID("_ColorHDRFactor");
+        private static int mID_SceneIndex = Shader.PropertyToID("_SceneIndex");
 
         private Transform mTarget_Transform;
-        private int mIndex;
         private Shader mSolidShader;
-        private Shader mBlurShader;
         private Shader mBillboardsShader;
         private Vector4 mMsakTexMask;
+        public Vector4 MsakTexMask
+        {
+            get
+            {
+                return mMsakTexMask;
+            }
+        }
         private GameObject mBillboardGO;
         private float mActiveTime;
+        private Mesh mBillboardMesh;
+        private int mSceneIndex;
+        public int SceneIndex
+        {
+            get
+            {
+                return mSceneIndex;
+            }
+        }
 
         private void OnEnable()
         {
@@ -171,7 +155,7 @@ namespace FlowOutline
 
         private void Start()
         {
-            if(!CurOrFirstTwo)
+            if (!CurOrFirstTwo)
             {
                 mTarget_Transform = transform.parent;
                 if (mTarget_Transform == null || mTarget_Transform.parent == null)
@@ -186,7 +170,7 @@ namespace FlowOutline
                 mTarget_Transform = transform;
             }
 
-            if(IsSkinedRender)
+            if (IsSkinedRender)
             {
                 mRenderers = mTarget_Transform.GetComponentsInChildren<SkinnedMeshRenderer>();
                 if (mRenderers == null || mRenderers.Length <= 0)
@@ -215,7 +199,7 @@ namespace FlowOutline
 
         void EditorUpdate()
         {
-            if(mCur_CurOrFirstTwo != CurOrFirstTwo || mCur_IsSkinedRender != IsSkinedRender)
+            if (mCur_CurOrFirstTwo != CurOrFirstTwo || mCur_IsSkinedRender != IsSkinedRender)
             {
                 mCur_CurOrFirstTwo = CurOrFirstTwo;
                 mCur_IsSkinedRender = IsSkinedRender;
@@ -228,6 +212,7 @@ namespace FlowOutline
                     mTarget_Transform = transform.parent;
                     if (mTarget_Transform == null || mTarget_Transform.parent == null)
                     {
+                        mRenderers = null;
                         return;
                     }
                     mTarget_Transform = mTarget_Transform.parent;
@@ -254,15 +239,7 @@ namespace FlowOutline
 #if UNITY_EDITOR
             EditorUpdate();
 #endif
-            bool canRegistered;
-            if (Camera.main != null)
-            {
-                canRegistered = mTarget_Transform != null && mRenderers != null && mRenderers.Length > 0 && ((1 << mRenderers[0].gameObject.layer) & Camera.main.cullingMask) != 0;
-            }
-            else
-            {
-                canRegistered = mTarget_Transform != null && mRenderers != null && mRenderers.Length > 0;
-            }
+            bool canRegistered = mTarget_Transform != null && mRenderers != null && mRenderers.Length > 0;
             if (!mRegistered)
             {
                 if (canRegistered)
@@ -282,42 +259,30 @@ namespace FlowOutline
 
         private void LateUpdate()
         {
-            if(mRegistered)
+            if (mRegistered)
             {
-                UpdateSilhouetteTex();
                 UpdateMats();
                 UpdateBillboard();
-            }     
+            }
         }
 
         private void UpdateMats()
         {
-            mIndex = FlowOutlineMgrS.Instance.GetFlowOutlineIndex(this);
-            if (mIndex < 0) return;
-
             if (mSolidShader == null)
             {
                 mSolidShader = Shader.Find("Code Repository/Effect/FlowOutLineS/SolidColor");
             }
 
-            if(mBlurShader == null)
-            {
-                mBlurShader = Shader.Find("Code Repository/Effect/FlowOutLineS/Blur");
-            }
-
-            if(mBillboardsShader == null)
+            if (mBillboardsShader == null)
             {
                 mBillboardsShader = Shader.Find("Code Repository/Effect/FlowOutLineS/Billboard");
             }
-            UpdateMaskMat();
-            UpdateSilhouetteMat();
-            UpdateBlurMat();
             UpdateBillboardsMat();
         }
 
-        private void UpdateMaskMat()
-        {         
-            if(mMaskMat == null && mSolidShader != null)
+        public void UpdateMaskMat(int index)
+        {
+            if (mMaskMat == null && mSolidShader != null)
             {
                 mMaskMat = new Material(mSolidShader);
                 mMaskMat.SetColor(mID_SolidColor, Color.white);
@@ -325,121 +290,90 @@ namespace FlowOutline
                 mMaskMat.SetFloat(mID_SolidZWrite, 0);
             }
 
-            if(mMaskMat != null)
+            switch (index)
             {
-                switch (mIndex)
-                {
-                    case 0:
-                        mMaskMat.SetFloat(mID_SolidColorMask, (float)ColorWriteMask.Red);
-                        mMsakTexMask = new Vector4(1f, 0f, 0f, 0f);
-                        break;
-                    case 1:
-                        mMaskMat.SetFloat(mID_SolidColorMask, (float)ColorWriteMask.Green);
-                        mMsakTexMask = new Vector4(0f, 1f, 0f, 0f);
-                        break;
-                    case 2:
-                        mMaskMat.SetFloat(mID_SolidColorMask, (float)ColorWriteMask.Blue);
-                        mMsakTexMask = new Vector4(0f, 0f, 1f, 0f);
-                        break;
-                    case 3:
-                        mMaskMat.SetFloat(mID_SolidColorMask, (float)ColorWriteMask.Alpha);
-                        mMsakTexMask = new Vector4(0f, 0f, 0f, 1f);
-                        break;
-                }
+                case 0:
+                    mMaskMat.SetFloat(mID_SolidColorMask, (float)ColorWriteMask.Red);
+                    mMsakTexMask = new Vector4(1f, 0f, 0f, 0f);
+                    break;
+                case 1:
+                    mMaskMat.SetFloat(mID_SolidColorMask, (float)ColorWriteMask.Green);
+                    mMsakTexMask = new Vector4(0f, 1f, 0f, 0f);
+                    break;
+                case 2:
+                    mMaskMat.SetFloat(mID_SolidColorMask, (float)ColorWriteMask.Blue);
+                    mMsakTexMask = new Vector4(0f, 0f, 1f, 0f);
+                    break;
+                case 3:
+                    mMaskMat.SetFloat(mID_SolidColorMask, (float)ColorWriteMask.Alpha);
+                    mMsakTexMask = new Vector4(0f, 0f, 0f, 1f);
+                    break;
             }
         }
 
-        private void UpdateSilhouetteMat()
+        private void UpdateBillboardsMat()
         {
-            if(mSilhouetteMat == null && mSolidShader != null)
+            if (mBillboardsMat == null && mBillboardsShader != null)
             {
-                mSilhouetteMat = new Material(mSolidShader);
-                mSilhouetteMat.SetFloat("_ZTest", (float)CompareFunction.Disabled);
-                mSilhouetteMat.SetFloat("_ZWrite", 0f);
-                mSilhouetteMat.SetFloat("_ColorMask", (float)ColorWriteMask.All);
+                mBillboardsMat = new Material(mBillboardsShader);
             }
 
-            if(mSilhouetteMat != null)
+            if (mBillboardsMat != null)
             {
                 Color tempColor = OutLineColor;
-                if(OpenBreathing)
+                if (OpenBreathing)
                 {
                     float a = Mathf.Sin(2 * Mathf.PI * BreathingFrequency * (Time.time - mActiveTime));
                     a = a * 0.5f + 0.5f;
                     tempColor.a *= a;
                 }
-                mSilhouetteMat.SetColor(mID_SolidColor, tempColor);
-                mSilhouetteMat.SetFloat(mID_SolidColorHDRFactor, OutLineColorHDRFactor);
-            }
-        }
-
-        private void UpdateBlurMat()
-        {
-            if(mBlurMat == null && mBlurShader != null)
-            {
-                mBlurMat = new Material(mBlurShader);
-            }
-        }
-
-        public void UpdateBillboardsMat()
-        {
-            if(mBillboardsMat == null && mBillboardsShader != null)
-            {
-                mBillboardsMat = new Material(mBillboardsShader);
-            }
-            
-            if(mBillboardsMat != null)
-            {
-                mBillboardsMat.SetTexture(mID_SilhouetteTex, mSilhouetteTex);
-                mBillboardsMat.SetVector(mID_MsakTexMask, mMsakTexMask);
-                mBillboardsMat.SetFloat(mID_DistortTimeFactor, DistortTimeFactor);
-                mBillboardsMat.SetVector(mID_DistortFactor, new Vector4(DistortRangeX, DistortRangeY, DistortStrengthX, DistortStrengthy));
+                mSceneIndex = FlowOutlineMgrS.Instance.GetSceneIndex(this);
+                mBillboardsMat.SetInt(mID_SceneIndex, mSceneIndex);
+                mBillboardsMat.SetInt(mID_OpenMask, OpenMask ? 1 : 0);
+                mBillboardsMat.SetColor(mID_FlowOutLineColor, tempColor);
+                mBillboardsMat.SetFloat(mID_ColorHDRFactor, OutLineColorHDRFactor);
+                mBillboardsMat.SetVector(mID_DistortFactor, new Vector4(DistortRangeX, DistortRangeY, DistortStrengthX, DistortStrengthY));
                 mBillboardsMat.SetVector(mID_DistortNoiseTilingAndOffset, NoiseTilingAndOffset);
+                mBillboardsMat.SetVector(mID_RotationAndFlow, new Vector4(NoiseTexRotation, NoiseTexFlowDir.x, NoiseTexFlowDir.y, NoiseTexFlowSpeed));
+#if UNITY_EDITOR
+                mBillboardsMat.SetInt(mID_DebugNoise, DebugNoiseTex ? 1 : 0);
+#endif
                 mBillboardsMat.SetTexture(mID_NoiseTex, NoiseTex);
-                mBillboardsMat.SetVector(mID_BillboardSize, BillboardSize);
+                mBillboardsMat.SetVector(mID_BillboardSize, BillboardSize * Mathf.Max(Mathf.Max(mTarget_Transform.lossyScale.x, mTarget_Transform.lossyScale.y), mTarget_Transform.lossyScale.z));
                 mBillboardsMat.SetFloat(mID_BillboardZTest, (float)BillboardZTest);
                 mBillboardsMat.SetFloat(mID_AlphaFactor, ColorIntensity);
                 mBillboardsMat.renderQueue = BillboardRenderQueue;
             }
         }
 
-        private void UpdateSilhouetteTex()
-        {
-            int w = Screen.width >> SilhouetteDownSample;
-            int h = Screen.height >> SilhouetteDownSample;
-            if (mSilhouetteTex == null || mSilhouetteTex.width != w || mSilhouetteTex.height != h)
-            {
-                if(mSilhouetteTex != null)
-                {
-                    RenderTexture.ReleaseTemporary(mSilhouetteTex);
-                }
-                mSilhouetteTex = RenderTexture.GetTemporary(w, h, 0, RenderTextureFormat.ARGBHalf);
-            }
-        }
-
         private void UpdateBillboard()
         {
-            if(mBillboardGO == null)
+            if (mBillboardGO == null)
             {
                 mBillboardGO = GameObject.CreatePrimitive(PrimitiveType.Quad);
                 DestroyObj(mBillboardGO.GetComponent<MeshCollider>());
+                mBillboardMesh = mBillboardGO.GetComponent<MeshFilter>().mesh;
+                Bounds b = mBillboardMesh.bounds;
+                mBillboardMesh.bounds = new Bounds(Vector3.zero, Vector3.one * Mathf.Max(Mathf.Max(b.size.x, b.size.y), b.size.z) * 2f); //避免被视锥体剔除
                 mBillboardGO.name = "Billboard";
                 mBillboardGO.layer = transform.gameObject.layer;
                 mBillboardGO.GetComponent<Renderer>().sharedMaterial = mBillboardsMat;
                 mBillboardGO.transform.SetParent(transform, false);
             }
-            if(mBillboardGO != null)
+            if (mBillboardGO != null)
             {
-                Vector3 pos = mBillboardGO.transform.localPosition;
+                Vector3 pos;
                 pos.x = BillboardOffset.x;
                 pos.y = BillboardOffset.y;
                 pos.z = BillboardOffset.z;
                 mBillboardGO.transform.localPosition = pos;
                 mBillboardGO.transform.localScale = new Vector3(BillboardSize.x, BillboardSize.y, 1f);
-                if(Camera.main != null)
+#if UNITY_EDITOR
+                if (UnityEditor.SceneView.lastActiveSceneView != null)
                 {
-                    mBillboardGO.transform.LookAt(Camera.main.transform, Vector3.up);
+                    mBillboardGO.transform.LookAt(UnityEditor.SceneView.lastActiveSceneView.camera.transform, Vector3.up);
                 }
+#endif
             }
         }
 
@@ -447,25 +381,16 @@ namespace FlowOutline
         {
             mRegistered = false;
             FlowOutlineMgrS.Instance.UnRegisterFlowOutlineObj(this);
+            DestroyObj(mBillboardMesh);
             DestroyObj(mBillboardGO);
             mBillboardGO = null;
-            if(mSilhouetteTex != null)
-            {
-                RenderTexture.ReleaseTemporary(mSilhouetteTex);
-                mSilhouetteTex = null;
-            }
         }
 
         private void OnDestroy()
         {
             DestroyObj(mMaskMat);
-            DestroyObj(mSilhouetteMat);
-            DestroyObj(mBlurMat);
             DestroyObj(mBillboardsMat);
-
             mMaskMat = null;
-            mSilhouetteMat = null;
-            mBlurMat = null;
             mBillboardsMat = null;
         }
 
@@ -482,3 +407,4 @@ namespace FlowOutline
         }
     }
 }
+

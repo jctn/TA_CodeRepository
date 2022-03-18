@@ -38,12 +38,12 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
+  m_IndirectSpecularColor: {r: 0.44657898, g: 0.4964133, b: 0.5748178, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 11
+  serializedVersion: 12
   m_GIWorkflowMode: 1
   m_GISettings:
     serializedVersion: 2
@@ -98,7 +98,7 @@ LightmapSettings:
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
   m_LightingDataAsset: {fileID: 0}
-  m_UseShadowmask: 1
+  m_LightingSettings: {fileID: 0}
 --- !u!196 &4
 NavMeshSettings:
   serializedVersion: 2
@@ -118,9 +118,118 @@ NavMeshSettings:
     manualTileSize: 0
     tileSize: 256
     accuratePlacement: 0
+    maxJobWorkers: 0
+    preserveTilesOutsideBounds: 0
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &271971227
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 271971232}
+  - component: {fileID: 271971231}
+  - component: {fileID: 271971229}
+  m_Layer: 0
+  m_Name: Main Camera (1)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &271971229
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 271971227}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a79441f348de89743a2939f4d699eac1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_RenderShadows: 1
+  m_RequiresDepthTextureOption: 2
+  m_RequiresOpaqueTextureOption: 2
+  m_CameraType: 0
+  m_Cameras: []
+  m_RendererIndex: 0
+  m_VolumeLayerMask:
+    serializedVersion: 2
+    m_Bits: 1
+  m_VolumeTrigger: {fileID: 0}
+  m_RenderPostProcessing: 1
+  m_Antialiasing: 0
+  m_AntialiasingQuality: 2
+  m_StopNaN: 0
+  m_Dithering: 0
+  m_ClearDepth: 1
+  m_AllowXRRendering: 1
+  m_RequiresDepthTexture: 0
+  m_RequiresColorTexture: 0
+  m_Version: 2
+--- !u!20 &271971231
+Camera:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 271971227}
+  m_Enabled: 1
+  serializedVersion: 2
+  m_ClearFlags: 2
+  m_BackGroundColor: {r: 0.504094, g: 0.5428583, b: 0.6037736, a: 0}
+  m_projectionMatrixMode: 1
+  m_GateFitMode: 2
+  m_FOVAxisMode: 0
+  m_SensorSize: {x: 36, y: 24}
+  m_LensShift: {x: 0, y: 0}
+  m_FocalLength: 50
+  m_NormalizedViewPortRect:
+    serializedVersion: 2
+    x: 0
+    y: 0
+    width: 1
+    height: 1
+  near clip plane: 0.3
+  far clip plane: 1000
+  field of view: 60
+  orthographic: 0
+  orthographic size: 5
+  m_Depth: 0
+  m_CullingMask:
+    serializedVersion: 2
+    m_Bits: 33
+  m_RenderingPath: -1
+  m_TargetTexture: {fileID: 0}
+  m_TargetDisplay: 0
+  m_TargetEye: 3
+  m_HDR: 1
+  m_AllowMSAA: 1
+  m_AllowDynamicResolution: 0
+  m_ForceIntoRT: 0
+  m_OcclusionCulling: 1
+  m_StereoConvergence: 10
+  m_StereoSeparation: 0.022
+--- !u!4 &271971232
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 271971227}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 1, z: -10}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &524862376
 GameObject:
   m_ObjectHideFlags: 0
@@ -179,7 +288,7 @@ Camera:
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 17
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
@@ -233,10 +342,11 @@ MonoBehaviour:
   m_StopNaN: 0
   m_Dithering: 0
   m_ClearDepth: 1
+  m_AllowXRRendering: 1
   m_RequiresDepthTexture: 0
   m_RequiresColorTexture: 0
   m_Version: 2
---- !u!1 &1038787139
+--- !u!1 &599082069
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -244,38 +354,62 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1038787143}
-  - component: {fileID: 1038787142}
-  - component: {fileID: 1038787141}
-  - component: {fileID: 1038787140}
-  - component: {fileID: 1038787144}
-  m_Layer: 0
-  m_Name: Cube
+  - component: {fileID: 599082074}
+  - component: {fileID: 599082073}
+  - component: {fileID: 599082072}
+  - component: {fileID: 599082070}
+  m_Layer: 5
+  m_Name: Sphere (4)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!65 &1038787140
-BoxCollider:
+--- !u!114 &599082070
+MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1038787139}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
+  m_GameObject: {fileID: 599082069}
   m_Enabled: 1
-  serializedVersion: 2
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
---- !u!23 &1038787141
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 567011f6260d49e4b912ae166d166f9b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  CurOrFirstTwo: 1
+  IsSkinedRender: 0
+  OutLineColor: {r: 1, g: 0.22601745, b: 0, a: 1}
+  OutLineColorHDRFactor: 2
+  ColorIntensity: 1
+  OpenBreathing: 0
+  BreathingFrequency: 1
+  ShowOutline: 0
+  OpenMask: 1
+  BlurRadiusX: 0.58
+  BlurRadiusY: 2.34
+  BlurDirByDistortRange: 1
+  DistortRangeX: 0
+  DistortRangeY: 0.068
+  DistortStrengthX: 0
+  DistortStrengthY: 1
+  NoiseTex: {fileID: 2800000, guid: 9ea11b4e3ae767845818a7c1a7411c48, type: 3}
+  NoiseTilingAndOffset: {x: 4, y: 4, z: 0, w: 0}
+  NoiseTexRotation: 0
+  NoiseTexFlowDir: {x: 0, y: 1}
+  NoiseTexFlowSpeed: 1
+  DebugNoiseTex: 0
+  BillboardSize: {x: 4, y: 4}
+  BillboardOffset: {x: 0, y: 0, z: 0}
+  BillboardZTest: 4
+  BillboardRenderQueue: 3000
+--- !u!23 &599082072
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1038787139}
+  m_GameObject: {fileID: 599082069}
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
@@ -284,6 +418,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -308,6 +443,290 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &599082073
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 599082069}
+  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!4 &599082074
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 599082069}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.113, y: 2.311, z: -5}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 9
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &677361264
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 677361269}
+  - component: {fileID: 677361268}
+  - component: {fileID: 677361267}
+  - component: {fileID: 677361265}
+  m_Layer: 0
+  m_Name: Sphere (3)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &677361265
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 677361264}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 567011f6260d49e4b912ae166d166f9b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  CurOrFirstTwo: 1
+  IsSkinedRender: 0
+  OutLineColor: {r: 0, g: 0.2243948, b: 1, a: 1}
+  OutLineColorHDRFactor: 2
+  ColorIntensity: 1
+  OpenBreathing: 0
+  BreathingFrequency: 1
+  ShowOutline: 0
+  OpenMask: 1
+  BlurRadiusX: 0.58
+  BlurRadiusY: 2.34
+  BlurDirByDistortRange: 1
+  DistortRangeX: 0
+  DistortRangeY: 0.068
+  DistortStrengthX: 0
+  DistortStrengthY: 1
+  NoiseTex: {fileID: 2800000, guid: 9ea11b4e3ae767845818a7c1a7411c48, type: 3}
+  NoiseTilingAndOffset: {x: 4, y: 4, z: 0, w: 0}
+  NoiseTexRotation: 0
+  NoiseTexFlowDir: {x: 0, y: 1}
+  NoiseTexFlowSpeed: 1
+  DebugNoiseTex: 0
+  BillboardSize: {x: 4, y: 4}
+  BillboardOffset: {x: 0, y: 0, z: 0}
+  BillboardZTest: 4
+  BillboardRenderQueue: 3000
+--- !u!23 &677361267
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 677361264}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &677361268
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 677361264}
+  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!4 &677361269
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 677361264}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1.32, y: 2.774, z: -5}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 7
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &836215923
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 836215927}
+  - component: {fileID: 836215926}
+  - component: {fileID: 836215925}
+  m_Layer: 0
+  m_Name: Cube (1)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!23 &836215925
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 836215923}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 9f47fa1799631584e8f2c382ae17bdce, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &836215926
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 836215923}
+  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!4 &836215927
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 836215923}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -1.77, y: 0.58, z: -6}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 8
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1038787139
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1038787143}
+  - component: {fileID: 1038787142}
+  - component: {fileID: 1038787141}
+  - component: {fileID: 1038787144}
+  m_Layer: 4
+  m_Name: Cube
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!23 &1038787141
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1038787139}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!33 &1038787142
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -328,7 +747,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 3
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1038787144
 MonoBehaviour:
@@ -344,24 +763,26 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   CurOrFirstTwo: 1
   IsSkinedRender: 0
-  OutLineColor: {r: 1, g: 0.39937478, b: 0, a: 1}
-  OutLineColorHDRFactor: 1
+  OutLineColor: {r: 0, g: 0.2243948, b: 1, a: 1}
+  OutLineColorHDRFactor: 2
   ColorIntensity: 1
   OpenBreathing: 0
   BreathingFrequency: 1
   ShowOutline: 0
-  SilhouetteDownSample: 3
+  OpenMask: 1
   BlurRadiusX: 1.6
   BlurRadiusY: 1.6
-  IsUPBlur: 0
-  Iteration: 2
-  DistortTimeFactor: 0
-  DistortRangeX: 0
-  DistortRangeY: 0
-  DistortStrengthX: 0
-  DistortStrengthy: 0
-  NoiseTex: {fileID: 0}
-  NoiseTilingAndOffset: {x: 15, y: 6, z: 0, w: 0}
+  BlurDirByDistortRange: 1
+  DistortRangeX: 0.068
+  DistortRangeY: 0.068
+  DistortStrengthX: 0.38
+  DistortStrengthY: 1
+  NoiseTex: {fileID: 2800000, guid: 9ea11b4e3ae767845818a7c1a7411c48, type: 3}
+  NoiseTilingAndOffset: {x: 4, y: 4, z: 0, w: 0}
+  NoiseTexRotation: 45
+  NoiseTexFlowDir: {x: 1, y: 1}
+  NoiseTexFlowSpeed: 1
+  DebugNoiseTex: 0
   BillboardSize: {x: 4, y: 4}
   BillboardOffset: {x: 0, y: 0, z: 0}
   BillboardZTest: 4
@@ -377,9 +798,8 @@ GameObject:
   - component: {fileID: 1278370902}
   - component: {fileID: 1278370901}
   - component: {fileID: 1278370900}
-  - component: {fileID: 1278370899}
   - component: {fileID: 1278370898}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: Sphere (2)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -400,41 +820,30 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   CurOrFirstTwo: 1
   IsSkinedRender: 0
-  OutLineColor: {r: 1, g: 0.39937478, b: 0, a: 1}
-  OutLineColorHDRFactor: 1
+  OutLineColor: {r: 0, g: 0.2243948, b: 1, a: 1}
+  OutLineColorHDRFactor: 2
   ColorIntensity: 1
   OpenBreathing: 0
   BreathingFrequency: 1
   ShowOutline: 0
-  SilhouetteDownSample: 3
-  BlurRadiusX: 1.6
-  BlurRadiusY: 1.6
-  IsUPBlur: 0
-  Iteration: 2
-  DistortTimeFactor: 1.37
+  OpenMask: 1
+  BlurRadiusX: 0.58
+  BlurRadiusY: 2.34
+  BlurDirByDistortRange: 1
   DistortRangeX: 0
   DistortRangeY: 0.068
   DistortStrengthX: 0
-  DistortStrengthy: 0.385
+  DistortStrengthY: 1
   NoiseTex: {fileID: 2800000, guid: 9ea11b4e3ae767845818a7c1a7411c48, type: 3}
   NoiseTilingAndOffset: {x: 4, y: 4, z: 0, w: 0}
+  NoiseTexRotation: 0
+  NoiseTexFlowDir: {x: 0, y: 1}
+  NoiseTexFlowSpeed: 1
+  DebugNoiseTex: 0
   BillboardSize: {x: 4, y: 4}
   BillboardOffset: {x: 0, y: 0, z: 0}
   BillboardZTest: 4
   BillboardRenderQueue: 3000
---- !u!135 &1278370899
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1278370897}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!23 &1278370900
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -450,6 +859,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -474,6 +884,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!33 &1278370901
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -490,11 +901,11 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1278370897}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.09, y: 2.19, z: -5}
+  m_LocalPosition: {x: -0.93, y: 2.65, z: -3.55}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 5
+  m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1305749017
 GameObject:
@@ -507,7 +918,6 @@ GameObject:
   - component: {fileID: 1305749022}
   - component: {fileID: 1305749021}
   - component: {fileID: 1305749020}
-  - component: {fileID: 1305749019}
   - component: {fileID: 1305749018}
   m_Layer: 0
   m_Name: Sphere (1)
@@ -530,41 +940,30 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   CurOrFirstTwo: 1
   IsSkinedRender: 0
-  OutLineColor: {r: 1, g: 0.39937478, b: 0, a: 1}
-  OutLineColorHDRFactor: 1
+  OutLineColor: {r: 1, g: 0, b: 0.28634167, a: 1}
+  OutLineColorHDRFactor: 2
   ColorIntensity: 1
   OpenBreathing: 0
   BreathingFrequency: 1
   ShowOutline: 0
-  SilhouetteDownSample: 3
-  BlurRadiusX: 1.6
+  OpenMask: 1
+  BlurRadiusX: 1.09
   BlurRadiusY: 1.6
-  IsUPBlur: 0
-  Iteration: 2
-  DistortTimeFactor: 1.37
+  BlurDirByDistortRange: 1
   DistortRangeX: 0
   DistortRangeY: 0.068
   DistortStrengthX: 0
-  DistortStrengthy: 0.385
+  DistortStrengthY: 1
   NoiseTex: {fileID: 2800000, guid: 9ea11b4e3ae767845818a7c1a7411c48, type: 3}
   NoiseTilingAndOffset: {x: 4, y: 4, z: 0, w: 0}
+  NoiseTexRotation: 0
+  NoiseTexFlowDir: {x: 0, y: 1}
+  NoiseTexFlowSpeed: 0.3
+  DebugNoiseTex: 0
   BillboardSize: {x: 4, y: 4}
   BillboardOffset: {x: 0, y: 0, z: 0}
   BillboardZTest: 4
   BillboardRenderQueue: 3000
---- !u!135 &1305749019
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1305749017}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!23 &1305749020
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -580,6 +979,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -604,6 +1004,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!33 &1305749021
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -624,7 +1025,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 4
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1997995523
 GameObject:
@@ -702,6 +1103,7 @@ Light:
   m_UseColorTemperature: 0
   m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
   m_UseBoundingSphereOverride: 0
+  m_UseViewFrustumForShadowCasterCull: 1
   m_ShadowRadius: 0
   m_ShadowAngle: 0
 --- !u!4 &1997995525
@@ -716,7 +1118,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 1
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
 --- !u!1 &2107886472
 GameObject:
@@ -729,28 +1131,14 @@ GameObject:
   - component: {fileID: 2107886476}
   - component: {fileID: 2107886475}
   - component: {fileID: 2107886474}
-  - component: {fileID: 2107886473}
   - component: {fileID: 2107886477}
-  m_Layer: 0
+  m_Layer: 4
   m_Name: Sphere
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!135 &2107886473
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2107886472}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!23 &2107886474
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -766,6 +1154,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -790,6 +1179,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!33 &2107886475
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -806,11 +1196,11 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2107886472}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1.92, y: 1.18, z: -5}
+  m_LocalPosition: {x: -1.676, y: 1.18, z: -5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 2
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &2107886477
 MonoBehaviour:
@@ -832,18 +1222,20 @@ MonoBehaviour:
   OpenBreathing: 0
   BreathingFrequency: 1
   ShowOutline: 0
-  SilhouetteDownSample: 3
+  OpenMask: 1
   BlurRadiusX: 1.6
   BlurRadiusY: 1.6
-  IsUPBlur: 0
-  Iteration: 2
-  DistortTimeFactor: 0
+  BlurDirByDistortRange: 1
   DistortRangeX: 0
   DistortRangeY: 0
   DistortStrengthX: 0
-  DistortStrengthy: 0
+  DistortStrengthY: 1
   NoiseTex: {fileID: 0}
   NoiseTilingAndOffset: {x: 15, y: 6, z: 0, w: 0}
+  NoiseTexRotation: 0
+  NoiseTexFlowDir: {x: 0, y: 1}
+  NoiseTexFlowSpeed: 0.85
+  DebugNoiseTex: 0
   BillboardSize: {x: 4, y: 4}
   BillboardOffset: {x: 0, y: 0, z: 0}
   BillboardZTest: 4

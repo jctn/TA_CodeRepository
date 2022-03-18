@@ -2,12 +2,10 @@
 {
     Properties
 	{
-		[HDR]_SolidColor("_SolidColor", Color) = (1, 1, 1, 1)
-        _SolidColorHDRFactor("_SolidColorHDR模拟", Float) = 0
+		_SolidColor("_SolidColor", Color) = (1, 1, 1, 1)
         [Enum(UnityEngine.Rendering.CompareFunction)] _ZTest("ZTest", Float) = 4
         [Enum(Off, 0, On, 1)]_ZWrite("_ZWrite", Float) = 1
         _ColorMask("_ColorMask", Float) = 15
-        [HideInInspector]_Scale("_Scale",Float) = 0.01
 	}
 
     SubShader
@@ -34,8 +32,7 @@
             };
 
 			CBUFFER_START(UnityPerMaterial)
-			float4  _SolidColor;
-            float _SolidColorHDRFactor;
+			half4  _SolidColor;
 			CBUFFER_END
 
             v2f vert (appdata v)
@@ -45,10 +42,9 @@
 				return o;
             }
 
-            float4 frag (v2f i) : SV_Target
+            half4 frag (v2f i) : SV_Target
             {
-                float3 finalColor = _SolidColor.rgb * pow(2,_SolidColorHDRFactor);
-                return float4(finalColor, _SolidColor.a);
+				return _SolidColor;
             }
             ENDHLSL
         }
@@ -73,8 +69,7 @@
             };
 
 			CBUFFER_START(UnityPerMaterial)
-			float4  _SolidColor;
-            float _SolidColorHDRFactor;
+			half4  _SolidColor;
 			CBUFFER_END
 
             v2f vert (appdata v)
@@ -84,10 +79,9 @@
 				return o;
             }
 
-            float4 frag (v2f i) : SV_Target
+            half4 frag (v2f i) : SV_Target
             {
-                float3 finalColor = _SolidColor.rgb * pow(2,_SolidColorHDRFactor);
-                return float4(finalColor, _SolidColor.a);
+				return _SolidColor;
             }
             ENDHLSL
         }

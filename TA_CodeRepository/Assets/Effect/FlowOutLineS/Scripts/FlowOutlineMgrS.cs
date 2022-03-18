@@ -29,16 +29,8 @@ namespace FlowOutline
             }
         }
 
-        public bool NeedPassRender
-        {
-            get
-            {
-                return FlowOutlineObjs != null && FlowOutlineObjs.Count > 0;
-            }
-        }
-        public int BlurDownSample = 3;
-
-        private const int MAX_ROLE_COUNT = 4;
+        public const int MAX_FLOWITEM_COUNT = 8;
+        public const int MAX_CHANNEL_COUNT = 4;
 
         public bool RegisterFlowOutlineObj(FlowOutlineObjS outlineObj, Transform p)
         {
@@ -50,14 +42,13 @@ namespace FlowOutline
                     CoreUtils.Destroy(obj);
                     mFlowOutlineObjsDic.Add(p, outlineObj);
                 }
-                return true;
             }
-            else if (mFlowOutlineObjsDic.Count < MAX_ROLE_COUNT)
+            else
             {
+                if (mFlowOutlineObjsDic.Count >= MAX_FLOWITEM_COUNT) return false;
                 mFlowOutlineObjsDic.Add(p, outlineObj);
-                return true;
             }
-            return false;
+            return true;
         }
 
         public void UnRegisterFlowOutlineObj(FlowOutlineObjS outlineObj)
@@ -72,24 +63,53 @@ namespace FlowOutline
             }
         }
 
-        public int GetFlowOutlineIndex(FlowOutlineObjS flowOutline)
+        public void GetRenderFlowOutlineObjs(List<FlowOutlineObjS> flowOutlineObjS, Camera cam)
         {
-            int i = 0;
-            foreach(var f in FlowOutlineObjs)
+            if (flowOutlineObjS == null || cam == null) return;
+            flowOutlineObjS.Clear();
+
+            int count = 0;
+            if (cam.cameraType == CameraType.Game)
             {
-                if(flowOutline == f)
+                foreach (var pair in mFlowOutlineObjsDic)
                 {
-                    break;
+                    if (count >= MAX_CHANNEL_COUNT) break;
+                    if (((1 << pair.Key.gameObject.layer) & cam.cullingMask) != 0)
+                    {
+                        flowOutlineObjS.Add(pair.Value);
+                        count++;
+                    }
                 }
-                i++;
             }
-            if (i < FlowOutlineObjs.Count)
+            else if (cam.cameraType == CameraType.SceneView)
             {
-                return i;
+                foreach (var pair in mFlowOutlineObjsDic)
+                {
+                    if (count >= MAX_CHANNEL_COUNT) break;
+                    flowOutlineObjS.Add(pair.Value);
+                    count++;
+                }
+            }
+        }
+
+        public int GetSceneIndex(FlowOutlineObjS flowOutlineObj)
+        {
+            int sceneIndex = 0;
+            foreach (var pair in mFlowOutlineObjsDic)
+            {
+                if (pair.Value == flowOutlineObj)
+                {
+                    return sceneIndex;
+                }
+                sceneIndex++;
+            }
+            if (sceneIndex < mFlowOutlineObjsDic.Count)
+            {
+                return sceneIndex;
             }
             else
             {
-                return -1;
+                return 0;
             }
         }
     }

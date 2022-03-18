@@ -12,20 +12,34 @@ namespace FlowOutline
         {
             private RenderTargetHandle mMaskTexture;
             private RenderTargetHandle mTemporaryColorTexture0;
+            private RenderTargetHandle mTemporaryColorTexture1;
 
-            private int mID_Offsets;
-            private int mID_isUp;
             private int mID_OutlineWidth;
             private int mID_MaxOutlineZOffset;
+            private int mID_BlurParams;
+            private int mID_MsakTexMasks;
+            private string[] mBlurKeyWorld = { "MASKR", "MASKRG", "MASKRGB", "MASKRGBA" };
+
+            Setting mSetting;
+            List<FlowOutlineObjS> mFlowOutlineObjS;
+            Vector4[] mMsakTexMasks = new Vector4[FlowOutlineMgrS.MAX_FLOWITEM_COUNT];
+
             public FlowOutLinePass()
             {
                 mMaskTexture.Init("_MaskTex");
                 mTemporaryColorTexture0.Init("_TemporaryRT0");
+                mTemporaryColorTexture1.Init("_TemporaryRT1");
 
-                mID_Offsets = Shader.PropertyToID("_offsets");
-                mID_isUp = Shader.PropertyToID("_isUp");
                 mID_OutlineWidth = Shader.PropertyToID("_OutlineWidth");
                 mID_MaxOutlineZOffset = Shader.PropertyToID("_MaxOutlineZOffset");
+                mID_BlurParams = Shader.PropertyToID("_BlurParams");
+                mID_MsakTexMasks = Shader.PropertyToID("_MsakTexMasks");
+            }
+
+            public void SetupPass(Setting setting, List<FlowOutlineObjS> flowOutlineObjS)
+            {
+                mSetting = setting;
+                mFlowOutlineObjS = flowOutlineObjS;
             }
 
             public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
@@ -34,14 +48,24 @@ namespace FlowOutline
                 int scH = cameraTextureDescriptor.height;
 
                 int maskDown = 0;
-                cmd.GetTemporaryRT(mMaskTexture.id, scW >> maskDown, scH >> maskDown, 0, FilterMode.Bilinear, RenderTextureFormat.ARGB32);
+                cmd.GetTemporaryRT(mMaskTexture.id, scW >> maskDown, scH >> maskDown, 0, FilterMode.Bilinear, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
 
-                int w = scW >> FlowOutlineMgrS.Instance.BlurDownSample;
-                int h = scH >> FlowOutlineMgrS.Instance.BlurDownSample;
-                cmd.GetTemporaryRT(mTemporaryColorTexture0.id, w, h, 0, FilterMode.Bilinear, RenderTextureFormat.ARGBHalf);
+                int w, h;
+                if (mSetting != null)
+                {
+                    w = scW >> mSetting.BlurDownSample;
+                    h = scH >> mSetting.BlurDownSample;
+                }
+                else
+                {
+                    w = scW;
+                    h = scH;
+                }
+                cmd.GetTemporaryRT(mTemporaryColorTexture0.id, w, h, 0, FilterMode.Bilinear, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
+                cmd.GetTemporaryRT(mTemporaryColorTexture1.id, w, h, 0, FilterMode.Bilinear, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
 
                 //保证后面的pass能正确设置自身的rt
-                ConfigureTarget(mMaskTexture.id);
+                ConfigureTarget(mTemporaryColorTexture0.id); //该pass执行到最后的rt为mTemporaryColorTexture0
                 ConfigureClear(ClearFlag.Color, Color.clear);
             }
 
@@ -49,32 +73,56 @@ namespace FlowOutline
             {
                 try
                 {
+                    if (mSetting.BlurMat == null) return;
+
                     CommandBuffer cmb = CommandBufferPool.Get("FlowOutLine Pass");
 
                     cmb.BeginSample("Render Mask");
                     RenderMask(cmb);
                     cmb.EndSample("Render Mask");
 
-                    //Silhouette
-                    cmb.BeginSample("Render Silhouette");
-                    RenderSilhouette(cmb);
-                    cmb.EndSample("Render Silhouette");
-
                     cmb.BeginSample("Blur");
-                    foreach (var f in FlowOutlineMgrS.Instance.FlowOutlineObjs)
+                    Matrix4x4 blurParams = new Matrix4x4();
+                    int row = 0;
+                    foreach (var f in mFlowOutlineObjS)
                     {
-                        cmb.SetGlobalInt(mID_isUp, f.IsUPBlur ? 1 : 0);
-                        for (int j = 0; j < f.Iteration; j++)
-                        {
-                            //竖向模糊
-                            cmb.SetGlobalVector(mID_Offsets, new Vector4(0, f.BlurRadiusY, 0, 0));
-                            cmb.Blit(f.SilhouetteTex, mTemporaryColorTexture0.Identifier(), f.BlurMat, 0);
-                            //横向模糊
-                            cmb.SetGlobalVector(mID_Offsets, new Vector4(f.BlurRadiusX, 0, 0, 0));
-                            cmb.Blit(mTemporaryColorTexture0.Identifier(), f.SilhouetteTex, f.BlurMat, 0);
-                        }
+                        blurParams[row, 0] = f.BlurRadiusX;
+                        blurParams[row, 1] = f.BlurRadiusY;
+                        blurParams[row, 2] = f.BlurDirByDistortRange ? f.DistortRangeX * f.DistortStrengthX : 0f;
+                        blurParams[row, 3] = f.BlurDirByDistortRange ? f.DistortRangeY * f.DistortStrengthY : 0f;
+                        row++;
+                        if (row >= FlowOutlineMgrS.MAX_CHANNEL_COUNT) break;
+                    }
+
+                    for (int i = 0; i < mBlurKeyWorld.Length; i++)
+                    {
+                        cmb.DisableShaderKeyword(mBlurKeyWorld[i]);
+                    }
+                    if (row - 1 >= 0)
+                    {
+                        cmb.EnableShaderKeyword(mBlurKeyWorld[row - 1]);
+                    }
+
+                    cmb.Blit(mMaskTexture.id, mTemporaryColorTexture0.id);
+                    cmb.SetGlobalMatrix(mID_BlurParams, blurParams);
+                    for (int j = 0; j < mSetting.Iteration; j++)
+                    {
+                        cmb.Blit(mTemporaryColorTexture0.id, mTemporaryColorTexture1.id, mSetting.BlurMat, 0);
+                        cmb.Blit(mTemporaryColorTexture1.id, mTemporaryColorTexture0.id, mSetting.BlurMat, 1);
                     }
                     cmb.EndSample("Blur");
+
+                    //Billboard遮罩因子
+                    for (int i = 0; i < mMsakTexMasks.Length; i++)
+                    {
+                        mMsakTexMasks[i] = Vector4.zero;
+                    }
+                    for (int i = 0; i < mFlowOutlineObjS.Count; i++)
+                    {
+                        FlowOutlineObjS f = mFlowOutlineObjS[i];
+                        mMsakTexMasks[f.SceneIndex] = f.MsakTexMask;
+                    }
+                    cmb.SetGlobalVectorArray(mID_MsakTexMasks, mMsakTexMasks);
 
                     ExecuteCommandBuffer(context, cmb);
                     CommandBufferPool.Release(cmb);
@@ -87,11 +135,13 @@ namespace FlowOutline
 
             private void RenderMask(CommandBuffer buffer)
             {
-                //buffer.SetRenderTarget(mMaskTexture.id, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
-                //buffer.ClearRenderTarget(false, true, Color.clear);
-                foreach (FlowOutlineObjS outLineObj in FlowOutlineMgrS.Instance.FlowOutlineObjs)
+                buffer.SetRenderTarget(mMaskTexture.id, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+                buffer.ClearRenderTarget(false, true, Color.clear);
+                for (int i = 0; i < mFlowOutlineObjS.Count; i++)
                 {
-                    if(outLineObj.ShowOutline)
+                    FlowOutlineObjS outLineObj = mFlowOutlineObjS[i];
+                    outLineObj.UpdateMaskMat(i);
+                    if (outLineObj.ShowOutline)
                     {
                         foreach (Renderer renderer in outLineObj.Renderers)
                         {
@@ -103,29 +153,6 @@ namespace FlowOutline
                         foreach (Renderer renderer in outLineObj.Renderers)
                         {
                             DrawByCmb(buffer, renderer, outLineObj.MaskMat);
-                        }
-                    }
-                }
-            }
-
-            private void RenderSilhouette(CommandBuffer buffer)
-            {
-                foreach (FlowOutlineObjS outLineObj in FlowOutlineMgrS.Instance.FlowOutlineObjs)
-                {
-                    buffer.SetRenderTarget(outLineObj.SilhouetteTex, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
-                    buffer.ClearRenderTarget(false, true, Color.clear);
-                    if(outLineObj.ShowOutline)
-                    {
-                        foreach (Renderer renderer in outLineObj.Renderers)
-                        {
-                            DrawByCmb(buffer, renderer, outLineObj.SilhouetteMat, 1);
-                        }
-                    }
-                    else
-                    {
-                        foreach (Renderer renderer in outLineObj.Renderers)
-                        {
-                            DrawByCmb(buffer, renderer, outLineObj.SilhouetteMat);
                         }
                     }
                 }
@@ -175,10 +202,25 @@ namespace FlowOutline
             {
                 cmd.ReleaseTemporaryRT(mMaskTexture.id);
                 cmd.ReleaseTemporaryRT(mTemporaryColorTexture0.id);
+                cmd.ReleaseTemporaryRT(mTemporaryColorTexture1.id);
             }
         }
 
         private FlowOutLinePass mFlowOutLinePass;
+
+        [System.Serializable]
+        public class Setting
+        {
+            public Material BlurMat;
+            [Min(0)]
+            public int BlurDownSample = 3;
+            [Min(1)]
+            public int Iteration = 2;
+        }
+
+        public Setting MSetting;
+
+        List<FlowOutlineObjS> mFlowOutlineObjS = new List<FlowOutlineObjS>();
 
         public override void Create()
         {
@@ -188,12 +230,17 @@ namespace FlowOutline
 
         public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
         {
-            bool notMainCamera = renderingData.cameraData.camera.cameraType == CameraType.Game && Camera.main != null && Camera.main != renderingData.cameraData.camera;
-            if ((renderingData.cameraData.camera.cameraType != CameraType.Game && renderingData.cameraData.camera.cameraType != CameraType.SceneView) || notMainCamera || !FlowOutlineMgrS.Instance.NeedPassRender)
+            Camera cam = renderingData.cameraData.camera;
+            FlowOutlineMgrS.Instance.GetRenderFlowOutlineObjs(mFlowOutlineObjS, cam);
+
+            bool sceneNeedPass = cam.cameraType == CameraType.SceneView && mFlowOutlineObjS.Count > 0;
+            bool gameNeedPass = cam.cameraType == CameraType.Game && mFlowOutlineObjS.Count > 0;
+
+            if (sceneNeedPass || gameNeedPass)
             {
-                return;
+                mFlowOutLinePass.SetupPass(MSetting, mFlowOutlineObjS);
+                renderer.EnqueuePass(mFlowOutLinePass);
             }
-            renderer.EnqueuePass(mFlowOutLinePass);
         }
     }
 }
