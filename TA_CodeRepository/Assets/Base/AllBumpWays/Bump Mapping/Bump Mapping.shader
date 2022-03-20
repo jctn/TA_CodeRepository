@@ -34,11 +34,11 @@ Shader "Code Repository/Base/Bump Mapping"
 			SAMPLER(sampler_BumpTex);
 
 			//https://www.jianshu.com/p/fea6c9fc610f
-			//°¼Í¹ÌùÍ¼ºÍ·¨ÏßÌùÍ¼Ğ§¹ûÀàËÆ£¬Ö»ÊÇ°¼Í¹ÌùÍ¼ĞèÒªÊµÊ±¼ÆËã·¨Ïß¡£°¼Í¹ÌùÍ¼ºÍ·¨ÏßÌùÍ¼Ö»ÄÜ¸Ä±äÃ÷°µ±ä»¯£¬¶ÔÓÚÓ¦¸Ã²»ÄÜ¿´¼ûµÄ²¿·ÖÎŞ·¨ÊµÏÖÕÚµ²£¨ÊÓ²î¿ÉÒÔ£©£¬https://www.cnblogs.com/jim-game-dev/p/5410529.html
+			//å‡¹å‡¸è´´å›¾å’Œæ³•çº¿è´´å›¾æ•ˆæœç±»ä¼¼ï¼Œåªæ˜¯å‡¹å‡¸è´´å›¾éœ€è¦å®æ—¶è®¡ç®—æ³•çº¿ã€‚å‡¹å‡¸è´´å›¾å’Œæ³•çº¿è´´å›¾åªèƒ½æ”¹å˜æ˜æš—å˜åŒ–ï¼Œå¯¹äºåº”è¯¥ä¸èƒ½çœ‹è§çš„éƒ¨åˆ†æ— æ³•å®ç°é®æŒ¡ï¼ˆè§†å·®å¯ä»¥ï¼‰ï¼Œhttps://www.cnblogs.com/jim-game-dev/p/5410529.html
 			half3 CalculateNormal(float2 uv)
 			{
 				float2 du = float2(0.5 * _BumpTex_TexelSize.x, 0);
-				half u1 = 1 - SAMPLE_TEXTURE2D(_BumpTex, sampler_BumpTex, uv - du).r; //ÕâÀï²ÉÑùµÄÊÇÉî¶ÈÍ¼£¬¹ÊÈ¡·´
+				half u1 = 1 - SAMPLE_TEXTURE2D(_BumpTex, sampler_BumpTex, uv - du).r; //è¿™é‡Œé‡‡æ ·çš„æ˜¯æ·±åº¦å›¾ï¼Œæ•…å–å
 				half u2 = 1 - SAMPLE_TEXTURE2D(_BumpTex, sampler_BumpTex, uv + du).r;
 				half3 tu = half3(1, 0, (u2 - u1) * _BumpScale);
 
@@ -47,7 +47,7 @@ Shader "Code Repository/Base/Bump Mapping"
 				half v2 = 1 - SAMPLE_TEXTURE2D(_BumpTex, sampler_BumpTex, uv + dv).r;
 				half3 tv = half3(0, 1, (v2 - v1) * _BumpScale);
 				
-				return SafeNormalize(cross(tu, tv)); //ÇĞÏß¿Õ¼ä
+				return SafeNormalize(cross(tu, tv)); //åˆ‡çº¿ç©ºé—´
 			}
 		ENDHLSL
 

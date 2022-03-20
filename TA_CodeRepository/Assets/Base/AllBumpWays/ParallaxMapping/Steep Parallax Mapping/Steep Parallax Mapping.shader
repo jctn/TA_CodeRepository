@@ -54,7 +54,7 @@ Shader "Code Repository/Base/Steep Parallax Mapping"
 			{
 				half layerCount = lerp(_MaxLayerCount, _MinLayerCount, abs(viewDirTS.z));
 				float layerDepth = 1 / layerCount;
-				float2 deltaUV = viewDirTS.xy / viewDirTS.z * _ParallaxScale * layerDepth; //×ÜµÄÆ«ÒÆ£ºviewDirTS.xy / viewDirTS.z * _ParallaxScale£¬_ParallaxScaleÔ½Ğ¡£¬Æ«ÒÆÔ½Ğ¡£¬Ğ§¹ûÉÏÎªÊÓ½ÇÔ½½Ó½üÆ½Ãæ·¨Ïß
+				float2 deltaUV = viewDirTS.xy / viewDirTS.z * _ParallaxScale * layerDepth; //æ€»çš„åç§»ï¼šviewDirTS.xy / viewDirTS.z * _ParallaxScaleï¼Œ_ParallaxScaleè¶Šå°ï¼Œåç§»è¶Šå°ï¼Œæ•ˆæœä¸Šä¸ºè§†è§’è¶Šæ¥è¿‘å¹³é¢æ³•çº¿
 
 				float currentLayerDepth = 0;
 				float2 currentUV = uv;

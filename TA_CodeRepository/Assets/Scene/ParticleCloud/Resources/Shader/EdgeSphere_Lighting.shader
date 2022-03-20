@@ -1,4 +1,4 @@
-﻿Shader "Code Repository/ParticleCloud/EdgeSphere_Lighting"
+Shader "Code Repository/ParticleCloud/EdgeSphere_Lighting"
 {
     Properties
     {

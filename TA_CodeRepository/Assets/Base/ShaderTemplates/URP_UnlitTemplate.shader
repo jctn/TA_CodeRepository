@@ -31,13 +31,13 @@ Shader "Custom/URP_Unlit"
 			//Tags { "LightMode"="SRPDefaultUnlit" } // (is default anyway)
 			//Stencil
 			//{
-			//	Ref referenceValue //²Î¿¼Öµ
-			//	ReadMask  readMask  //¶ÁÈ¡ÑÚÂë£¬È¡Öµ·¶Î§Ò²ÊÇ0-255µÄÕûÊý£¬Ä¬ÈÏÖµÎª255£¬¶þ½øÖÆÎ»11111111£¬¼´¶ÁÈ¡µÄÊ±ºò²»¶ÔreferenceValueºÍstencilBufferValue²úÉúÐ§¹û£¬¶ÁÈ¡µÄ»¹ÊÇÔ­Ê¼Öµ,(ref & readMask) comparisonFunction (stencilBufferValue & readMask)
-			//	WriteMask writeMask  //Êä³öÑÚÂë£¬µ±Ð´ÈëÄ£°å»º³åÊ±½øÐÐÑÚÂë²Ù×÷£¨°´Î»Óë¡¾&¡¿£©£¬writeMaskÈ¡Öµ·¶Î§ÊÇ0-255µÄÕûÊý£¬Ä¬ÈÏÖµÒ²ÊÇ255£¬¼´µ±ÐÞ¸ÄstencilBufferValueÖµÊ±£¬Ð´ÈëµÄÈÔÈ»ÊÇÔ­Ê¼Öµ
-			//	Comp comparisonFunction  //Ìõ¼þ£¬¹Ø¼ü×ÖÓÐ£¬Greater£¨>£©£¬GEqual£¨>=£©£¬Less£¨<£©£¬LEqual£¨<=£©£¬Equal£¨=£©£¬NotEqual£¨!=£©£¬Always£¨×ÜÊÇÂú×ã£©£¬Never£¨×ÜÊÇ²»Âú×ã£©
-			//	Pass stencilOperation  //Ìõ¼þÂú×ãºóµÄ´¦Àí£¬Keep£¬Invert
-			//	Fail stencilOperation  //Ìõ¼þ²»Âú×ãºóµÄ´¦Àí
-			//	ZFail stencilOperation  //Éî¶È²âÊÔÊ§°ÜºóµÄ´¦Àí
+			//	Ref referenceValue //å‚è€ƒå€¼
+			//	ReadMask  readMask  //è¯»å–æŽ©ç ï¼Œå–å€¼èŒƒå›´ä¹Ÿæ˜¯0-255çš„æ•´æ•°ï¼Œé»˜è®¤å€¼ä¸º255ï¼ŒäºŒè¿›åˆ¶ä½11111111ï¼Œå³è¯»å–çš„æ—¶å€™ä¸å¯¹referenceValueå’ŒstencilBufferValueäº§ç”Ÿæ•ˆæžœï¼Œè¯»å–çš„è¿˜æ˜¯åŽŸå§‹å€¼,(ref & readMask) comparisonFunction (stencilBufferValue & readMask)
+			//	WriteMask writeMask  //è¾“å‡ºæŽ©ç ï¼Œå½“å†™å…¥æ¨¡æ¿ç¼“å†²æ—¶è¿›è¡ŒæŽ©ç æ“ä½œï¼ˆæŒ‰ä½ä¸Žã€&ã€‘ï¼‰ï¼ŒwriteMaskå–å€¼èŒƒå›´æ˜¯0-255çš„æ•´æ•°ï¼Œé»˜è®¤å€¼ä¹Ÿæ˜¯255ï¼Œå³å½“ä¿®æ”¹stencilBufferValueå€¼æ—¶ï¼Œå†™å…¥çš„ä»ç„¶æ˜¯åŽŸå§‹å€¼
+			//	Comp comparisonFunction  //æ¡ä»¶ï¼Œå…³é”®å­—æœ‰ï¼ŒGreaterï¼ˆ>ï¼‰ï¼ŒGEqualï¼ˆ>=ï¼‰ï¼ŒLessï¼ˆ<ï¼‰ï¼ŒLEqualï¼ˆ<=ï¼‰ï¼ŒEqualï¼ˆ=ï¼‰ï¼ŒNotEqualï¼ˆ!=ï¼‰ï¼ŒAlwaysï¼ˆæ€»æ˜¯æ»¡è¶³ï¼‰ï¼ŒNeverï¼ˆæ€»æ˜¯ä¸æ»¡è¶³ï¼‰
+			//	Pass stencilOperation  //æ¡ä»¶æ»¡è¶³åŽçš„å¤„ç†ï¼ŒKeepï¼ŒInvert
+			//	Fail stencilOperation  //æ¡ä»¶ä¸æ»¡è¶³åŽçš„å¤„ç†
+			//	ZFail stencilOperation  //æ·±åº¦æµ‹è¯•å¤±è´¥åŽçš„å¤„ç†
 			//}
 			HLSLPROGRAM
 			#pragma vertex UnlitPassVertex

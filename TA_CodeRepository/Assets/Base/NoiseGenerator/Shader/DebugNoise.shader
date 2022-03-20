@@ -1,4 +1,4 @@
-﻿Shader "Custom/DebugNoise"
+Shader "Custom/DebugNoise"
 {
 	Properties
 	{

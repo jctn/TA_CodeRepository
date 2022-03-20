@@ -1,4 +1,4 @@
-﻿Shader "Code Repository/Base/World-Oriented Billboard"
+Shader "Code Repository/Base/World-Oriented Billboard"
 {
     Properties
     {

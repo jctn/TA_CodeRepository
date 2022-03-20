@@ -1,4 +1,4 @@
-﻿Shader "Code Repository/Effect/AfterImage_BlendFrame"
+Shader "Code Repository/Effect/AfterImage_BlendFrame"
 {
     Properties
     {

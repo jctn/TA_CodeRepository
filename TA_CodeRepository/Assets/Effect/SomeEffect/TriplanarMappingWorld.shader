@@ -72,7 +72,7 @@ Shader "Code Repository/Effect/TriplanarMappingWorld"
 
 			half4 UnlitPassFragment(Varyings IN) : SV_Target 
 			{
-				//Triplanar,使用世界坐标采样纹理，对非平面也有用
+				//Triplanar,浣跨敤涓栫晫鍧愭爣閲囨牱绾圭悊锛屽闈炲钩闈篃鏈夌敤
 				//https://ravingbots.com/2015/09/02/how-to-improve-unity-terrain-texturing-tutorial/
 				//https://cyangamedev.wordpress.com/2020/01/28/worldspace-uvs-triplanar-mapping/
 				half4 baseMap = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, IN.uv);

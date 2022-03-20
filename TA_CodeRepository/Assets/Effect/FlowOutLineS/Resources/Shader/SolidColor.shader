@@ -1,4 +1,4 @@
-﻿Shader "Code Repository/Effect/FlowOutLineS/SolidColor"
+Shader "Code Repository/Effect/FlowOutLineS/SolidColor"
 {
     Properties
 	{

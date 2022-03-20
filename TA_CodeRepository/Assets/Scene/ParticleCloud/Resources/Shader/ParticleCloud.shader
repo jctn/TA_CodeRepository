@@ -1,4 +1,4 @@
-﻿Shader "Code Repository/ParticleCloud/ParticleCloud"
+Shader "Code Repository/ParticleCloud/ParticleCloud"
 {
     Properties
     {

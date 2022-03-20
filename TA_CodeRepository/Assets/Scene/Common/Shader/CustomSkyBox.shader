@@ -1,4 +1,4 @@
-﻿Shader "Code Repository/Scene/CustomSkyBox"
+Shader "Code Repository/Scene/CustomSkyBox"
 {
     Properties
     {

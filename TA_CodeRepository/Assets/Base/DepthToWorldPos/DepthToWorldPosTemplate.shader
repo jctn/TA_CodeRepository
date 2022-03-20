@@ -23,17 +23,17 @@ Shader "Code Repository/Base/DepthToWorldPosTemplate"
 			TEXTURE2D(_CameraDepthTexture);
 			SAMPLER(sampler_CameraDepthTexture);
 
-			//×ÜÀÀ£ºWay1Îª¹«Ê½»ØÍÆ£¬ÊÊºÏÍ¶ÉäºÍÕı½»£»way2-way4Êµ¼Ê¶¼ÊÇÇó´ÓÏà»ú³ö·¢¾­¹ıËùÇóµãµÄÏòÁ¿£¬ÔÙÀûÓÃÏàËÆÈı½ÇĞÎÇóËùÇóµãÊÀ½ç×ø±ê£¬Ö»ÊÊºÏÍ¸ÊÓÏà»ú¡£
-			//way1£ºÔÚpsÀï½øĞĞÁË¾ØÕó³Ë·¨¡£
-			//Way2:ÔÚpsÀïÃ»ÓĞ¾ØÕó³Ë·¨
-			//way3£ºÔÚpsÀïÃ»ÓĞ¾ØÕó³Ë·¨¡£
-			//way4£ºÔÚpsÀïÃ»ÓĞ¾ØÕó³Ë·¨¡£
-			//GetPosWOrtho,Õı½»Ïà»úÏÂµÄÇó·¨¡£
-			//¹ÊÈç¹ûÖ»ÓĞÍ¸ÊÓÏà»ú£¬ÓÃ2-4£¬Èç¹ûÖ»ÓĞÕı½»Ïà»úÓÃGetPosWOrtho£¬Èç¹û×·Çó·ºÓÃĞÔÓÃ1
+			//æ€»è§ˆï¼šWay1ä¸ºå…¬å¼å›æ¨ï¼Œé€‚åˆæŠ•å°„å’Œæ­£äº¤ï¼›way2-way4å®é™…éƒ½æ˜¯æ±‚ä»ç›¸æœºå‡ºå‘ç»è¿‡æ‰€æ±‚ç‚¹çš„å‘é‡ï¼Œå†åˆ©ç”¨ç›¸ä¼¼ä¸‰è§’å½¢æ±‚æ‰€æ±‚ç‚¹ä¸–ç•Œåæ ‡ï¼Œåªé€‚åˆé€è§†ç›¸æœºã€‚
+			//way1ï¼šåœ¨psé‡Œè¿›è¡Œäº†çŸ©é˜µä¹˜æ³•ã€‚
+			//Way2:åœ¨psé‡Œæ²¡æœ‰çŸ©é˜µä¹˜æ³•
+			//way3ï¼šåœ¨psé‡Œæ²¡æœ‰çŸ©é˜µä¹˜æ³•ã€‚
+			//way4ï¼šåœ¨psé‡Œæ²¡æœ‰çŸ©é˜µä¹˜æ³•ã€‚
+			//GetPosWOrtho,æ­£äº¤ç›¸æœºä¸‹çš„æ±‚æ³•ã€‚
+			//æ•…å¦‚æœåªæœ‰é€è§†ç›¸æœºï¼Œç”¨2-4ï¼Œå¦‚æœåªæœ‰æ­£äº¤ç›¸æœºç”¨GetPosWOrthoï¼Œå¦‚æœè¿½æ±‚æ³›ç”¨æ€§ç”¨1
 
 			//world = M ^-1 * ndc * Clip.w
 			//1 = world.w = (M ^-1 * ndc).w * Clip.w ==> Clip.w = 1/(M ^-1 * ndc).w
-			//==>world = M ^-1 * ndc * (M ^-1 * ndc).w
+			//==>world = M ^-1 * ndc / (M ^-1 * ndc).w
 			//https://blog.csdn.net/puppet_master/article/details/77489948
 			float3 GetPosW1(float2 screenPos)
 			{
@@ -47,27 +47,27 @@ Shader "Code Repository/Base/DepthToWorldPosTemplate"
 				return worldSpacePos.xyz;
 			}
 			
-			//https://zhuanlan.zhihu.com/p/92315967 £¬ÇóÏà»ú¾­¹ıËùÇóµãµ½far planeµÄÏòÁ¿,Í¨¹ıÏàËÆÈı½ÇĞÎµÃµ½Ïà»úµ½ËùÇóµãµÄÏòÁ¿
+			//https://zhuanlan.zhihu.com/p/92315967 ï¼Œæ±‚ç›¸æœºç»è¿‡æ‰€æ±‚ç‚¹åˆ°far planeçš„å‘é‡,é€šè¿‡ç›¸ä¼¼ä¸‰è§’å½¢å¾—åˆ°ç›¸æœºåˆ°æ‰€æ±‚ç‚¹çš„å‘é‡
 			float3 GetPosW2(float3 farRayWS, float2 screenPos)
 			{
 				float depthTextureValue = SAMPLE_TEXTURE2D(_CameraDepthTexture, sampler_CameraDepthTexture, screenPos).r;
-				float normalDepth = Linear01Depth(depthTextureValue, _ZBufferParams); //_ZBufferParams°üº¬·´×ªzµÄ²Ù×÷£¬Linear01DepthÖ»ÄÜÓÃÓÚÍ¶ÉäÏà»ú
-				float3 worldSpacePos = _WorldSpaceCameraPos + farRayWS * normalDepth; //ÏàËÆÈı½ÇĞÎ
+				float normalDepth = Linear01Depth(depthTextureValue, _ZBufferParams); //_ZBufferParamsåŒ…å«åè½¬zçš„æ“ä½œï¼ŒLinear01Depthåªèƒ½ç”¨äºæŠ•å°„ç›¸æœº
+				float3 worldSpacePos = _WorldSpaceCameraPos + farRayWS * normalDepth; //ç›¸ä¼¼ä¸‰è§’å½¢
 				return worldSpacePos;
 			}
 
-			//ÇóÏà»ú¾­¹ıËùÇóµãµ½far planeµÄÏòÁ¿,Í¨¹ıÏàËÆÈı½ÇĞÎµÃµ½Ïà»úµ½ËùÇóµãµÄÏòÁ¿£¬µ«½áºÏÁËNDC1µÄ·½Ê½
+			//æ±‚ç›¸æœºç»è¿‡æ‰€æ±‚ç‚¹åˆ°far planeçš„å‘é‡,é€šè¿‡ç›¸ä¼¼ä¸‰è§’å½¢å¾—åˆ°ç›¸æœºåˆ°æ‰€æ±‚ç‚¹çš„å‘é‡ï¼Œä½†ç»“åˆäº†NDC1çš„æ–¹å¼
 			float3 GetPosW3(float3 farRayWS, float2 screenPos)
 			{
 				return GetPosW2(farRayWS, screenPos);
 			}
 
-			//https://zhuanlan.zhihu.com/p/92315967 ,ÔÚÊÀ½ç¿Õ¼äÖĞÖØ½¨µÄ·½Ê½
+			//https://zhuanlan.zhihu.com/p/92315967 ,åœ¨ä¸–ç•Œç©ºé—´ä¸­é‡å»ºçš„æ–¹å¼
 			float3 GetPosW4(float3 rayWS, float viewZ, float2 screenPos)
 			{
 				float depthTextureValue = SAMPLE_TEXTURE2D(_CameraDepthTexture, sampler_CameraDepthTexture, screenPos).r;
-				float eyeDepth = LinearEyeDepth(depthTextureValue, _ZBufferParams); //_ZBufferParams°üº¬·´×ªzµÄ²Ù×÷£¬LinearEyeDepthÖ»ÄÜÓÃÓÚÍ¶ÉäÏà»ú
-				float3 targetRayWS = -(eyeDepth / viewZ) * rayWS; //targetRayWS/rayWS = eyeDepth / viewZ,ÏàËÆÈı½ÇĞÎ
+				float eyeDepth = LinearEyeDepth(depthTextureValue, _ZBufferParams); //_ZBufferParamsåŒ…å«åè½¬zçš„æ“ä½œï¼ŒLinearEyeDepthåªèƒ½ç”¨äºæŠ•å°„ç›¸æœº
+				float3 targetRayWS = -(eyeDepth / viewZ) * rayWS; //targetRayWS/rayWS = eyeDepth / viewZ,ç›¸ä¼¼ä¸‰è§’å½¢
 				float3 worldSpacePos = _WorldSpaceCameraPos + targetRayWS;
 				return worldSpacePos;
 			}
@@ -104,9 +104,9 @@ Shader "Code Repository/Base/DepthToWorldPosTemplate"
 				float4 positionCS 	: SV_POSITION;
 				float3 positionWS	: TEXCOORD0;
 				float4 positionSS	: TEXCOORD1;
-				float3 farRayWS		: TEXCOORD2;//Ïà»ú¾­¹ıËùÇóµãµ½far planeµÄÏòÁ¿
-				float3 rayWS		: TEXCOORD3;//Ïà»úµ½µ±Ç°¶¥µãµÄÏòÁ¿
-				float posZView		: TEXCOORD4;//µ±Ç°¶¥µã¹Û²ì¿Õ¼äzÖµ
+				float3 farRayWS		: TEXCOORD2;//ç›¸æœºç»è¿‡æ‰€æ±‚ç‚¹åˆ°far planeçš„å‘é‡
+				float3 rayWS		: TEXCOORD3;//ç›¸æœºåˆ°å½“å‰é¡¶ç‚¹çš„å‘é‡
+				float posZView		: TEXCOORD4;//å½“å‰é¡¶ç‚¹è§‚å¯Ÿç©ºé—´zå€¼
 			};
 
 			TEXTURE2D(_BaseMap);
@@ -123,8 +123,8 @@ Shader "Code Repository/Base/DepthToWorldPosTemplate"
 				{
 					float2 screenPos = OUT.positionSS.xy / OUT.positionSS.w;
 					float3 farPlaneNDC = float3(screenPos.x * 2 - 1, screenPos.y * 2 - 1, 1);
-					float3 farPlaneClip = farPlaneNDC * _ProjectionParams.z;//ÔÚÍ¸ÊÓÍ¶Ó°ÖĞ£¬Ô¶Æ½ÃæµÄclip.w = _ProjectionParams.z£¨ÊÓ×¶Ìåfar)£¬µÃµ½Î»ÓÚclip¿Õ¼äµÄµã
-					OUT.farRayWS = mul((float3x3)UNITY_MATRIX_I_V, mul(unity_CameraInvProjection, farPlaneClip.xyzz).xyz).xyz;//µÃµ½Ö¸Ïòfar planeµÄÏòÁ¿
+					float3 farPlaneClip = farPlaneNDC * _ProjectionParams.z;//åœ¨é€è§†æŠ•å½±ä¸­ï¼Œè¿œå¹³é¢çš„clip.w = _ProjectionParams.zï¼ˆè§†é”¥ä½“far)ï¼Œå¾—åˆ°ä½äºclipç©ºé—´çš„ç‚¹
+					OUT.farRayWS = mul((float3x3)UNITY_MATRIX_I_V, mul(unity_CameraInvProjection, farPlaneClip.xyzz).xyz).xyz;//å¾—åˆ°æŒ‡å‘far planeçš„å‘é‡
 				}
 				else if(_ShowWorldPosWay == 3)
 				{
@@ -132,7 +132,7 @@ Shader "Code Repository/Base/DepthToWorldPosTemplate"
 					float4 farPlaneNDC = float4(screenPos.x * 2 - 1, screenPos.y * 2 - 1, 1, 1);
 					float4 farPosWS = mul(UNITY_MATRIX_I_V, mul(unity_CameraInvProjection, farPlaneNDC));
 					farPosWS /= farPosWS.w;
-					OUT.farRayWS = farPosWS.xyz - _WorldSpaceCameraPos.xyz;//µÃµ½Ö¸Ïòfar planeµÄÏòÁ¿
+					OUT.farRayWS = farPosWS.xyz - _WorldSpaceCameraPos.xyz;//å¾—åˆ°æŒ‡å‘far planeçš„å‘é‡
 				}
 				else if(_ShowWorldPosWay == 4)
 				{

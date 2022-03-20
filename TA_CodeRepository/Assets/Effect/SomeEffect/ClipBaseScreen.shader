@@ -74,19 +74,19 @@ Shader "Code Repository/Effect/ClipBaseScreen"
 				float2 clipValue = 0;
 				if(_GridType == 0)
 				{
-					clipValue = -frac(grid.x); //(x, 0)方向
+					clipValue = -frac(grid.x); //(x, 0)鏂瑰悜
 				}
 				else if(_GridType == 1)
 				{
-					clipValue = -frac(grid.y); //(0, y)方向
+					clipValue = -frac(grid.y); //(0, y)鏂瑰悜
 				}
 				else if(_GridType == 2)
 				{
-					clipValue = -frac(grid); //x，y都为负数clip
+					clipValue = -frac(grid); //x锛寉閮戒负璐熸暟clip
 				}
 				else
 				{
-					clipValue = -frac(grid.x + grid.y); //棋盘
+					clipValue = -frac(grid.x + grid.y); //妫嬬洏
 				}		
 				clip(clipValue);
 				half4 baseMap = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, IN.uv);

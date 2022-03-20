@@ -1,4 +1,4 @@
-﻿Shader "Code Repository/Scene/SimpleStylizedWater"
+Shader "Code Repository/Scene/SimpleStylizedWater"
 {
 	Properties 
 	{

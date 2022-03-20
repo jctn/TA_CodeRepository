@@ -52,7 +52,7 @@ Shader "Code Repository/Base/Parallax Occlusion Mapping"
 			{
 				half layerCount = lerp(_MaxLayerCount, _MinLayerCount, abs(viewDirTS.z));
 				float layerDepth = 1 / layerCount;
-				float2 deltaUV = viewDirTS.xy / viewDirTS.z * _ParallaxScale * layerDepth; //×ÜµÄÆ«ÒÆ£ºviewDirTS.xy / viewDirTS.z * _ParallaxScale£¬_ParallaxScaleÔ½Ğ¡£¬Æ«ÒÆÔ½Ğ¡£¬Ğ§¹ûÉÏÎªÊÓ½ÇÔ½½Ó½üÆ½Ãæ·¨Ïß
+				float2 deltaUV = viewDirTS.xy / viewDirTS.z * _ParallaxScale * layerDepth; //æ€»çš„åç§»ï¼šviewDirTS.xy / viewDirTS.z * _ParallaxScaleï¼Œ_ParallaxScaleè¶Šå°ï¼Œåç§»è¶Šå°ï¼Œæ•ˆæœä¸Šä¸ºè§†è§’è¶Šæ¥è¿‘å¹³é¢æ³•çº¿
 
 				float currentLayerDepth = 0;
 				float2 currentUV = uv;
@@ -67,10 +67,10 @@ Shader "Code Repository/Base/Parallax Occlusion Mapping"
 					currentLayerDepth += layerDepth;
 				}
 
-				float curDifference = currentDepth - currentLayerDepth;//Ğ¡ÓÚ0
+				float curDifference = currentDepth - currentLayerDepth;//å°äº0
 				float2 preUV = currentUV + deltaUV;
 				half preDepth = SAMPLE_TEXTURE2D(_DepthTex, sampler_DepthTex, preUV).r;
-				float preDifference = preDepth - (currentLayerDepth - layerDepth);//´óÓÚ0
+				float preDifference = preDepth - (currentLayerDepth - layerDepth);//å¤§äº0
 				float weight = curDifference / (curDifference - preDifference);
 				currentUV = currentUV  * (1 - weight) + preUV * weight;
 				return currentUV;

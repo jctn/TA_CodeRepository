@@ -79,7 +79,7 @@ Shader "Code Repository/Effect/DitherByDistance"
 				//dither1
 				//float dither = InterleavedGradientNoise(screenPos, 0);
 
-				//dither2,相当于把矩阵平铺到屏幕空间中
+				//dither2,鐩稿綋浜庢妸鐭╅樀骞抽摵鍒板睆骞曠┖闂翠腑
 				//float4x4 ditherMatrix = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
 				//float dither = ditherMatrix[floor(fmod(screenPos.x * _GridSize, 4))][floor(fmod(screenPos.y * _GridSize, 4))];
 

@@ -46,14 +46,14 @@ Shader "Code Repository/Base/SimpleParallaxMapping"
 
 			//https://zhuanlan.zhihu.com/p/164754522
 			//https://learnopengl-cn.github.io/05%20Advanced%20Lighting/05%20Parallax%20Mapping/
-			//ÕâÖÖ¼òµ¥µÄÊÓ²îÓ³Éä£¬ÏûºÄĞ¡£¬µ«²»×¼È·£¬¶ÔÓÚÆÂ¶È´óµÄÃæĞ§¹û²î
+			//è¿™ç§ç®€å•çš„è§†å·®æ˜ å°„ï¼Œæ¶ˆè€—å°ï¼Œä½†ä¸å‡†ç¡®ï¼Œå¯¹äºå¡åº¦å¤§çš„é¢æ•ˆæœå·®
 			float2 ParallaxMapping(float2 uv, half3 viewDirTS)
 			{
 				half h = SAMPLE_TEXTURE2D(_DepthTex, sampler_DepthTex, uv).r;
 				half3 viewDir = normalize(viewDirTS);
-				float2 delta0 = viewDir.xy / viewDir.z * (h * _ParallaxScale); //³ız£¬ÊÓ½ÇºÍºÍÆ½Ãæ·¨Ïß¼Ğ½ÇÔ½´ó£¬Æ«ÒÆÔ½´ó
-				float2 delta1 = viewDir.xy * (h * _ParallaxScale); //²»³ız£¬³ÆÎª´øÆ«ÒÆÏŞÖÆµÄÊÓ²îÌùÍ¼( viewDir.xy * hÏŞÖÆÔÚ£¨0-1,0-1£©)£¬·ÀÖ¹ÊÓ½ÇºÍºÍÆ½Ãæ·¨Ïß¼Ğ½Ç½Ï´óÊ±µÄ´íÎó±íÏÖ
-				return uv - (delta0 * _DivideZ + delta1 * (1 - _DivideZ));//(Èç¹ûÊÇ¸ß¶ÈÍ¼ÔòÎªuv + delta)£¬Éî¶ÈÍ¼£¬ÊÊÓÃÓÚ´ÓË®Æ½Ãæ°¼ÏÂÈ¥µÄÇé¿ö£¬¸ß¶ÈÍ¼ÊÊÓÃÓÚ´ÓË®Æ½ÃæÍ¹³öµÄÇé¿ö
+				float2 delta0 = viewDir.xy / viewDir.z * (h * _ParallaxScale); //é™¤zï¼Œè§†è§’å’Œå’Œå¹³é¢æ³•çº¿å¤¹è§’è¶Šå¤§ï¼Œåç§»è¶Šå¤§
+				float2 delta1 = viewDir.xy * (h * _ParallaxScale); //ä¸é™¤zï¼Œç§°ä¸ºå¸¦åç§»é™åˆ¶çš„è§†å·®è´´å›¾( viewDir.xy * hé™åˆ¶åœ¨ï¼ˆ0-1,0-1ï¼‰)ï¼Œé˜²æ­¢è§†è§’å’Œå’Œå¹³é¢æ³•çº¿å¤¹è§’è¾ƒå¤§æ—¶çš„é”™è¯¯è¡¨ç°
+				return uv - (delta0 * _DivideZ + delta1 * (1 - _DivideZ));//(å¦‚æœæ˜¯é«˜åº¦å›¾åˆ™ä¸ºuv + delta)ï¼Œæ·±åº¦å›¾ï¼Œé€‚ç”¨äºä»æ°´å¹³é¢å‡¹ä¸‹å»çš„æƒ…å†µï¼Œé«˜åº¦å›¾é€‚ç”¨äºä»æ°´å¹³é¢å‡¸å‡ºçš„æƒ…å†µ
 			}
 
 		ENDHLSL

@@ -1,4 +1,4 @@
-﻿Shader "Code Repository/Scene/CustomLensFlare"
+Shader "Code Repository/Scene/CustomLensFlare"
 {
     Properties
     {

@@ -1,4 +1,4 @@
-﻿Shader "Code Repository/Effect/FlowOutLineS/Billboard"
+Shader "Code Repository/Effect/FlowOutLineS/Billboard"
 {
     Properties
 	{

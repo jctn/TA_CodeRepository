@@ -1,4 +1,4 @@
-﻿Shader "Code Repository/Effect/Character"
+Shader "Code Repository/Effect/Character"
 {
     Properties
     {

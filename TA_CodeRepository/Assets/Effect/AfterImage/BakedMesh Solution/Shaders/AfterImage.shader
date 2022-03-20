@@ -1,4 +1,4 @@
-﻿Shader "Code Repository/Effect/AfterImage"
+Shader "Code Repository/Effect/AfterImage"
 {
     Properties
     {

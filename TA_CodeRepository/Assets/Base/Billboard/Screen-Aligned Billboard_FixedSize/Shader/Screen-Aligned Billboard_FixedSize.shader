@@ -1,4 +1,4 @@
-﻿Shader "Code Repository/Base/Screen-Aligned Billboard_FixedSize"
+Shader "Code Repository/Base/Screen-Aligned Billboard_FixedSize"
 {
     Properties
     {
