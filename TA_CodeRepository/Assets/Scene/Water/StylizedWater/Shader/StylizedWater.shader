@@ -3,9 +3,10 @@ Shader "Code Repository/Scene/StylizedWater"
 	Properties 
 	{
 		[Header(NormalMap)]
-		_NormalMap ("Normal Map", 2D) = "white" {}
+		[NoScaleOffset]_NormalMap ("Normal Map", 2D) = "white" {}
+		_NormalMapScale ("NormalMapScale", Float) = 10
 		_BumpScale ("Bump Scale", Range(0, 2)) = 1
-		_FlowSpeed ("Flow Speed", Float) = 0.2
+		_FlowSpeed ("Flow Speed", Float) = 2
 
 		[Header(Water Color)]
 		_ShallowColor ("Shallow Color(alpha=water transparent)", Color) = (1, 1, 1, 0.1)
@@ -14,7 +15,19 @@ Shader "Code Repository/Scene/StylizedWater"
 		_FresnelPower ("FresnelPower", Float) = 5
 
 		[Header(Refraction)]
-		_RefractionDistortion ("RefractionDistortion", Range(0, 0.3)) = 0.01
+		_ReflectionDistortion ("ReflectionDistortion", Range(0, 5)) = 0.5
+		_ReflectionIntensity ("ReflectionIntensity", Range(0, 1)) = 0.5
+
+		[Header(Refraction)]
+		_RefractionDistortion ("RefractionDistortion", Range(0, 5)) = 0.5
+
+		[Header(Caustics)]
+		_CausticsTex ("CausticsTex", 2D) = "white" {}
+		_CausticsScale ("CausticsScale", Float) = 1
+		_CausticsFlowSpeed ("CausticsFlowSpeed", Float) = 1
+		_CausticsIntensity ("CausticsIntensity", Float) = 1
+		_CausticsDepthRange ("CausticsDepthRange", Float) = 1
+		_CausticsShallowRange ("CausticsShallowRange", Float) = 1
 	}
 	SubShader 
 	{
@@ -28,14 +41,21 @@ Shader "Code Repository/Scene/StylizedWater"
 			#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
 			CBUFFER_START(UnityPerMaterial)
-			float4 _NormalMap_ST;
+			float _NormalMapScale;
 			half _BumpScale;
 			half _FlowSpeed;
 			half4 _ShallowColor;
 			half4 _DepthColor;
 			float _DepthRange;
 			float _FresnelPower;
+			float _ReflectionDistortion;
+			float _ReflectionIntensity;
 			float _RefractionDistortion;
+			float _CausticsScale;
+			float _CausticsFlowSpeed;
+			float _CausticsIntensity;
+			float _CausticsDepthRange;
+			float _CausticsShallowRange;
 			CBUFFER_END
 
 		ENDHLSL
@@ -79,6 +99,10 @@ Shader "Code Repository/Scene/StylizedWater"
 
 			TEXTURE2D(_CameraOpaqueTexture);
 			SAMPLER(sampler_CameraOpaqueTexture);
+			//SAMPLER(sampler_point_clamp);
+
+			TEXTURE2D(_CausticsTex);
+			SAMPLER(sampler_CausticsTex);
 
 			Varyings Vertex(Attributes IN) 
 			{
@@ -95,8 +119,8 @@ Shader "Code Repository/Scene/StylizedWater"
 				OUT.TtoW1 = float4(tangentWS.y, binormalWS.y, normalWS.y, posWS.y);
 				OUT.TtoW2 = float4(tangentWS.z, binormalWS.z, normalWS.z, posWS.z);
 
-				float2 normalUV0 = posWS.xz * _NormalMap_ST.xy + _NormalMap_ST.zw + _Time.y * _FlowSpeed;
-				float2 normalUV1 = posWS.xz * _NormalMap_ST.xy * 2 + _NormalMap_ST.zw - _Time.y * _FlowSpeed * 0.5;
+				float2 normalUV0 = posWS.xz / max(0.0001, _NormalMapScale) + _Time.x * _FlowSpeed;
+				float2 normalUV1 = 2 * posWS.xz / max(0.0001, _NormalMapScale) - _Time.x * _FlowSpeed * 0.5;
 				OUT.normalMapUv.xy = normalUV0;
 				OUT.normalMapUv.zw = normalUV1;
 
@@ -116,10 +140,10 @@ Shader "Code Repository/Scene/StylizedWater"
 				//normal map
 				float2 normalUV0 = IN.normalMapUv.xy;
 				half4 packNormal0 = SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, normalUV0);
-				half3 unpackNormal0 = SafeNormalize(UnpackNormalScale(packNormal0, _BumpScale));
+				half3 unpackNormal0 = UnpackNormalScale(packNormal0, _BumpScale);
 				float2 normalUV1 = IN.normalMapUv.zw;
 				half4 packNormal = SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, normalUV1);
-				half3 unpackNormal1 = SafeNormalize(UnpackNormalScale(packNormal, _BumpScale));
+				half3 unpackNormal1 = UnpackNormalScale(packNormal, _BumpScale);
 				half3 normalOS = SafeNormalize(float3(unpackNormal0.xy + unpackNormal1.xy, unpackNormal0.z * unpackNormal1.z)); //http://wiki.amplify.pt/index.php?title=Unity_Products:Amplify_Shader_Editor/Blend_Normals
 				half3 normalWS = SafeNormalize(float3(dot(IN.TtoW0.xyz, normalOS), dot(IN.TtoW1.xyz, normalOS), dot(IN.TtoW2.xyz, normalOS)));
 
@@ -140,21 +164,36 @@ Shader "Code Repository/Scene/StylizedWater"
 				float fresnel = pow(1 - saturate(dot(SafeNormalize(float3(IN.TtoW0.z, IN.TtoW1.z, IN.TtoW2.z)), SafeNormalize(-IN.posWSFromDepth.xyz))), _FresnelPower);
 				waterTransparent = lerp(waterTransparent, 0, fresnel);
 
+				//Reflection
+				float2 reflectionUV = screenUV + normalOS.xy * _ReflectionDistortion * 0.1;
+				half3 reflectionColor = SAMPLE_TEXTURE2D(_ReflectionTex, sampler_ReflectionTex, reflectionUV).rgb * _ReflectionIntensity * fresnel;
+
 				//refraction
-				float2 refractionUV = screenUV + normalOS.xy * _RefractionDistortion;
+				float2 distortionOffset = normalOS.xy * _RefractionDistortion * 0.1;
+				float2 refractionUV = screenUV + distortionOffset;
 				float distortionDepth = SAMPLE_TEXTURE2D(_CameraDepthTexture, sampler_CameraDepthTexture, refractionUV).r;
 				distortionDepth = LinearEyeDepth(distortionDepth, _ZBufferParams);
 				float waterDepth = IN.positionSS.w;
-				float distortionDepthDifference = distortionDepth - waterDepth;
-				if(distortionDepthDifference <= 0)
-				{
-					refractionUV = screenUV;
-				}
+				float distortionDepthDifference = saturate(distortionDepth - waterDepth);
+				refractionUV = screenUV + distortionOffset * distortionDepthDifference; //水面及以上的物体不会被扭曲
 				half3 refractionColor = SAMPLE_TEXTURE2D(_CameraOpaqueTexture, sampler_CameraOpaqueTexture, refractionUV).rgb;
+			
+				//caustics
+				float2 causticsUVOffset = _Time.x * _CausticsFlowSpeed;
+				float2 causticsUV0 = scenePosWS.xz / max(0.0001, _CausticsScale) + causticsUVOffset;
+				float2 causticsUV1 = -scenePosWS.xz / max(0.0001, _CausticsScale) + causticsUVOffset;
+				half3 causticsColor0 = SAMPLE_TEXTURE2D(_CausticsTex, sampler_CausticsTex, causticsUV0).rgb;
+				half3 causticsColor1 = SAMPLE_TEXTURE2D(_CausticsTex, sampler_CausticsTex, causticsUV1).rgb;
+				half3 causticsColor = min(causticsColor0, causticsColor1) * max(0, _CausticsIntensity);
+				half causticsDepthMask = saturate(exp(-depthDifference * _CausticsDepthRange * 0.5));
+				half causticsShalloowMask = 1 - saturate(exp(-depthDifference * _CausticsShallowRange * 0.5));
+				half causticsMask =  saturate(causticsDepthMask + causticsShalloowMask - 0.7);
+				return causticsMask;
+				causticsColor *= causticsMask;
 				
-				// half3 finalColor = waterColor.rgb + refractionColor;
-				half3 finalColor = refractionColor;
-				return half4(finalColor, 1);	
+				half3 underWaterColor = refractionColor + causticsColor;
+				half3 finalColor = lerp(waterColor.rgb + reflectionColor, underWaterColor, waterTransparent);
+				return half4(finalColor, 1);
 			}
 			ENDHLSL
 		}
