@@ -11,7 +11,7 @@ Shader "Code Repository/Scene/StylizedWater"
 		[Header(Water Color)]
 		_ShallowColor ("Shallow Color(alpha=water transparent)", Color) = (1, 1, 1, 0.1)
 		_DepthColor ("DepthColor(alpha=water transparent)", Color) = (1, 1, 1, 1)
-		_DepthRange ("DepthRange", Float) = 1
+		_DepthRange ("DepthRange", Float) = 5
 		_FresnelPower ("FresnelPower", Float) = 5
 
 		[Header(Refraction)]
@@ -26,8 +26,14 @@ Shader "Code Repository/Scene/StylizedWater"
 		_CausticsScale ("CausticsScale", Float) = 1
 		_CausticsFlowSpeed ("CausticsFlowSpeed", Float) = 1
 		_CausticsIntensity ("CausticsIntensity", Float) = 1
-		_CausticsDepthRange ("CausticsDepthRange", Float) = 1
-		_CausticsShallowRange ("CausticsShallowRange", Float) = 1
+		_CausticsThresholdDepth ("CausticsThresholdDepth", Float) = 2
+		_CausticsSmoothDepth ("CausticsSmoothDepth", Float) = 0.5
+		_CausticsThresholdShallow ("CausticsThresholdShallow", Float) = 0.1
+		_CausticsSmoothShallow ("CausticsSmoothShallow", Float) = 0.1
+
+		[Header(Shore)]
+		_ShoreEdgeWidth ("ShoreEdgeWidth", Float) = 5
+		_ShoreEdgeIntensity ("ShoreEdgeIntensity", Float) = 0.3
 	}
 	SubShader 
 	{
@@ -54,8 +60,12 @@ Shader "Code Repository/Scene/StylizedWater"
 			float _CausticsScale;
 			float _CausticsFlowSpeed;
 			float _CausticsIntensity;
-			float _CausticsDepthRange;
-			float _CausticsShallowRange;
+			float _CausticsThresholdDepth;
+			float _CausticsSmoothDepth;
+			float _CausticsThresholdShallow;
+			float _CausticsSmoothShallow;
+			float _ShoreEdgeWidth;
+			float _ShoreEdgeIntensity;		
 			CBUFFER_END
 
 		ENDHLSL
@@ -156,7 +166,7 @@ Shader "Code Repository/Scene/StylizedWater"
 				float depthDifference = posWS.y - scenePosWS.y;
 
 				//water color
-				float colorLerpFactor = saturate(exp(-depthDifference * _DepthRange * 0.5));
+				float colorLerpFactor = saturate(exp(-depthDifference * _DepthRange * 0.1));
 				half4 waterColor = lerp(_DepthColor, _ShallowColor, colorLerpFactor);
 
 				//water transparent
@@ -185,14 +195,17 @@ Shader "Code Repository/Scene/StylizedWater"
 				half3 causticsColor0 = SAMPLE_TEXTURE2D(_CausticsTex, sampler_CausticsTex, causticsUV0).rgb;
 				half3 causticsColor1 = SAMPLE_TEXTURE2D(_CausticsTex, sampler_CausticsTex, causticsUV1).rgb;
 				half3 causticsColor = min(causticsColor0, causticsColor1) * max(0, _CausticsIntensity);
-				half causticsDepthMask = saturate(exp(-depthDifference * _CausticsDepthRange * 0.5));
-				half causticsShalloowMask = 1 - saturate(exp(-depthDifference * _CausticsShallowRange * 0.5));
-				half causticsMask =  saturate(causticsDepthMask + causticsShalloowMask - 0.7);
-				return causticsMask;
+
+				half causticsDepthMask = smoothstep(_CausticsThresholdDepth, _CausticsThresholdDepth - _CausticsSmoothDepth - 0.1, depthDifference);
+				half causticsShalloowMask = smoothstep(_CausticsThresholdShallow, _CausticsThresholdShallow + _CausticsSmoothShallow, depthDifference);
+				half causticsMask =  causticsDepthMask + causticsShalloowMask - 1;
 				causticsColor *= causticsMask;
-				
+
+				//shore
+				half shoreEdge = smoothstep(_ShoreEdgeWidth * 0.01, 0, depthDifference) * _ShoreEdgeIntensity;
+
 				half3 underWaterColor = refractionColor + causticsColor;
-				half3 finalColor = lerp(waterColor.rgb + reflectionColor, underWaterColor, waterTransparent);
+				half3 finalColor = lerp(waterColor.rgb + reflectionColor, underWaterColor, waterTransparent) + shoreEdge;
 				return half4(finalColor, 1);
 			}
 			ENDHLSL
