@@ -22,18 +22,30 @@ Shader "Code Repository/Scene/StylizedWater"
 		_RefractionDistortion ("RefractionDistortion", Range(0, 5)) = 0.5
 
 		[Header(Caustics)]
-		_CausticsTex ("CausticsTex", 2D) = "white" {}
+		[NoScaleOffset]_CausticsTex ("CausticsTex", 2D) = "white" {}
 		_CausticsScale ("CausticsScale", Float) = 1
 		_CausticsFlowSpeed ("CausticsFlowSpeed", Float) = 1
 		_CausticsIntensity ("CausticsIntensity", Float) = 1
 		_CausticsThresholdDepth ("CausticsThresholdDepth", Float) = 2
-		_CausticsSmoothDepth ("CausticsSmoothDepth", Float) = 0.5
+		_CausticsSoftDepth ("CausticsSoftDepth", Float) = 0.5
 		_CausticsThresholdShallow ("CausticsThresholdShallow", Float) = 0.1
-		_CausticsSmoothShallow ("CausticsSmoothShallow", Float) = 0.1
+		_CausticsSoftShallow ("CausticsSoftShallow", Float) = 0.1
 
 		[Header(Shore)]
 		_ShoreEdgeWidth ("ShoreEdgeWidth", Float) = 5
 		_ShoreEdgeIntensity ("ShoreEdgeIntensity", Float) = 0.3
+
+		[Header(Foam)]
+		_FoamColor ("FomaColor", Color) = (1, 1, 1, 1)
+		_FoamRange ("FoamRange", Float) = 1
+		_FoamRangeSmooth ("_FoamRangeSmooth", Float) = 0
+		_FoamSoft ("FoamSoft", Range(0, 1)) = 0.1
+		_FoamWavelength ("FoamWavelength", Float) = 1
+		_FoamWaveSpeed ("FoamWaveSpeed", Float) = 1
+		[NoScaleOffset]_FoamNoiseTex ("FoamNoiseTex", 2D) = "white" {}
+		_FoamNoiseTexScale("FoamNoiseTexScale", Vector) = (10, 5, 0, 0)
+		_FoamDissolve ("FoamDissolve", Float) = 1.2
+		_FoamShoreWidth ("FoamShoreWidth", Range(0, 1)) = 0.5
 	}
 	SubShader 
 	{
@@ -61,11 +73,20 @@ Shader "Code Repository/Scene/StylizedWater"
 			float _CausticsFlowSpeed;
 			float _CausticsIntensity;
 			float _CausticsThresholdDepth;
-			float _CausticsSmoothDepth;
+			float _CausticsSoftDepth;
 			float _CausticsThresholdShallow;
-			float _CausticsSmoothShallow;
+			float _CausticsSoftShallow;
 			float _ShoreEdgeWidth;
-			float _ShoreEdgeIntensity;		
+			float _ShoreEdgeIntensity;
+			half4 _FoamColor;
+			float _FoamRange;
+			float _FoamRangeSmooth;
+			float _FoamSoft;
+			float _FoamWavelength;
+			float _FoamWaveSpeed;
+			float2 _FoamNoiseTexScale;
+			float _FoamDissolve;
+			float _FoamShoreWidth;
 			CBUFFER_END
 
 		ENDHLSL
@@ -113,6 +134,9 @@ Shader "Code Repository/Scene/StylizedWater"
 
 			TEXTURE2D(_CausticsTex);
 			SAMPLER(sampler_CausticsTex);
+
+			TEXTURE2D(_FoamNoiseTex);
+			SAMPLER(sampler_FoamNoiseTex);
 
 			Varyings Vertex(Attributes IN) 
 			{
@@ -196,16 +220,26 @@ Shader "Code Repository/Scene/StylizedWater"
 				half3 causticsColor1 = SAMPLE_TEXTURE2D(_CausticsTex, sampler_CausticsTex, causticsUV1).rgb;
 				half3 causticsColor = min(causticsColor0, causticsColor1) * max(0, _CausticsIntensity);
 
-				half causticsDepthMask = smoothstep(_CausticsThresholdDepth, _CausticsThresholdDepth - _CausticsSmoothDepth - 0.1, depthDifference);
-				half causticsShalloowMask = smoothstep(_CausticsThresholdShallow, _CausticsThresholdShallow + _CausticsSmoothShallow, depthDifference);
+				half causticsDepthMask = smoothstep(_CausticsThresholdDepth, _CausticsThresholdDepth - _CausticsSoftDepth - 0.1, depthDifference);
+				half causticsShalloowMask = smoothstep(_CausticsThresholdShallow, _CausticsThresholdShallow + _CausticsSoftShallow, depthDifference);
 				half causticsMask =  causticsDepthMask + causticsShalloowMask - 1;
 				causticsColor *= causticsMask;
 
 				//shore
 				half shoreEdge = smoothstep(_ShoreEdgeWidth * 0.01, 0, depthDifference) * _ShoreEdgeIntensity;
 
+				//foam
+				float foamRange = 1 - saturate(depthDifference / max(0.0001, _FoamRange));
+				float foamMask = smoothstep(0, _FoamRangeSmooth, foamRange);
+				float foamWave = sin(TWO_PI / max(_FoamWavelength * 0.1, 0.0001) * (depthDifference + _Time.x * _FoamWaveSpeed));
+				half foamNoise = SAMPLE_TEXTURE2D(_FoamNoiseTex, sampler_FoamNoiseTex, posWS.xz / _FoamNoiseTexScale).r;
+				float foamThreshold = max(foamRange - _FoamShoreWidth, 0);
+				foamWave = smoothstep(foamThreshold, foamThreshold + _FoamSoft, foamWave + foamNoise - _FoamDissolve);
+				//foamWave = saturate(foamWave + foamNoise - _FoamDissolve);
+				half3 fomaColor = foamWave * foamMask * _FoamColor;
+
 				half3 underWaterColor = refractionColor + causticsColor;
-				half3 finalColor = lerp(waterColor.rgb + reflectionColor, underWaterColor, waterTransparent) + shoreEdge;
+				half3 finalColor = lerp(waterColor.rgb + reflectionColor, underWaterColor, waterTransparent) + shoreEdge + fomaColor;
 				return half4(finalColor, 1);
 			}
 			ENDHLSL
