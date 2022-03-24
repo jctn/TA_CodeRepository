@@ -46,6 +46,11 @@ Shader "Code Repository/Scene/StylizedWater"
 		_FoamNoiseTexScale("FoamNoiseTexScale", Vector) = (10, 5, 0, 0)
 		_FoamDissolve ("FoamDissolve", Float) = 1.2
 		_FoamShoreWidth ("FoamShoreWidth", Range(0, 1)) = 0.5
+
+		[Header(Wave(xy_dir Z_steepness W_wavelength))]
+		_WaveA ("Wave A", Vector) = (1,0,0.5,10)
+		_WaveB ("Wave B", Vector) = (0,1,0.25,20)
+		_WaveC ("Wave C", Vector) = (1,1,0.15,10)		
 	}
 	SubShader 
 	{
@@ -87,8 +92,35 @@ Shader "Code Repository/Scene/StylizedWater"
 			float2 _FoamNoiseTexScale;
 			float _FoamDissolve;
 			float _FoamShoreWidth;
+			float4 _WaveA, _WaveB, _WaveC;
 			CBUFFER_END
 
+			float3 GerstnerWave (float4 wave, float3 p, inout float3 tangent, inout float3 binormal) 
+			{
+				float steepness = wave.z * 0.01;
+				float wavelength = wave.w;
+				float k = TWO_PI / wavelength;
+				float c = sqrt(9.8 / k);
+				float2 d = normalize(wave.xy);
+				float f = k * (dot(d, p.xz) - c * _Time.y);
+				float a = steepness / k;
+				
+				tangent += float3(
+					-d.x * d.x * (steepness * sin(f)),
+					d.x * (steepness * cos(f)),
+					-d.x * d.y * (steepness * sin(f))
+				);
+				binormal += float3(
+					-d.x * d.y * (steepness * sin(f)),
+					d.y * (steepness * cos(f)),
+					-d.y * d.y * (steepness * sin(f))
+				);
+				return float3(
+					d.x * (a * cos(f)),
+					a * sin(f),
+					d.y * (a * cos(f))
+				);
+			}
 		ENDHLSL
 
 		Pass 
@@ -104,7 +136,7 @@ Shader "Code Repository/Scene/StylizedWater"
 			{
 				float4 positionOS	: POSITION;
 				float3 normal		: NORMAL;
-				float4 tangent		: TANGENT;
+				//float4 tangent		: TANGENT;
 			};
 
 			struct Varyings 
@@ -116,6 +148,7 @@ Shader "Code Repository/Scene/StylizedWater"
 				float4 TtoW2			: TEXCOORD3;
 				float4 normalMapUv		: TEXCOORD4;
 				float4 posWSFromDepth	: TEXCOORD5; //xyz:viewDirWS,w:viewPosZ
+				float3 oriNormal		: TEXCOORD6;
 				//float3 viewDirWS		: TEXCOORD6;
 			};
 
@@ -141,14 +174,29 @@ Shader "Code Repository/Scene/StylizedWater"
 			Varyings Vertex(Attributes IN) 
 			{
 				Varyings OUT;
+				//wave
+				float3x3 scaleM = float3x3(UNITY_MATRIX_M[0][0], 0, 0, 0, UNITY_MATRIX_M[1][1], 0, 0, 0, UNITY_MATRIX_M[2][2]);
+				float3x3 inverseScaleM = float3x3(1 / UNITY_MATRIX_M[0][0], 0, 0, 0, 1 / UNITY_MATRIX_M[1][1], 0, 0, 0, 1 / UNITY_MATRIX_M[2][2]);
+				float3 gridPoint = mul(scaleM, IN.positionOS.xyz); //提前应用缩放，波形参数不会被模型尺寸影响
+				float3 tangent = 0;
+				float3 binormal = 0;
+				float3 p = gridPoint;
+				p += GerstnerWave(_WaveA, gridPoint, tangent, binormal);
+				p += GerstnerWave(_WaveB, gridPoint, tangent, binormal);
+				p += GerstnerWave(_WaveC, gridPoint, tangent, binormal);
+				p = mul(inverseScaleM, p);
+				tangent = mul(inverseScaleM, tangent);
+				binormal = mul(inverseScaleM, binormal);
+				float3 normal = cross(binormal, tangent);
+				IN.positionOS.xyz = p;
 
 				OUT.positionCS = TransformObjectToHClip(IN.positionOS.xyz);
 				OUT.positionSS = ComputeScreenPos(OUT.positionCS);
 
 				float3 posWS = TransformObjectToWorld(IN.positionOS.xyz);
-				float3 normalWS = TransformObjectToWorldNormal(IN.normal);
-				float3 tangentWS = TransformWorldToObjectDir(IN.tangent.xyz);
-				float3 binormalWS = SafeNormalize(cross(normalWS, tangentWS) * IN.tangent.w);
+				float3 normalWS = TransformObjectToWorldNormal(normal);
+				float3 tangentWS = TransformObjectToWorldDir(tangent);
+				float3 binormalWS = TransformObjectToWorldDir(binormal);
 				OUT.TtoW0 = float4(tangentWS.x, binormalWS.x, normalWS.x, posWS.x);
 				OUT.TtoW1 = float4(tangentWS.y, binormalWS.y, normalWS.y, posWS.y);
 				OUT.TtoW2 = float4(tangentWS.z, binormalWS.z, normalWS.z, posWS.z);
@@ -160,7 +208,7 @@ Shader "Code Repository/Scene/StylizedWater"
 
 				OUT.posWSFromDepth.xyz = posWS - _WorldSpaceCameraPos;
 				OUT.posWSFromDepth.w = -TransformWorldToView(posWS).z;
-
+				OUT.oriNormal = IN.normal;
 				//OUT.viewDirWS = SafeNormalize(_WorldSpaceCameraPos - posWS); //归一化后，插值结果与在fs里计算的结果相差较大，不归一化两者基本相同
 				//OUT.viewDirWS = _WorldSpaceCameraPos - posWS;
 				return OUT;
@@ -195,7 +243,7 @@ Shader "Code Repository/Scene/StylizedWater"
 
 				//water transparent
 				half waterTransparent = 1 - saturate(waterColor.a);
-				float fresnel = pow(1 - saturate(dot(SafeNormalize(float3(IN.TtoW0.z, IN.TtoW1.z, IN.TtoW2.z)), SafeNormalize(-IN.posWSFromDepth.xyz))), _FresnelPower);
+				float fresnel = pow(1 - saturate(dot(SafeNormalize(IN.oriNormal), SafeNormalize(-IN.posWSFromDepth.xyz))), _FresnelPower);
 				waterTransparent = lerp(waterTransparent, 0, fresnel);
 
 				//Reflection
@@ -236,7 +284,7 @@ Shader "Code Repository/Scene/StylizedWater"
 				float foamThreshold = max(foamRange - _FoamShoreWidth, 0);
 				foamWave = smoothstep(foamThreshold, foamThreshold + _FoamSoft, foamWave + foamNoise - _FoamDissolve);
 				//foamWave = saturate(foamWave + foamNoise - _FoamDissolve);
-				half3 fomaColor = foamWave * foamMask * _FoamColor;
+				half3 fomaColor = foamWave * foamMask * _FoamColor.rgb;
 
 				half3 underWaterColor = refractionColor + causticsColor;
 				half3 finalColor = lerp(waterColor.rgb + reflectionColor, underWaterColor, waterTransparent) + shoreEdge + fomaColor;
