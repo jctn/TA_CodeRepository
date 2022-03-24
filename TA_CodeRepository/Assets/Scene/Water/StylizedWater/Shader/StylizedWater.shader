@@ -95,6 +95,7 @@ Shader "Code Repository/Scene/StylizedWater"
 			float4 _WaveA, _WaveB, _WaveC;
 			CBUFFER_END
 
+			//https://catlikecoding.com/unity/tutorials/flow/waves/
 			float3 GerstnerWave (float4 wave, float3 p, inout float3 tangent, inout float3 binormal) 
 			{
 				float steepness = wave.z * 0.01;
