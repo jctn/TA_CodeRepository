@@ -9,6 +9,7 @@ public class ActorTracing : MonoBehaviour
     public Transform ForwardNode;
     public float MoveSpeed = 8f;
     public float RecoverSpeed = 5f;
+    public float TargetHeightCorrection = 0f;
 
     #region head
     [Header("Head")]
@@ -26,7 +27,7 @@ public class ActorTracing : MonoBehaviour
     [Header("Waist")]
     #region waist
     public Transform WaistNode;
-    [Range(0f,1f)]
+    [Range(0f, 1f)]
     public float WaistWeight = 0.4f;
 
     Quaternion wLastFrameRotation;
@@ -64,7 +65,7 @@ public class ActorTracing : MonoBehaviour
             }
             Vector3 headCurrentDirection = m.targetH - m.HeadNode.position;
             float hAngle = Vector3.Angle(m.ForwardNode.up, headCurrentDirection);
-            if(hAngle <= m.MaxAngle - m.mMaxAngeleRange && headCurrentDirection.magnitude <= m.MaxDistance - m.mMaxDisRange)
+            if (hAngle <= m.MaxAngle - m.mMaxAngeleRange && headCurrentDirection.magnitude <= m.MaxDistance - m.mMaxDisRange)
             {
                 m.SteState(m.mTracingState);
             }
@@ -96,7 +97,7 @@ public class ActorTracing : MonoBehaviour
 
             Vector3 headCurrentDirection = m.targetH - m.HeadNode.position;
             float hAngle = Vector3.Angle(m.ForwardNode.up, headCurrentDirection);
-            if (hAngle  > m.MaxAngle + m.mMaxAngeleRange || headCurrentDirection.magnitude > m.MaxDistance + m.mMaxDisRange)
+            if (hAngle > m.MaxAngle + m.mMaxAngeleRange || headCurrentDirection.magnitude > m.MaxDistance + m.mMaxDisRange)
             {
                 m.SteState(m.mTracingBackState);
                 return;
@@ -111,7 +112,8 @@ public class ActorTracing : MonoBehaviour
             //waist
             if (m.WaistNode != null)
             {
-                Vector3 waistCurrentDirection = Vector3.Slerp(m.ForwardNode.up, orientation, m.WaistWeight);
+                //Vector3 waistCurrentDirection = Vector3.Slerp(m.ForwardNode.up, orientation, m.WaistWeight);
+                Vector3 waistCurrentDirection = Vector3.Slerp(m.WaistNode.up, orientation, m.WaistWeight);
                 Quaternion waistRotation = Quaternion.LookRotation(waistCurrentDirection, Vector3.up) * m.mCorrectionQ;
                 m.WaistNode.rotation = Quaternion.Slerp(m.wLastFrameRotation, waistRotation, Time.deltaTime * m.MoveSpeed);
                 m.wLastFrameRotation = m.WaistNode.rotation;
@@ -153,18 +155,18 @@ public class ActorTracing : MonoBehaviour
 
         public override void OnUpdate(ActorTracing m)
         {
-            if(m.HeadNode != null && m.ForwardNode != null && m.haveTarget)
+            if (m.HeadNode != null && m.ForwardNode != null && m.haveTarget)
             {
                 Vector3 headCurrentDirection = m.targetH - m.HeadNode.position;
                 float hAngle = Vector3.Angle(m.ForwardNode.up, headCurrentDirection);
-                if (hAngle  <= m.MaxAngle - m.mMaxAngeleRange && headCurrentDirection.magnitude <= m.MaxDistance - m.mMaxDisRange)
+                if (hAngle <= m.MaxAngle - m.mMaxAngeleRange && headCurrentDirection.magnitude <= m.MaxDistance - m.mMaxDisRange)
                 {
                     m.SteState(m.mTracingState);
                     return;
                 }
             }
 
-            if(Quaternion.Angle(m.hLastFrameRotation, m.HeadNode.rotation) < 0.1f)
+            if (Quaternion.Angle(m.hLastFrameRotation, m.HeadNode.rotation) < 0.1f)
             {
                 m.SteState(m.mIdleState);
                 return;
@@ -175,14 +177,14 @@ public class ActorTracing : MonoBehaviour
 
         void UpdateNode(ActorTracing m)
         {
-            if(m.WaistNode != null)
+            if (m.WaistNode != null)
             {
                 Quaternion rotation = Quaternion.Slerp(m.wLastFrameRotation, m.WaistNode.rotation, m.RecoverSpeed * Time.deltaTime);
                 m.WaistNode.rotation = rotation;
                 m.wLastFrameRotation = rotation;
             }
 
-            if(m.HeadNode != null)
+            if (m.HeadNode != null)
             {
                 Quaternion rotation = Quaternion.Slerp(m.hLastFrameRotation, m.HeadNode.rotation, m.RecoverSpeed * Time.deltaTime);
                 m.HeadNode.rotation = rotation;
@@ -222,7 +224,7 @@ public class ActorTracing : MonoBehaviour
 
     public void SteState(TracingBaseState state)
     {
-        if(mCurTracingState != null)
+        if (mCurTracingState != null)
         {
             mCurTracingState.OnExit(this);
         }
@@ -258,6 +260,7 @@ public class ActorTracing : MonoBehaviour
         RemoveTarget();
         haveTarget = true;
         targetH = target;
+        targetH.y += TargetHeightCorrection;
     }
 
     /// <summary>
@@ -285,6 +288,7 @@ public class ActorTracing : MonoBehaviour
         if (targetT)
         {
             Vector3 target = targetT.position;
+            target.y += TargetHeightCorrection;
             targetH = target;
         }
     }
