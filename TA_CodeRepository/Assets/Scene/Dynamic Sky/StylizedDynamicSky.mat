@@ -136,9 +136,15 @@ Material:
     - _GlossyReflections: 0
     - _GradientScale: 3
     - _HorizonBrightness: 2.66
+    - _HorizonBrightness_Day: 1.5
+    - _HorizonBrightness_Night: 1
     - _HorizonHeight: 0.1
+    - _HorizonHeight_Day: 0.1
+    - _HorizonHeight_Night: 0.1
     - _HorizonIntensity: 16.6
     - _HorizonSoft: 1
+    - _HorizonSoft_Day: 1
+    - _HorizonSoft_Night: 1
     - _Metallic: 0
     - _MidLightIntensity: 28.1
     - _MirrorMode: 0
@@ -187,8 +193,8 @@ Material:
     - _HorizonColor: {r: 0.990566, g: 0.41913995, b: 0, a: 1}
     - _HorizonColorDay: {r: 0.67105734, g: 0.7942185, b: 0.9811321, a: 1}
     - _HorizonColorNight: {r: 0, g: 0.537807, b: 1, a: 1}
-    - _HorizonColor_Day: {r: 0.12, g: 0.64, b: 0.94, a: 1}
-    - _HorizonColor_Night: {r: 0.12, g: 0.64, b: 0.94, a: 1}
+    - _HorizonColor_Day: {r: 1, g: 0.45981374, b: 0.042452812, a: 1}
+    - _HorizonColor_Night: {r: 0.17030083, g: 0.46747634, b: 0.8396226, a: 1}
     - _HorizonLightDay: {r: 0, g: 0.8, b: 1, a: 1}
     - _HorizonLightNight: {r: 0, g: 0.8, b: 1, a: 1}
     - _MoonColor: {r: 1, g: 1, b: 1, a: 1}
