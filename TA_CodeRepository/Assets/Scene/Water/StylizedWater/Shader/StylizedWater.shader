@@ -150,7 +150,6 @@ Shader "Code Repository/Scene/StylizedWater"
 				float4 normalMapUv		: TEXCOORD4;
 				float4 posWSFromDepth	: TEXCOORD5; //xyz:viewDirWS,w:viewPosZ
 				float3 oriNormal		: TEXCOORD6;
-				//float3 viewDirWS		: TEXCOORD6;
 			};
 
 			TEXTURE2D(_CameraDepthTexture);
@@ -210,8 +209,6 @@ Shader "Code Repository/Scene/StylizedWater"
 				OUT.posWSFromDepth.xyz = posWS - _WorldSpaceCameraPos;
 				OUT.posWSFromDepth.w = -TransformWorldToView(posWS).z;
 				OUT.oriNormal = IN.normal;
-				//OUT.viewDirWS = SafeNormalize(_WorldSpaceCameraPos - posWS); //归一化后，插值结果与在fs里计算的结果相差较大，不归一化两者基本相同
-				//OUT.viewDirWS = _WorldSpaceCameraPos - posWS;
 				return OUT;
 			}
 
