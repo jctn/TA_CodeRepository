@@ -170,6 +170,7 @@ public class PlanarReflection : MonoBehaviour
     }
 
     //https://zhuanlan.zhihu.com/p/92633614
+    //关键点为求任意一点到平面的距离，http://www.360doc.com/content/17/0601/23/42479807_659140224.shtml
     Matrix4x4 CaculateReflectMatrix(Vector3 normal, Vector3 positionOnPlane)
     {
         var d = -Vector3.Dot(normal, positionOnPlane);
