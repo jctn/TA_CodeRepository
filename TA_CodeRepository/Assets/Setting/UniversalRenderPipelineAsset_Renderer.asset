@@ -46,7 +46,8 @@ MonoBehaviour:
   - {fileID: -7747670531616425990}
   - {fileID: 8090664459216618823}
   - {fileID: -4205172354079780217}
-  m_RendererFeatureMap: fab73d4eb3be7a9447057ca075d047708712c81f063aa4c5
+  - {fileID: 7065389282625902448}
+  m_RendererFeatureMap: fab73d4eb3be7a9447057ca075d047708712c81f063aa4c570d7c4561e4e0d62
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   xrSystemData: {fileID: 11400000, guid: 60e1133243b97e347b653163a8c01b64, type: 2}
   shaders:
@@ -76,6 +77,19 @@ MonoBehaviour:
   m_ShadowTransparentReceive: 1
   m_RenderingMode: 0
   m_AccurateGbufferNormals: 0
+--- !u!114 &7065389282625902448
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8438d68e1603e4f4bae2f6675f6e8f4c, type: 3}
+  m_Name: CustomLensFlareFeature
+  m_EditorClassIdentifier: 
+  m_Active: 1
 --- !u!114 &8090664459216618823
 MonoBehaviour:
   m_ObjectHideFlags: 0
