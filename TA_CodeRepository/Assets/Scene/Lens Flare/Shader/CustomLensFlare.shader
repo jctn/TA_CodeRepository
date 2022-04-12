@@ -8,20 +8,10 @@ Shader "Code Repository/Scene/CustomLensFlare"
     SubShader
     {
         Tags { "RenderType" = "Transparent" "Queue"="Transparent"}
-        Pass
-        {   
-            Blend One One
-            ColorMask RGB
-            ZWrite Off
-            Cull Off
-            ZTest Always
 
-            HLSLPROGRAM
-            #pragma vertex vert
-            #pragma fragment frag
-
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"  
-        
+		HLSLINCLUDE
+			#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"  
+		
 			struct appdata
 			{
 				float4 vertex : POSITION;
@@ -31,8 +21,6 @@ Shader "Code Repository/Scene/CustomLensFlare"
 				float2 lensFlareData : TEXCOORD1;
 				//x = radius,y = occlusionScale (< 0 = Auto)
 				float2 lensFlareData1 : TEXCOORD2;
-				//x : is directional(0 not, 1 is)
-				//float2 lensFlareData2 : TEXCOORD3;
 			};
 
 			struct v2f
@@ -98,19 +86,104 @@ Shader "Code Repository/Scene/CustomLensFlare"
 				return contrib;
 			}
 
+            half4 frag(v2f i):SV_Target
+            {
+                half4 col = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv);
+                return col*i.color;
+            }
+
+		ENDHLSL
+
+		//point
+        Pass
+        {   
+            Blend One One
+            ColorMask RGB
+            ZWrite Off
+            Cull Off
+            ZTest Always
+
+            HLSLPROGRAM
+            #pragma vertex vert
+            #pragma fragment frag
+
 			v2f vert(appdata v)
 			{
 				v2f o;
+				float2 sunScreenPos;
+				float sunDepth;
+				float clipRadius;
+
 				float3 sunPosW = TransformObjectToWorld(float3(0, 0, 0));
-				//sunPosW = sunPosW - float3(UNITY_MATRIX_M[0][2], UNITY_MATRIX_M[1][2], UNITY_MATRIX_M[2][2]) * 10000 * step(1, v.lensFlareData2.x) + sunPosW * (1 - step(1, v.lensFlareData2.x));
 				float4 sunClip = TransformWorldToHClip(sunPosW);
-				float sunDepth = sunClip.w;
-				float2 sunScreenPos = sunClip.xy / sunClip.w;  //-1 to 1
+				sunDepth = sunClip.w;
+				sunScreenPos = sunClip.xy / sunClip.w;  //-1 to 1
 				float4 sunRadiusClip = TransformWorldToHClip(sunPosW +  float3(0, 1, 0) * v.lensFlareData1.x);
 				float2 sunRadiusScreenPos = sunRadiusClip.xy / sunRadiusClip.w;
-				float clipRadius = distance(sunScreenPos, sunRadiusScreenPos);
-				float ratio = _ScreenParams.x / _ScreenParams.y; // screenWidth/screenHeight
+				clipRadius = distance(sunScreenPos, sunRadiusScreenPos);
 
+				float ratio = _ScreenParams.x / _ScreenParams.y; // screenWidth/screenHeight
+				float occlusion = GetOcclusion(sunScreenPos, sunDepth - v.lensFlareData1.x, clipRadius * float2(1/ratio, 1)); //深度遮挡
+				//occlusion = 1;
+				float maxScreenPos = saturate(max(abs(sunScreenPos.x), abs(sunScreenPos.y)));
+				occlusion *= (1 - saturate(maxScreenPos - 0.85) / 0.15); //相机视野遮挡,(1 - 0.85)= 0.15
+
+				float angle = v.lensFlareData.y;
+				if (angle < 0) // 自动旋转， 根据dir向量
+				{
+					float2 dir = normalize(sunScreenPos);
+# if UNITY_UV_STARTS_AT_TOP
+					angle = atan2(dir.y, dir.x) + HALF_PI; //dx 加half pi
+#else
+					angle = atan2(dir.y, dir.x) - HALF_PI; //opengl 减half pi，保证贴图v指向sun， atan2返回[-PI, PI]
+#endif
+				}
+
+				//flare面片大小
+				float quadSize = lerp(v.lensFlareData1.y, 1.0f, occlusion);
+				quadSize  *= (1 - step(occlusion, 0)); // clip
+				float2 localPos = v.vertex.xy * quadSize;
+				localPos = float2(localPos.x * cos(angle) + localPos.y * (-sin(angle)), localPos.x * sin(angle) + localPos.y * cos(angle)); //旋转
+				localPos.x /= ratio; // 面片局部坐标在(-1, 1)范围，需映射到屏幕的比例，需应用对应屏幕比例的缩放，否则结果会被拉伸
+
+				float2 rayOffset = -sunScreenPos * v.lensFlareData.x;
+				o.vertex.xy = localPos + rayOffset;
+				o.vertex.z = 1;
+				o.vertex.w = 1;
+				o.uv = v.uv;
+				o.color = v.color * occlusion;
+				return o;
+			}
+            ENDHLSL
+        }
+
+		//directional
+        Pass
+        {   
+            Blend One One
+            ColorMask RGB
+            ZWrite Off
+            Cull Off
+            ZTest Always
+
+            HLSLPROGRAM
+            #pragma vertex vert
+            #pragma fragment frag
+
+			v2f vert(appdata v)
+			{
+				v2f o;
+				float2 sunScreenPos;
+				float sunDepth;
+				float clipRadius;
+
+				float3 sunPosVS = mul((float3x3)UNITY_MATRIX_V, _MainLightPosition.xyz);
+				float4 sunClip = mul(UNITY_MATRIX_P, float4(sunPosVS, 1));
+				sunDepth = _ProjectionParams.z * 0.999;
+				sunScreenPos = sunClip.xy / sunClip.w;  //-1 to 1
+				clipRadius = v.lensFlareData1.x;
+
+				float ratio = _ScreenParams.x / _ScreenParams.y; // screenWidth/screenHeight
 				float occlusion = GetOcclusion(sunScreenPos, sunDepth - v.lensFlareData1.x, clipRadius * float2(1/ratio, 1)); //深度遮挡
 				float maxScreenPos = saturate(max(abs(sunScreenPos.x), abs(sunScreenPos.y)));
 				occlusion *= (1 - saturate(maxScreenPos - 0.85) / 0.15); //相机视野遮挡,(1 - 0.85)= 0.15
@@ -141,13 +214,7 @@ Shader "Code Repository/Scene/CustomLensFlare"
 				o.color = v.color * occlusion;
 				return o;
 			}
-
-            half4 frag(v2f i):SV_Target
-            {
-                half4 col = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv);
-                return col*i.color;
-            }
             ENDHLSL
-        }
+        }		
     }
 }

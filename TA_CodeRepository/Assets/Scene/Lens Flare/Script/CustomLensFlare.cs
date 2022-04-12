@@ -1,21 +1,22 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 
 namespace CustomLensFlare
 {
     [ExecuteInEditMode]
-    [RequireComponent(typeof(MeshRenderer))]
-    [RequireComponent(typeof(MeshFilter))]
     public class CustomLensFlare : MonoBehaviour
     {
-        //public bool IsDirectional = false;
+        public bool IsDirectional = false;
         public float OcclusionRadius = 1.0f;
         public CustomLensFlareAsset FlareAsset;
+        public Material UsedMaterial;
 
-        MeshRenderer mMeshRenderer;
-        MeshFilter mMeshFilter;
+        Mesh mMesh;
+        public Mesh UsedMesh
+        {
+            get { return mMesh; }
+        }
 
         private readonly List<Rect>[] mFlareLayoutUV = new[]
         {
@@ -85,22 +86,20 @@ namespace CustomLensFlare
             }
         };
 
-        void Awake()
-        {
-            if (mMeshFilter == null)
-                mMeshFilter = GetComponent<MeshFilter>();
-            if (mMeshRenderer == null)
-                mMeshRenderer = GetComponent<MeshRenderer>();
-            Mesh mesh = new Mesh();
-            mesh.name = "LensFlare (" + gameObject.name + ")";
-            mMeshFilter.mesh = mesh;
-        }
-
-        void OnEnable()
+        private void Awake()
         {
             UpdateGeometry();
         }
 
+        private void OnEnable()
+        {
+            CustomLensFlareMgr.Instance.AddCustomLensFlare(this);
+        }
+
+        private void OnDisable()
+        {
+            CustomLensFlareMgr.Instance.RemoveCustomLensFlare(this);
+        }
 
 #if UNITY_EDITOR
         void Update()
@@ -109,11 +108,28 @@ namespace CustomLensFlare
         }
 #endif
 
+        private void OnDestroy()
+        {
+            if(mMesh != null)
+            {
+#if UNITY_EDITOR
+                DestroyImmediate(mMesh);
+#else
+                Destroy(mMesh);
+#endif
+            }
+        }
+
         void UpdateGeometry()
         {
-            Mesh m = mMeshFilter.sharedMesh;
-            m.Clear();
             if (FlareAsset == null || FlareAsset.FlareDatas.Count <= 0) return;
+            if (mMesh == null)
+            {
+                mMesh = new Mesh();
+                mMesh.name = "LensFlare (" + gameObject.name + ")";
+            }
+            Mesh m = mMesh;
+            m.Clear();
 
             List<Vector3> vertices = new List<Vector3>();
             List<Vector2> uvs = new List<Vector2>();
@@ -146,7 +162,7 @@ namespace CustomLensFlare
                 vertices.Add(new Vector3(halfSize.x, halfSize.y, 0));
                 vertices.Add(new Vector3(-halfSize.x, halfSize.y, 0));
 
-                if(SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2 || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3)
+                if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2 || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3)
                 {
                     uvs.Add(rect.position);
                     uvs.Add(rect.position + new Vector2(rect.width, 0));
@@ -180,11 +196,7 @@ namespace CustomLensFlare
             m.SetUVs(0, uvs);
             m.SetUVs(1, GetLensFlareData0());
             m.SetUVs(2, GetLensFlareData1());
-            //m.SetUVs(3, GetLensFlareData2());
 
-            Bounds b = m.bounds;
-            b.extents = new Vector3(OcclusionRadius, OcclusionRadius, OcclusionRadius);
-            m.bounds = b;
         }
 
         List<Vector2> GetLensFlareData0()
@@ -217,25 +229,14 @@ namespace CustomLensFlare
             return lfData;
         }
 
-        //List<Vector2> GetLensFlareData2()
-        //{
-        //    List<Vector2> lfData = new List<Vector2>();
-        //    for (int i = 0; i < FlareAsset.spriteBlocks.Count; i++)
-        //    {
-        //        Vector2 data = new Vector2(IsDirectional ? 1 : 0, 0);
-        //        lfData.Add(data);
-        //        lfData.Add(data);
-        //        lfData.Add(data);
-        //        lfData.Add(data);
-        //    }
-        //    return lfData;
-        //}
 
         void OnDrawGizmos()
         {
-            Gizmos.color = new Color(1, 0, 0, 0.3f);
-            Gizmos.DrawSphere(transform.position, OcclusionRadius);
+            if(!IsDirectional)
+            {
+                Gizmos.color = new Color(1, 0, 0, 0.3f);
+                Gizmos.DrawSphere(transform.position, OcclusionRadius);
+            }
         }
     }
-
 }

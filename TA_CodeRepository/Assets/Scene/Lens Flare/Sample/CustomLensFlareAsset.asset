@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 961c074fb4942414cb5af94241f053b3, type: 3}
   m_Name: CustomLensFlareAsset
   m_EditorClassIdentifier: 
-  FlareAtlasTexture: {fileID: 2800000, guid: d17b10c70e8b1334683a61deefe529d1, type: 3}
-  FlareTexLayout: 1
+  FlareAtlasTexture: {fileID: 2800000, guid: 863e0428fa4228044874fb615c9e5980, type: 3}
+  FlareTexLayout: 2
   FlareDatas:
   - AutoRotation: 1
     Rotation: 0
@@ -24,29 +24,29 @@ MonoBehaviour:
     FlareColor: {r: 0.7490196, g: 0.6039216, b: 0.26666668, a: 1}
   - AutoRotation: 1
     Rotation: 0
-    AtlasIndex: 3
-    FlareScale: 0.269
-    FlareOffset: -1
-    OcclusionScale: 1
-    FlareColor: {r: 1.6953454, g: 1.6953454, b: 0.37585485, a: 1}
-  - AutoRotation: 1
-    Rotation: 0
     AtlasIndex: 1
-    FlareScale: 0.144
+    FlareScale: 0.584
     FlareOffset: -1
     OcclusionScale: 1
-    FlareColor: {r: 1.9622642, g: 1.5343069, b: 0.39800644, a: 1}
+    FlareColor: {r: 0.7490196, g: 0.6039216, b: 0.26666668, a: 1}
   - AutoRotation: 1
     Rotation: 0
-    AtlasIndex: 2
-    FlareScale: 0.361
-    FlareOffset: -0.4
+    AtlasIndex: 7
+    FlareScale: 0.584
+    FlareOffset: -1
     OcclusionScale: 1
-    FlareColor: {r: 0.9622642, g: 0.88572997, b: 0.6309185, a: 1}
+    FlareColor: {r: 0.7490196, g: 0.6039216, b: 0.26666668, a: 1}
   - AutoRotation: 1
     Rotation: 0
-    AtlasIndex: 2
-    FlareScale: 0.527
-    FlareOffset: 0.09
+    AtlasIndex: 3
+    FlareScale: 0.373
+    FlareOffset: -0.51
     OcclusionScale: 1
-    FlareColor: {r: 1, g: 0.9095917, b: 0.75, a: 1}
+    FlareColor: {r: 1, g: 0.7885795, b: 0.2971698, a: 1}
+  - AutoRotation: 1
+    Rotation: 0
+    AtlasIndex: 3
+    FlareScale: 0.462
+    FlareOffset: -0.13
+    OcclusionScale: 1
+    FlareColor: {r: 0.2830189, g: 0.23763992, b: 0.13216448, a: 1}
