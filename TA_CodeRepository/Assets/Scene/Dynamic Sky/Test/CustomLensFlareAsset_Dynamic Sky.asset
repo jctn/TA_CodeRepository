@@ -1,0 +1,52 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 961c074fb4942414cb5af94241f053b3, type: 3}
+  m_Name: CustomLensFlareAsset_Dynamic Sky
+  m_EditorClassIdentifier: 
+  FlareAtlasTexture: {fileID: 2800000, guid: 863e0428fa4228044874fb615c9e5980, type: 3}
+  FlareTexLayout: 2
+  FlareDatas:
+  - AutoRotation: 1
+    Rotation: 0
+    AtlasIndex: 1
+    FlareScale: 1
+    FlareOffset: -1
+    OcclusionScale: 0.5
+    FlareColor: {r: 2.9960785, g: 2.9960785, b: 2.9960785, a: 1}
+  - AutoRotation: 1
+    Rotation: 0
+    AtlasIndex: 4
+    FlareScale: 0.13
+    FlareOffset: -0.3
+    OcclusionScale: 0.5
+    FlareColor: {r: 0.20754719, g: 0.12237452, b: 0.18625402, a: 1}
+  - AutoRotation: 1
+    Rotation: 0
+    AtlasIndex: 4
+    FlareScale: 0.178
+    FlareOffset: 0.02
+    OcclusionScale: 0.5
+    FlareColor: {r: 0.20754719, g: 0.12237452, b: 0.18625402, a: 1}
+  - AutoRotation: 1
+    Rotation: 0
+    AtlasIndex: 4
+    FlareScale: 0.369
+    FlareOffset: 0.54
+    OcclusionScale: 0.5
+    FlareColor: {r: 0.066037714, g: 0.040183324, b: 0.058986526, a: 1}
+  - AutoRotation: 0
+    Rotation: 0
+    AtlasIndex: 0
+    FlareScale: 1.87
+    FlareOffset: 2
+    OcclusionScale: 0.5
+    FlareColor: {r: 0.1792453, g: 0.14627092, b: 0.15596926, a: 1}

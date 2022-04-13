@@ -69,7 +69,9 @@ Shader "Code Repository/Scene/Stylized Dynamic Sky Test"
 				float2 skyColorUV = 1 - saturate(dirWS.y);
 				half3 skyColor = SAMPLE_TEXTURE2D(_SkyColorTex, sampler_SkyColorTex, skyColorUV).rgb;
 				float sun = 1 - smoothstep(_SunGlowRadius * (1 - _SunGlowSoftening), _SunGlowRadius, distance(_MainLightPosition.xyz, dirWS));
-				half3 sunGlowColor = _SunGlowColor * sun;
+				sun = pow(sun, 4);
+				half3 sunGlowColor = _SunGlowColor * sun * _MainLightColor.rgb;
+				//half3 finalColor = lerp(skyColor, _SunGlowColor * _MainLightColor.rgb, sun);
 				half3 finalColor = skyColor + sunGlowColor;
 				return half4(finalColor, 1);
 			}

@@ -60,7 +60,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _SkyColorTex:
-        m_Texture: {fileID: 2800000, guid: e9d6a22d4ad31874d91d75e42fc30c7b, type: 3}
+        m_Texture: {fileID: 2800000, guid: 438734980a21d5745863fbb720f44eb8, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _SpecGlossMap:
@@ -112,7 +112,7 @@ Material:
     - _SrcBlend: 1
     - _SunGlowColor: 1
     - _SunGlowIntensity: 1
-    - _SunGlowRadius: 0.16
+    - _SunGlowRadius: 0.57
     - _SunGlowSoftening: 1
     - _SunSize: 0.21
     - _Surface: 0
@@ -127,7 +127,7 @@ Material:
     - _HorizonColor_Day: {r: 1, g: 0.6830088, b: 0.04313723, a: 1}
     - _HorizonColor_Night: {r: 0.17030078, g: 0.4674763, b: 0.8396226, a: 1}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
-    - _SunGlowColor: {r: 0.972549, g: 0.30042443, b: 0, a: 1}
+    - _SunGlowColor: {r: 1.4486886, g: 2.2379723, b: 4.0949597, a: 1}
     - _TopColor_Day: {r: 0.1201495, g: 0.63521975, b: 0.9433962, a: 1}
     - _TopColor_Night: {r: 0, g: 0.2188592, b: 0.7735849, a: 1}
   m_BuildTextureStacks: []
