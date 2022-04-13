@@ -25,9 +25,10 @@ Shader "Code Repository/Scene/CustomLensFlare"
 
 			struct v2f
 			{
-				float2 uv : TEXCOORD0;
 				float4 vertex : SV_POSITION;
 				float4 color : COLOR;
+				float2 uv : TEXCOORD0;				
+				float2 screenPos : TEXCOORD1;
 			};
 
 			TEXTURE2D(_MainTex);
@@ -88,8 +89,9 @@ Shader "Code Repository/Scene/CustomLensFlare"
 
             half4 frag(v2f i):SV_Target
             {
+				float fade = 1 - saturate(distance(i.screenPos, float2(0, 0)) / 1.4); //sqart(1+1) = 1.4,耀斑靠近屏幕降低亮度
                 half4 col = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv);
-                return col*i.color;
+                return col * i.color * fade;
             }
 
 		ENDHLSL
@@ -115,7 +117,8 @@ Shader "Code Repository/Scene/CustomLensFlare"
 				float clipRadius;
 
 				float3 sunPosW = TransformObjectToWorld(float3(0, 0, 0));
-				float4 sunClip = TransformWorldToHClip(sunPosW);
+				float3 sunPosVS = TransformWorldToView(sunPosW);
+				float4 sunClip = TransformWViewToHClip(sunPosVS);
 				sunDepth = sunClip.w * _ProjectionParams.w;//0-1
 				sunScreenPos = sunClip.xy / sunClip.w;  //-1 to 1
 				float4 sunRadiusClip = TransformWorldToHClip(sunPosW +  float3(0, 1, 0) * v.lensFlareData1.x);
@@ -124,9 +127,9 @@ Shader "Code Repository/Scene/CustomLensFlare"
 
 				float ratio = _ScreenParams.x / _ScreenParams.y; // screenWidth/screenHeight
 				float occlusion = GetOcclusion(sunScreenPos, sunDepth - v.lensFlareData1.x * _ProjectionParams.w, clipRadius * float2(1/ratio, 1)); //深度遮挡
-				//occlusion = 1;
-				float maxScreenPos = saturate(max(abs(sunScreenPos.x), abs(sunScreenPos.y)));
-				occlusion *= (1 - saturate(maxScreenPos - 0.85) / 0.15); //相机视野遮挡,(1 - 0.85)= 0.15
+				float maxSunScreenPos = saturate(max(abs(sunScreenPos.x), abs(sunScreenPos.y)));
+				occlusion *= (1 - saturate(maxSunScreenPos - 0.85) / 0.15); //(1 - 0.85)= 0.15
+				occlusion *= step(sunPosVS.z, 0); //sun位于背面要剔除
 
 				float angle = v.lensFlareData.y;
 				if (angle < 0) // 自动旋转， 根据dir向量
@@ -152,6 +155,7 @@ Shader "Code Repository/Scene/CustomLensFlare"
 				o.vertex.w = 1;
 				o.uv = v.uv;
 				o.color = v.color * occlusion;
+				o.screenPos = o.vertex.xy;
 				return o;
 			}
             ENDHLSL
@@ -185,9 +189,10 @@ Shader "Code Repository/Scene/CustomLensFlare"
 
 				float ratio = _ScreenParams.x / _ScreenParams.y; // screenWidth/screenHeight
 				float occlusion = GetOcclusion(sunScreenPos, sunDepth - v.lensFlareData1.x, clipRadius * float2(1/ratio, 1)); //深度遮挡
-				float maxScreenPos = saturate(max(abs(sunScreenPos.x), abs(sunScreenPos.y)));
-				occlusion *= (1 - saturate(maxScreenPos - 0.85) / 0.15); //相机视野遮挡,(1 - 0.85)= 0.15
-
+				float maxSunScreenPos = saturate(max(abs(sunScreenPos.x), abs(sunScreenPos.y)));
+				occlusion *= (1 - saturate(maxSunScreenPos - 0.85) / 0.15); //(1 - 0.85)= 0.15
+				occlusion *= step(sunPosVS.z, 0); //sun位于背面要剔除
+				
 				float angle = v.lensFlareData.y;
 				if (angle < 0) // 自动旋转， 根据dir向量
 				{
@@ -212,6 +217,7 @@ Shader "Code Repository/Scene/CustomLensFlare"
 				o.vertex.w = 1;
 				o.uv = v.uv;
 				o.color = v.color * occlusion;
+				o.screenPos = o.vertex.xy;				
 				return o;
 			}
             ENDHLSL

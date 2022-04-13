@@ -13,7 +13,7 @@ namespace CustomLensFlare
         public float Rotation = 0f;
         [Min(0)]
         public int AtlasIndex = 0;
-        [Range(0f, 1f)]
+        [Range(0f, 2f)]
         public float FlareScale = 0.5f;
         [Range(-1f, 2f)]
         public float FlareOffset = 0.2f;
