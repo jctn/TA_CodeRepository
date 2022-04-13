@@ -3,9 +3,11 @@ Shader "Code Repository/Scene/Stylized Dynamic Sky Test"
 	Properties 
 	{
 		_SkyColorTex ("SkyColorTex", 2D) = "white" {}
-		[HDR]_SunGlowColor ("SunGlowColor", Color) = (1, 1, 1, 1)		
-		_SunGlowRadius ("SunGlowRadius", Float) = 0.5
+		[HDR]_SunGlowColor ("SunGlowColor", Color) = (1, 1, 1, 1)
+		_SunGlowRadius ("SunGlowRadius", Range(0, 5)) = 0.5
 		_SunGlowSoftening ("SunGlowSoftening", Range(0, 1)) = 0.5
+
+		[Enum(Off,0,On,1)]_ZWrite("ZWrite", Float) = 1
 	}
 	SubShader 
 	{
@@ -29,8 +31,7 @@ Shader "Code Repository/Scene/Stylized Dynamic Sky Test"
 
 		Pass 
 		{
-			//Cull Off
-			ZWrite Off
+			ZWrite[_ZWrite]
 			HLSLPROGRAM
 			#pragma vertex Vertex
 			#pragma fragment Fragment
@@ -68,7 +69,6 @@ Shader "Code Repository/Scene/Stylized Dynamic Sky Test"
 				float2 skyColorUV = 1 - saturate(dirWS.y);
 				half3 skyColor = SAMPLE_TEXTURE2D(_SkyColorTex, sampler_SkyColorTex, skyColorUV).rgb;
 				float sun = 1 - smoothstep(_SunGlowRadius * (1 - _SunGlowSoftening), _SunGlowRadius, distance(_MainLightPosition.xyz, dirWS));
-				sun = pow(sun, 4);
 				half3 sunGlowColor = _SunGlowColor * sun;
 				half3 finalColor = skyColor + sunGlowColor;
 				return half4(finalColor, 1);

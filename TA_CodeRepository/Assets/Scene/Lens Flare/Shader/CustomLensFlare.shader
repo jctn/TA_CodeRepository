@@ -80,7 +80,7 @@ Shader "Code Repository/Scene/CustomLensFlare"
 					float2 pos = screenPos + samples[i] * radius;
 					pos.y *= _ProjectionParams.x;
 					pos = pos  * 0.5 + 0.5;
-					float sampledDepth = LinearEyeDepth(SAMPLE_TEXTURE2D_LOD(_CameraDepthTexture, sampler_CameraDepthTexture, pos, 0).r, _ZBufferParams);	
+					float sampledDepth = Linear01Depth(SAMPLE_TEXTURE2D_LOD(_CameraDepthTexture, sampler_CameraDepthTexture, pos, 0).r, _ZBufferParams);	
 					contrib += sample_Contrib * step(depth, sampledDepth);
 				}
 				return contrib;
@@ -116,14 +116,14 @@ Shader "Code Repository/Scene/CustomLensFlare"
 
 				float3 sunPosW = TransformObjectToWorld(float3(0, 0, 0));
 				float4 sunClip = TransformWorldToHClip(sunPosW);
-				sunDepth = sunClip.w;
+				sunDepth = sunClip.w * _ProjectionParams.w;//0-1
 				sunScreenPos = sunClip.xy / sunClip.w;  //-1 to 1
 				float4 sunRadiusClip = TransformWorldToHClip(sunPosW +  float3(0, 1, 0) * v.lensFlareData1.x);
 				float2 sunRadiusScreenPos = sunRadiusClip.xy / sunRadiusClip.w;
 				clipRadius = distance(sunScreenPos, sunRadiusScreenPos);
 
 				float ratio = _ScreenParams.x / _ScreenParams.y; // screenWidth/screenHeight
-				float occlusion = GetOcclusion(sunScreenPos, sunDepth - v.lensFlareData1.x, clipRadius * float2(1/ratio, 1)); //深度遮挡
+				float occlusion = GetOcclusion(sunScreenPos, sunDepth - v.lensFlareData1.x * _ProjectionParams.w, clipRadius * float2(1/ratio, 1)); //深度遮挡
 				//occlusion = 1;
 				float maxScreenPos = saturate(max(abs(sunScreenPos.x), abs(sunScreenPos.y)));
 				occlusion *= (1 - saturate(maxScreenPos - 0.85) / 0.15); //相机视野遮挡,(1 - 0.85)= 0.15
@@ -179,7 +179,7 @@ Shader "Code Repository/Scene/CustomLensFlare"
 
 				float3 sunPosVS = mul((float3x3)UNITY_MATRIX_V, _MainLightPosition.xyz);
 				float4 sunClip = mul(UNITY_MATRIX_P, float4(sunPosVS, 1));
-				sunDepth = _ProjectionParams.z * 0.999;
+				sunDepth = 0.999;
 				sunScreenPos = sunClip.xy / sunClip.w;  //-1 to 1
 				clipRadius = v.lensFlareData1.x;
 

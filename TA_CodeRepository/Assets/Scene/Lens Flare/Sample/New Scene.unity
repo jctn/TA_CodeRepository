@@ -250,8 +250,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   IsDirectional: 0
   OcclusionRadius: 30
-  FlareAsset: {fileID: 11400000, guid: a48bf085dad08224b8365d7bdecbfefb, type: 2}
-  UsedMaterial: {fileID: 2100000, guid: b909d799092fa744ebb7d1ccdbbfb14f, type: 2}
+  FlareAsset: {fileID: 11400000, guid: d5d74573d8c08c441b7380b09576aa6c, type: 2}
+  UsedMaterial: {fileID: 2100000, guid: f211f9a36b288cd4cbe010ebea45595a, type: 2}
 --- !u!4 &685619922
 Transform:
   m_ObjectHideFlags: 0
@@ -297,8 +297,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   IsDirectional: 1
   OcclusionRadius: 0.1
-  FlareAsset: {fileID: 11400000, guid: a48bf085dad08224b8365d7bdecbfefb, type: 2}
-  UsedMaterial: {fileID: 2100000, guid: b909d799092fa744ebb7d1ccdbbfb14f, type: 2}
+  FlareAsset: {fileID: 11400000, guid: d5d74573d8c08c441b7380b09576aa6c, type: 2}
+  UsedMaterial: {fileID: 2100000, guid: f211f9a36b288cd4cbe010ebea45595a, type: 2}
 --- !u!4 &1143945317
 Transform:
   m_ObjectHideFlags: 0
@@ -419,7 +419,6 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 1
   m_VolumeTrigger: {fileID: 0}
-  m_VolumeFrameworkUpdateModeOption: 2
   m_RenderPostProcessing: 0
   m_Antialiasing: 0
   m_AntialiasingQuality: 2
@@ -520,7 +519,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1650127791}
   m_LocalRotation: {x: -0.2640285, y: 0.24219207, z: 0.06867874, w: 0.93108284}
-  m_LocalPosition: {x: 378.2, y: 314.3, z: -261}
+  m_LocalPosition: {x: 444.6, y: 219, z: -264}
   m_LocalScale: {x: 100, y: 100, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -616,7 +615,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1873730181}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -6, y: 149, z: -261}
+  m_LocalPosition: {x: -3, y: 168, z: -261}
   m_LocalScale: {x: 100, y: 100, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
