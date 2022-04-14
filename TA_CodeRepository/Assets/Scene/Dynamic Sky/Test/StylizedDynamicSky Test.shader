@@ -4,8 +4,7 @@ Shader "Code Repository/Scene/Stylized Dynamic Sky Test"
 	{
 		_SkyColorTex ("SkyColorTex", 2D) = "white" {}
 		[HDR]_SunGlowColor ("SunGlowColor", Color) = (1, 1, 1, 1)
-		_SunGlowRadius ("SunGlowRadius", Range(0, 5)) = 0.5
-		_SunGlowSoftening ("SunGlowSoftening", Range(0, 1)) = 0.5
+		_SunGlowRadius ("SunGlowRadius", Range(0, 1)) = 0.5
 
 		[Enum(Off,0,On,1)]_ZWrite("ZWrite", Float) = 1
 	}
@@ -21,7 +20,7 @@ Shader "Code Repository/Scene/Stylized Dynamic Sky Test"
 			#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
 			CBUFFER_START(UnityPerMaterial)
-			float _SunGlowRadius, _SunGlowSoftening;
+			float _SunGlowRadius;
 			half3 _SunGlowColor;
 			CBUFFER_END
 
@@ -68,10 +67,9 @@ Shader "Code Repository/Scene/Stylized Dynamic Sky Test"
 				float3 dirWS = normalize(IN.dirWS);
 				float2 skyColorUV = 1 - saturate(dirWS.y);
 				half3 skyColor = SAMPLE_TEXTURE2D(_SkyColorTex, sampler_SkyColorTex, skyColorUV).rgb;
-				float sun = 1 - smoothstep(_SunGlowRadius * (1 - _SunGlowSoftening), _SunGlowRadius, distance(_MainLightPosition.xyz, dirWS));
-				sun = pow(sun, 4);
+				float sun = 1.0 + dot(dirWS, -_MainLightPosition.xyz);
+				sun = 1.0 / (0.25 + sun * lerp(150, 5, _SunGlowRadius));			
 				half3 sunGlowColor = _SunGlowColor * sun * _MainLightColor.rgb;
-				//half3 finalColor = lerp(skyColor, _SunGlowColor * _MainLightColor.rgb, sun);
 				half3 finalColor = skyColor + sunGlowColor;
 				return half4(finalColor, 1);
 			}
