@@ -106,6 +106,6 @@ MonoBehaviour:
   MSetting:
     PassEvent: 450
     CullCameraTag: MainCamera
-    MatCapSphereMesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 3}
+    MatCapSphereMesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
     LightMat: {fileID: 2100000, guid: 9a8877b3976ef8a4f809824a9246f3e1, type: 2}
     EdgeMat: {fileID: 2100000, guid: d5c3a08d7bd8c264aae68387c6f24fbe, type: 2}
