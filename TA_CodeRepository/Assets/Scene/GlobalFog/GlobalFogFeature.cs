@@ -12,6 +12,7 @@ public class GlobalFogFeature : ScriptableRendererFeature
         RenderTargetHandle mTemporaryColorTexture;
         RenderTargetIdentifier mSource;
         Material mGlobalFogMat;
+        int ID_Fog_MATRIX_I_V = Shader.PropertyToID("_Fog_MATRIX_I_V");
 
         public GlobalFogPass()
         {
@@ -41,6 +42,7 @@ public class GlobalFogFeature : ScriptableRendererFeature
             RenderTextureDescriptor camDesc = renderingData.cameraData.cameraTargetDescriptor;
             RenderTextureDescriptor desc = GetDescriptor(camDesc, camDesc.width, camDesc.height);
             cmd.GetTemporaryRT(mTemporaryColorTexture.id, desc, FilterMode.Bilinear);
+            cmd.SetGlobalMatrix(ID_Fog_MATRIX_I_V, renderingData.cameraData.camera.cameraToWorldMatrix);
             cmd.Blit(mSource, mTemporaryColorTexture.Identifier(), mGlobalFogMat, 0);
             cmd.Blit(mTemporaryColorTexture.Identifier(), mSource);
             context.ExecuteCommandBuffer(cmd);
@@ -64,12 +66,13 @@ public class GlobalFogFeature : ScriptableRendererFeature
 
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
+        if (!GlobalFogSetting.EnableGlobalFog) return;
         if (renderingData.cameraData.camera.cameraType == CameraType.Game || renderingData.cameraData.camera.cameraType == CameraType.SceneView)
         {
             if(mGlobalFogMat == null)
             {
                 Shader s = Shader.Find("Code Repository/Scene/GlobalFog");
-                if(mGlobalFogMat != null)
+                if(s != null)
                 {
                     mGlobalFogMat = new Material(s);
                 }           
