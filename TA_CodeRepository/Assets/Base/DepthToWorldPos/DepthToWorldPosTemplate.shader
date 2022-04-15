@@ -24,6 +24,7 @@ Shader "Code Repository/Base/DepthToWorldPosTemplate"
 			SAMPLER(sampler_CameraDepthTexture);
 
 			//总览：Way1为公式回推，适合投射和正交；way2-way4实际都是求从相机出发经过所求点的向量，再利用相似三角形求所求点世界坐标，只适合透视相机。
+			//注意如果用在后处理，需要代码传哪些用来回推世界坐标的矩阵：UNITY_MATRIX_I_V，unity_CameraInvProjection（在urp不用重传），因为这些都会被blit重置，way4无法用在后处理
 			//way1：在ps里进行了矩阵乘法。
 			//Way2:在ps里没有矩阵乘法
 			//way3：在ps里没有矩阵乘法。
