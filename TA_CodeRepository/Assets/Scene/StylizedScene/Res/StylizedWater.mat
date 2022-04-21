@@ -1,0 +1,88 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-1703375188708678742
+MonoBehaviour:
+  m_ObjectHideFlags: 11
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  version: 4
+--- !u!21 &2100000
+Material:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: StylizedWater
+  m_Shader: {fileID: 4800000, guid: 65253ce5bdd5ea541914c7a1148053f4, type: 3}
+  m_ShaderKeywords: 
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _CausticsTex:
+        m_Texture: {fileID: 2800000, guid: b3ffe1167e0e73b4b8993139e504e03a, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _FoamNoiseTex:
+        m_Texture: {fileID: 2800000, guid: 4fd8d0b8d46dfcc42a69d4f93dbdf4c0, type: 3}
+        m_Scale: {x: 0.1, y: 0.1}
+        m_Offset: {x: 0, y: 0}
+    - _NormalMap:
+        m_Texture: {fileID: 2800000, guid: c3a778bb5af5c8e4d821248ca5961513, type: 3}
+        m_Scale: {x: 0.08, y: 0.1}
+        m_Offset: {x: 0, y: 0}
+    m_Floats:
+    - _BumpScale: 1
+    - _CausticsDepthRange: 10.32
+    - _CausticsFlowSpeed: 1
+    - _CausticsIntensity: 5
+    - _CausticsScale: 10
+    - _CausticsShallowRange: 1.5
+    - _CausticsSmoothDepth: 1
+    - _CausticsSmoothShallow: 0.1
+    - _CausticsSoftDepth: 0.5
+    - _CausticsSoftShallow: 0.1
+    - _CausticsThresholdDepth: 3
+    - _CausticsThresholdShallow: 0.1
+    - _DepthRange: 6.9
+    - _FlowSpeed: 2.5
+    - _FoamDissolve: 0.6
+    - _FoamEdgeWidth: 0.436
+    - _FoamRange: 0.46
+    - _FoamRangeSmooth: 0.27
+    - _FoamShoreWidth: 0
+    - _FoamSize: 1.16
+    - _FoamSoft: 0.5
+    - _FoamWaveSpeed: 2.5
+    - _FoamWavelength: 3.66
+    - _FomaSoft: 0
+    - _FresnelPower: 6
+    - _NormalMapScale: 20
+    - _ReflectionDistortion: 0.05
+    - _ReflectionIntensity: 0.8
+    - _RefractionDistortion: 0.1
+    - _ShoreEdgeIntensity: 0.3
+    - _ShoreEdgeWidth: 10
+    m_Colors:
+    - _DepthColor: {r: 0, g: 0.50328195, b: 0.9150943, a: 1}
+    - _FoamColor: {r: 1, g: 1, b: 1, a: 1}
+    - _FoamNoiseTexScale: {r: 20, g: 10, b: 0, a: 0}
+    - _FomaColor: {r: 1, g: 1, b: 1, a: 1}
+    - _ShallowColor: {r: 0.7028302, g: 0.9206111, b: 1, a: 0.105882354}
+    - _WaveA: {r: 0, g: -1, b: 1.6, a: 50}
+    - _WaveB: {r: -0.5, g: -0.5, b: 1.6, a: 30}
+    - _WaveC: {r: 1, g: 0.5, b: 1, a: 20}
+  m_BuildTextureStacks: []

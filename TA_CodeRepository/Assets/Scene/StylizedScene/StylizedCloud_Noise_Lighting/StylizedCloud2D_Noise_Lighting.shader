@@ -32,7 +32,8 @@ Shader "Code Repository/Scene/Cloud/StylizedCloud2D_Noise_Lighting"
 		Tags 
 		{
 			"RenderPipeline"="UniversalPipeline"
-			"Queue"="Transparent"
+			//"Queue"="Transparent"
+			"Queue"="AlphaTest+2"
 		}
 
 		HLSLINCLUDE
@@ -63,7 +64,7 @@ Shader "Code Repository/Scene/Cloud/StylizedCloud2D_Noise_Lighting"
 			SAMPLER(sampler_CloudShapeTex);
 			
 			TEXTURE2D(_CloudEdgeSoftUnevenTex);
-			SAMPLER(sampler_CloudEdgeSoftUnevenTex);	
+			SAMPLER(sampler_CloudEdgeSoftUnevenTex);
 		ENDHLSL
 
 		Pass 
@@ -71,6 +72,7 @@ Shader "Code Repository/Scene/Cloud/StylizedCloud2D_Noise_Lighting"
 			Name "StylizedCloud2D_Noise_Lighting"
 
 			Blend SrcAlpha OneMinusSrcAlpha
+			Zwrite Off
 			HLSLPROGRAM
 			#pragma vertex Vertex
 			#pragma fragment Fragment
@@ -112,8 +114,6 @@ Shader "Code Repository/Scene/Cloud/StylizedCloud2D_Noise_Lighting"
 
 			half4 Fragment(Varyings IN) : SV_Target 
 			{
-				float3 viewDirWS = normalize(IN.viewDirWS);
-				float3 sunDir = -_MainLightPosition.xyz;
 				//cloud shape
 				float2 baseUV = IN.uv.xy;
 				float2 cloudSpeed = IN.uv.zw;
@@ -138,6 +138,9 @@ Shader "Code Repository/Scene/Cloud/StylizedCloud2D_Noise_Lighting"
 				half cloudFinalShape = smoothstep(edgeSmoothMin, edgeSmoothMax, cloudShape);
 
 				//cloud color=base color + sun glow + rim color + light color
+				float3 viewDirWS = normalize(IN.viewDirWS);
+				float3 sunDir = -_MainLightPosition.xyz;
+
 				float VDotL = dot(viewDirWS, sunDir);
 				float sunIntensity = saturate(dot(_MainLightColor.rgb, 1));
 				float nearSunFactor = 1.0 + dot(-viewDirWS, sunDir);
@@ -166,5 +169,68 @@ Shader "Code Repository/Scene/Cloud/StylizedCloud2D_Noise_Lighting"
 			}
 			ENDHLSL
 		}
+
+        Pass
+        {
+            Name "DepthOnly"
+            Tags{"LightMode" = "DepthOnly"}
+
+            ZWrite On
+            ColorMask 0
+
+            HLSLPROGRAM
+            #pragma vertex DepthOnlyVertex
+            #pragma fragment DepthOnlyFragment
+
+			struct Attributes 
+			{
+				float4 positionOS	: POSITION;
+				float2 uv			: TEXCOORD0;
+				half3 Color			: COLOR;			
+			};
+
+			struct Varyings 
+			{
+				float4 positionCS 	: SV_POSITION;
+				float4 uv			: TEXCOORD0;			
+			};
+
+			Varyings DepthOnlyVertex(Attributes IN)
+			{
+				Varyings OUT;
+				OUT.positionCS = TransformObjectToHClip(IN.positionOS.xyz);
+				OUT.uv.xy = IN.uv * _CloudSize * ((1 - IN.Color.r) * 0.5 + 1); //2层差异
+				OUT.uv.zw = (IN.Color.r * 0.5 + 1) * _Time.x * float2(_CloudSpeedX, _CloudSpeedY);
+				return OUT;
+			}
+
+			half4 DepthOnlyFragment(Varyings IN) : SV_TARGET
+			{
+				float2 baseUV = IN.uv.xy;
+				float2 cloudSpeed = IN.uv.zw;
+				float2 uv_Main = baseUV + cloudSpeed;
+				float2 uv_Detail =  baseUV * _CloudDetailSize + cloudSpeed;
+				float2 uv_Edge = uv_Main  * _CloudEdgeSoftUnevenTexScale;
+
+				half cloudEdgeSoftUneven = SAMPLE_TEXTURE2D(_CloudEdgeSoftUnevenTex, sampler_CloudEdgeSoftUnevenTex, uv_Edge).r; //边缘软硬程度有变化
+				cloudEdgeSoftUneven = pow(cloudEdgeSoftUneven, 4);
+				half edgeSmooth = lerp(_CloudEdgeSoftMin, _CloudEdgeSoftMax, cloudEdgeSoftUneven);
+				half edgeSmoothMin = saturate(0.5 - edgeSmooth);
+				half edgeSmoothMax = saturate(0.5 + edgeSmooth);
+
+				half cloudMainShape = SAMPLE_TEXTURE2D(_CloudShapeTex, sampler_CloudShapeTex, uv_Main).r;
+				half cloudDetailShape = SAMPLE_TEXTURE2D(_CloudShapeTex, sampler_CloudShapeTex, uv_Detail).r; //边缘细节云
+				half detailIntensity = lerp(2 * _CloudDetailIntensity, _CloudDetailIntensity, _CloudFill);
+				half detailLerp = (1 - abs(cloudMainShape - 0.5) * 2) * detailIntensity;
+				detailLerp = saturate(detailLerp);
+				half cloudShape = lerp(cloudMainShape, cloudDetailShape, detailLerp); //主体+细节
+				half cloudFillValue = _CloudFill * 2 - 1; //[-1, 1]
+				cloudShape = saturate(cloudShape + cloudFillValue);
+				half cloudFinalShape = smoothstep(edgeSmoothMin, edgeSmoothMax, cloudShape);
+				clip(cloudFinalShape-0.01);
+				return 0;
+			}
+            ENDHLSL
+        }
 	}
 }

@@ -7,9 +7,9 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: StylizedCloud2D_Noise_Lighting
-  m_Shader: {fileID: 4800000, guid: 37b3c790bce475246aebfc79d733f21c, type: 3}
-  m_ShaderKeywords: 
+  m_Name: StylizedDynamicSky Test
+  m_Shader: {fileID: 4800000, guid: 11400d6b8977ff3478c5551af17e1d57, type: 3}
+  m_ShaderKeywords: FUZZY _ADDGRADIENT_ON
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -25,14 +25,6 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _BumpMap:
         m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _CloudEdgeSoftUnevenTex:
-        m_Texture: {fileID: 2800000, guid: 5f98c119d4d564c4ead33729db823732, type: 3}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _CloudShapeTex:
-        m_Texture: {fileID: 2800000, guid: 76d9ed272016c434abe085c6565bc55d, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _DetailAlbedoMap:
@@ -67,6 +59,10 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _SkyColorTex:
+        m_Texture: {fileID: 2800000, guid: 438734980a21d5745863fbb720f44eb8, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _SpecGlossMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -85,30 +81,10 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Floats:
     - _AlphaClip: 0
-    - _AlphaCutoff: 0.5
     - _Blend: 0
     - _BumpScale: 1
     - _ClearCoatMask: 0
     - _ClearCoatSmoothness: 0
-    - _CloudDetailIntensity: 0.06
-    - _CloudDetailIntensity_Few: 3
-    - _CloudDetailSize: 9
-    - _CloudEdgeSoftMax: 0.1
-    - _CloudEdgeSoftMin: 0.01
-    - _CloudEdgeSoftUnevenTexScale: 2
-    - _CloudFill: 0.45
-    - _CloudFillMax: 0
-    - _CloudFillMin: -0.5
-    - _CloudLightIntensity: 2
-    - _CloudLightRadius: 0.8
-    - _CloudLightUVOffset: 0.05
-    - _CloudNearSunGlowIntensity: 1
-    - _CloudNearSunGlowRadius: 0.745
-    - _CloudRimEdgeSoft: 0.3
-    - _CloudSize: 0.65
-    - _CloudSpeed: 1
-    - _CloudSpeedX: 0.1
-    - _CloudSpeedY: 0.01
     - _Cull: 2
     - _Cutoff: 0.5
     - _DetailAlbedoMapScale: 1
@@ -118,6 +94,13 @@ Material:
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
+    - _GradientScale: 0.09
+    - _HorizonBrightness_Day: 1.23
+    - _HorizonBrightness_Night: 1
+    - _HorizonHeight_Day: 3.4
+    - _HorizonHeight_Night: 0.1
+    - _HorizonSoft_Day: 0
+    - _HorizonSoft_Night: 1
     - _Metallic: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.005
@@ -127,19 +110,28 @@ Material:
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
+    - _SunGlowColor: 1
+    - _SunGlowIntensity: 1
+    - _SunGlowRadius: 0.473
+    - _SunGlowSoftening: 0.566
+    - _SunSize: 0.21
     - _Surface: 0
     - _WorkflowMode: 1
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
-    - _CloudColor: {r: 0.1787558, g: 0.45142764, b: 0.9716981, a: 1}
-    - _CloudLightColor_NearSun: {r: 1.0851727, g: 1.4773759, b: 1.6792452, a: 1}
-    - _CloudRimColor: {r: 1.0592737, g: 1.0592737, b: 1.0592737, a: 1}
+    - _BottomColor_Day: {r: 0.6452474, g: 0.8403282, b: 0.9433962, a: 1}
+    - _BottomColor_Night: {r: 0.4694286, g: 0.6562921, b: 0.7264151, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _HorizonColor_Day: {r: 1, g: 0.6830088, b: 0.04313723, a: 1}
+    - _HorizonColor_Night: {r: 0.17030078, g: 0.4674763, b: 0.8396226, a: 1}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+    - _SunGlowColor: {r: 0.8113208, g: 0.8113208, b: 0.8113208, a: 1}
+    - _TopColor_Day: {r: 0.1201495, g: 0.63521975, b: 0.9433962, a: 1}
+    - _TopColor_Night: {r: 0, g: 0.2188592, b: 0.7735849, a: 1}
   m_BuildTextureStacks: []
---- !u!114 &3591325933959094129
+--- !u!114 &8930867195841572914
 MonoBehaviour:
   m_ObjectHideFlags: 11
   m_CorrespondingSourceObject: {fileID: 0}
