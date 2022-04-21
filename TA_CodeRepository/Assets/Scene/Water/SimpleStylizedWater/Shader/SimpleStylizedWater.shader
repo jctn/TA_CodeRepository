@@ -98,7 +98,7 @@ Shader "Code Repository/Scene/SimpleStylizedWater"
 				OUT.positionCS = TransformObjectToHClip(IN.positionOS.xyz);
 				float3 posWS = TransformObjectToWorld(IN.positionOS.xyz);
 				float3 normalWS = TransformObjectToWorldNormal(IN.normal);
-				float3 tangentWS = TransformWorldToObjectDir(IN.tangent.xyz);
+				float3 tangentWS = TransformObjectToWorldDir(IN.tangent.xyz);
 				float3 binormalWS = SafeNormalize(cross(normalWS, tangentWS) * IN.tangent.w);
 				OUT.TtoW0 = float4(tangentWS.x, binormalWS.x, normalWS.x, posWS.x);
 				OUT.TtoW1 = float4(tangentWS.y, binormalWS.y, normalWS.y, posWS.y);
