@@ -90,13 +90,13 @@ Material:
     - _BumpScale: 1
     - _ClearCoatMask: 0
     - _ClearCoatSmoothness: 0
-    - _CloudDetailIntensity: 0.06
+    - _CloudDetailIntensity: 0.05
     - _CloudDetailIntensity_Few: 3
     - _CloudDetailSize: 9
     - _CloudEdgeSoftMax: 0.1
     - _CloudEdgeSoftMin: 0.01
     - _CloudEdgeSoftUnevenTexScale: 2
-    - _CloudFill: 0.442
+    - _CloudFill: 0.48
     - _CloudFillMax: 0
     - _CloudFillMin: -0.5
     - _CloudLightIntensity: 2
@@ -105,7 +105,7 @@ Material:
     - _CloudNearSunGlowIntensity: 1
     - _CloudNearSunGlowRadius: 0.188
     - _CloudRimEdgeSoft: 0.3
-    - _CloudSize: 1
+    - _CloudSize: 0.79
     - _CloudSpeed: 1
     - _CloudSpeedX: 0.05
     - _CloudSpeedY: 0.05
