@@ -61,6 +61,7 @@ Shader "Custom/URP_Unlit"
 			// Textures, Samplers & Global Properties
 			TEXTURE2D(_BaseMap);
 			SAMPLER(sampler_BaseMap);
+			//SAMPLER(sampler_linear_repeat).
 
 			// Vertex Shader
 			Varyings UnlitPassVertex(Attributes IN) 
