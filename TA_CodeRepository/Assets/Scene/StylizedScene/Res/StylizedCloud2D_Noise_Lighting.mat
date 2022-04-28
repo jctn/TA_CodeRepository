@@ -96,7 +96,7 @@ Material:
     - _CloudEdgeSoftMax: 0.1
     - _CloudEdgeSoftMin: 0.01
     - _CloudEdgeSoftUnevenTexScale: 2
-    - _CloudFill: 0.48
+    - _CloudFill: 0.429
     - _CloudFillMax: 0
     - _CloudFillMin: -0.5
     - _CloudLightIntensity: 2

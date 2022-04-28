@@ -36,6 +36,8 @@ Shader "Code Repository/Scene/CustomLensFlare"
 			TEXTURE2D(_CameraDepthTexture);
 			SAMPLER(sampler_CameraDepthTexture);
 
+			half _IsNight;
+
 			static const uint DEPTH_SAMPLE_COUNT = 32;
 			static const float2 samples[DEPTH_SAMPLE_COUNT] = {
 				float2(0.658752441406,-0.0977704077959),
@@ -89,9 +91,9 @@ Shader "Code Repository/Scene/CustomLensFlare"
 
             half4 frag(v2f i):SV_Target
             {
-				float fade = 1 - saturate(distance(i.screenPos, float2(0, 0)) / 1.4); //sqart(1+1) = 1.4,耀斑靠近屏幕降低亮度
+				float fade = 1 - saturate(distance(i.screenPos, float2(0, 0)) / 1.4); //sqart(1+1) = 1.4,耀斑靠近屏幕边缘降低亮度
                 half4 col = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv);
-                return col * i.color * fade;
+                return col * i.color * fade * (1 - _IsNight);
             }
 
 		ENDHLSL
