@@ -130,7 +130,7 @@ Material:
     - _StarReduceValue: 0.1
     - _SunGlowColor: 1
     - _SunGlowIntensity: 1
-    - _SunGlowRadius: 0
+    - _SunGlowRadius: 0.41
     - _SunGlowSoftening: 0.566
     - _SunSize: 7
     - _Surface: 0
