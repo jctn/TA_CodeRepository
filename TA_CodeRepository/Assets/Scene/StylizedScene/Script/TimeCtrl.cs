@@ -6,63 +6,94 @@ using UnityEngine;
 public class TimeCtrl : MonoBehaviour
 {
     [Range(0f, 24f)]
-    public float TimeLine = 6f;
-    public float DayCycleInMinutes = 30f;
-    public bool SetTimeByCurve = false;
-    public AnimationCurve TimeofDayCurve = AnimationCurve.Linear(0.0f, 0.0f, 24.0f, 24.0f);
-    
+    public float TimeofDay = 6f;
+    public float AllDayInMinutes = 10f;
+    [Range(0f, 24f)]
+    public float DayStartTime = 5f;
+    [Range(1f, 24f)]
+    public float DayDuration = 14f;
+
     float mTimeProgression;
+    float mNightStartTime;
+    float mNightDuration;
+
     float mCurveTime;
     float mGradientTime;
-    float mTimeofDay = 6f;
+    float mDayProgression;
+    float mNightProgression;
 
-    public float GetCurveTime
+    public float CurveTime
     {
         get { return mCurveTime; }
     }
 
-    public float GetGradientTime
+    public float GradientTime
     {
         get { return mGradientTime; }
     }
 
-    public float GetTimeOfDay
+    public float DayProgression
     {
-        get { return mTimeofDay; }
+        get { return mDayProgression; }
+    }
+
+    public float NightProgression
+    {
+        get { return mNightProgression; }
+    }
+
+    public bool IsDay
+    {
+        get
+        {
+            return TimeofDay <= DayStartTime + DayDuration && TimeofDay >= DayStartTime;
+        }
     }
 
     private void Start()
     {
-        if(DayCycleInMinutes > 0)
+        if(AllDayInMinutes > 0)
         {
-            mTimeProgression = 24f / 60f / DayCycleInMinutes;
+            mTimeProgression = 24f / 60f / AllDayInMinutes;
         }
         else
         {
             mTimeProgression = 0;
         }
+
+        mNightStartTime = Mathf.Min(DayStartTime + DayDuration, 24f);
+        mNightDuration = 24f - mNightStartTime + DayStartTime;
+        CalculationProgression();
     }
 
     private void Update()
     {
         if(Application.isPlaying)
         {
-            TimeLine += Time.deltaTime * mTimeProgression;
-            if(TimeLine >= 24f)
+            TimeofDay += Time.deltaTime * mTimeProgression;
+            if(TimeofDay >= 24f)
             {
-                TimeLine %= 24f;
+                TimeofDay %= 24f;
             }
         }
-        
-        if(SetTimeByCurve)
+        CalculationProgression();
+    }
+
+    void CalculationProgression()
+    {
+        mCurveTime = TimeofDay;
+        mGradientTime = TimeofDay / 24f;
+        mDayProgression = Mathf.Clamp01((TimeofDay - DayStartTime) / DayDuration);
+        if(mNightDuration > 0)
         {
-            mTimeofDay = TimeofDayCurve.Evaluate(TimeLine);
+            if (TimeofDay >= mNightStartTime)
+            {
+                mNightProgression = Mathf.Clamp01((TimeofDay - mNightStartTime) / mNightDuration);
+            }
+            else
+            {
+                mNightProgression = Mathf.Clamp01((TimeofDay + 24f - mNightStartTime) / mNightDuration);
+            }
         }
-        else
-        {
-            mTimeofDay = TimeLine;
-        }
-        mCurveTime = mTimeofDay;
-        mGradientTime = mTimeofDay / 24f;
     }
 }

@@ -7,37 +7,50 @@ using UnityEngine;
 public class DynamicSkyCtrl : MonoBehaviour
 {
     [Header("Sky")]
+    [GradientUsage(true, ColorSpace.Linear)]
+    public Gradient TopColor;
+
+    [GradientUsage(true, ColorSpace.Linear)]
+    public Gradient BottomColor;
+
+    [GradientUsage(true, ColorSpace.Linear)]
+    public Gradient HorizonColor;
+
+    [Header("Sun&Moon")]
     [Range(-180f, 180f)]
     public float Longitude = 0.0f;
     [Range(-180f, 180f)]
     public float Latitude = 0.0f;
-    [ColorUsage(false, true)]
-    public Color BottomColor = new Color(0.65f, 0.85f, 0.9f, 1f);
-    [ColorUsage(false, true)]
-    public Color MiddleColor = new Color(0.15f, 0.45f, 0.9f, 1f);
-    [ColorUsage(false, true)]
-    public Color TopColor = new Color(0f, 0.2f, 0.7f, 1f);
+
+    [GradientUsage(true, ColorSpace.Linear)]
+    public Gradient SunColor;
+
+    [GradientUsage(true, ColorSpace.Linear)]
+    public Gradient SunGlowColor;
+
+    [GradientUsage(true, ColorSpace.Linear)]
+    public Gradient MoonColor;
+
+    [GradientUsage(true, ColorSpace.Linear)]
+    public Gradient MoonGlowColor;
 
     [Header("Light")]
-    public Color LightColor = new Color(0.8f, 1f, 1f);
-    public float LightIntensity = 1f;
+    public Gradient LightColor;
+    public AnimationCurve LightIntensity = AnimationCurve.Linear(0f, 0f, 24f, 1f);
 
     [Header("Reference Node")]
     public Renderer SkyBoxRender;
-    public Transform Sun;
-    public Transform Moon;
     public Transform Light;
 
     TimeCtrl mTimeCtrl;
     MaterialPropertyBlock mMaterialPropertyBlock;
     Light mLightCom;
 
-    readonly int mID_BottomColor = Shader.PropertyToID("_BottomColor");
-    readonly int mID_MiddleColor = Shader.PropertyToID("_MiddleColor");
     readonly int mID_TopColor = Shader.PropertyToID("_TopColor");
+    readonly int mID_BottomColor = Shader.PropertyToID("_BottomColor");
+    readonly int mID_HorizonColor = Shader.PropertyToID("_HorizonColor");
     readonly int mID_IsNight = Shader.PropertyToID("_IsNight");
     readonly int mID_LightMatrix = Shader.PropertyToID("_LightMatrix");
-
 
     private void Start()
     {       
@@ -53,36 +66,48 @@ public class DynamicSkyCtrl : MonoBehaviour
 
     private void OnDisable()
     {
-        SkyBoxRender.SetPropertyBlock(null);
+        if(SkyBoxRender != null)
+        {
+            SkyBoxRender.SetPropertyBlock(null);
+        }
     }
 
     void UpdateSkyBox()
     {
         if(SkyBoxRender != null)
         {
-            if(mMaterialPropertyBlock == null) mMaterialPropertyBlock = new MaterialPropertyBlock();
-            mMaterialPropertyBlock.SetColor(mID_BottomColor, BottomColor.gamma); //最终传给shader为BottomColor.gamma.linear
-            mMaterialPropertyBlock.SetColor(mID_MiddleColor, MiddleColor.gamma);
-            mMaterialPropertyBlock.SetColor(mID_TopColor, TopColor.gamma);
+            float key = 0;
+            if (mTimeCtrl != null) key = mTimeCtrl.GradientTime;
+            if (mMaterialPropertyBlock == null) mMaterialPropertyBlock = new MaterialPropertyBlock();
+            mMaterialPropertyBlock.SetVector(mID_BottomColor, BottomColor.Evaluate(key));
+            mMaterialPropertyBlock.SetVector(mID_HorizonColor, HorizonColor.Evaluate(key));
+            mMaterialPropertyBlock.SetVector(mID_TopColor, TopColor.Evaluate(key));
             SkyBoxRender.SetPropertyBlock(mMaterialPropertyBlock);
         }
     }
 
     void UpdateLight()
     {
-        if(Sun != null && Moon != null && Light != null)
+        if(Light != null)
         {
-            Sun.rotation = Quaternion.Euler(0.0f, Longitude, Latitude) * Quaternion.Euler(mTimeCtrl.GetTimeOfDay * 360f / 24f - 90f, 180f, 0f); //6点，太阳在地平线(0,180,0)
-            Moon.rotation = Quaternion.LookRotation(-Sun.forward);
-            float sunHeight = Vector3.Dot(-Sun.forward, Vector3.up);
-            if (sunHeight >= 0)
+            float sunProgression = 0f;
+            float moonProgression = 0f;
+            bool isNight = false;
+            if(mTimeCtrl != null)
             {
-                Light.rotation = Sun.rotation;
+                sunProgression = mTimeCtrl.DayProgression;
+                moonProgression = mTimeCtrl.NightProgression;
+                isNight = !mTimeCtrl.IsDay;
+            }
+
+            if (!isNight)
+            {
+                Light.rotation = Quaternion.Euler(0.0f, Longitude, Latitude) * Quaternion.Euler(Mathf.Lerp(-5f, 185f, sunProgression), 180f, 0f);
                 Shader.SetGlobalFloat(mID_IsNight, 0f);
             }
             else
             {
-                Light.rotation = Moon.rotation;
+                Light.rotation = Quaternion.Euler(0.0f, Longitude, Latitude) * Quaternion.Euler(Mathf.Lerp(-5f, 185f, moonProgression), 180f, 0f);
                 Shader.SetGlobalFloat(mID_IsNight, 1f);
             }
             Shader.SetGlobalMatrix(mID_LightMatrix, Light.worldToLocalMatrix);
@@ -90,8 +115,15 @@ public class DynamicSkyCtrl : MonoBehaviour
         
         if(mLightCom != null)
         {
-            mLightCom.color = LightColor;
-            mLightCom.intensity = LightIntensity;
+            float colorKey = 0;
+            float floatKey = 0f;
+            if (mTimeCtrl != null)
+            {
+                colorKey = mTimeCtrl.GradientTime;
+                floatKey = mTimeCtrl.CurveTime;
+            }
+            mLightCom.color = LightColor.Evaluate(colorKey);
+            mLightCom.intensity = LightIntensity.Evaluate(floatKey);
         }
     }
 }

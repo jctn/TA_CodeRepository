@@ -6,28 +6,26 @@ using UnityEngine;
 public class WeatherSetting : ScriptableObject
 {
     [Header("Sky")]
-    [ColorUsage(false, true)]
+    [GradientUsage(true, ColorSpace.Linear)]
     public Gradient BottomColor;
 
-    [ColorUsage(false, true)]
+    [GradientUsage(true, ColorSpace.Linear)]
     public Gradient MiddleColor;
 
-    [ColorUsage(false, true)]
+    [GradientUsage(true, ColorSpace.Linear)]
     public Gradient TopColor;
 
-    [ColorUsage(false, true)]
+    [GradientUsage(true, ColorSpace.Linear)]
     public Gradient SunColor;
 
-    [ColorUsage(false, true)]
+    [GradientUsage(true, ColorSpace.Linear)]
     public Gradient SunGlowColor;
 
-    [ColorUsage(false, true)]
+    [GradientUsage(true, ColorSpace.Linear)]
     public Gradient MoonColor;
 
-    [ColorUsage(false, true)]
+    [GradientUsage(true, ColorSpace.Linear)]
     public Gradient MoonGlowColor;
-
-    public AnimationCurve StarIntensity = AnimationCurve.Linear(0f, 0f, 24f, 1f);
 
     [Header("Light")]
     public Gradient LightColor;

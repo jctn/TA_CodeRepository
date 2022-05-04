@@ -2,13 +2,13 @@ Shader "Code Repository/Scene/Stylized Dynamic Sky"
 {
 	Properties 
 	{
+    	[HDR]_TopColor ("TopColor", Color) = (0, 0.2, 0.7, 1)		
 		[HDR]_BottomColor ("BottomColor", Color) = (0.65, 0.85, 0.9, 1)
-    	[HDR]_MiddleColor ("MiddleColor", Color) = (0.15, 0.45, 0.9, 1)
-    	[HDR]_TopColor ("TopColor", Color) = (0, 0.2, 0.7, 1)
-		_MiddleHeight ("MiddleHeight", Range(0.1, 0.9)) = 0.6
+		[HDR]_HorizonColor ("HorizonColor", Color) = (1, 1, 0.1, 1)
+		_HorizonHeight ("HorizonHeight", Range(0, 1)) = 0.3
 
 		[NoScaleOffset]_SunTex ("SunTex", 2D) = "white" {}
-		[Toggle(_SIMULATIONSHAPE)] _SimulationShape ("SimulationShape", Float) = 1
+		[Toggle(_SIMULATIONSUNSHAPE)] _SimulationSunShape ("SimulationSunShape", Float) = 1
 		[HDR]_SunColor ("SunColor", Color) = (1, 1, 1, 1)
 		_SunSize ("SunSize", Float) = 5		
 		[HDR]_SunGlowColor ("SunGlowColor", Color) = (1, 1, 1, 1)
@@ -38,10 +38,10 @@ Shader "Code Repository/Scene/Stylized Dynamic Sky"
 			#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
 			CBUFFER_START(UnityPerMaterial)
+			half3 _TopColor;			
 			half3 _BottomColor;
-			half3 _MiddleColor;
-			half3 _TopColor;
-			float _MiddleHeight;
+			half3 _HorizonColor;
+			float _HorizonHeight;
 
 			half3 _SunColor;
 			float _SunSize;
@@ -80,7 +80,7 @@ Shader "Code Repository/Scene/Stylized Dynamic Sky"
 			#pragma vertex Vertex
 			#pragma fragment Fragment
 
-			#pragma shader_feature_local _SIMULATIONSHAPE
+			#pragma shader_feature_local _SIMULATIONSUNSHAPE
 
 			struct Attributes 
 			{
@@ -124,27 +124,31 @@ Shader "Code Repository/Scene/Stylized Dynamic Sky"
 				//float2 skyColorUV = 1 - saturate(dot(viewDirWS, float3(0, 1, 0)));
 				//half3 skyColor = SAMPLE_TEXTURE2D(_SkyColorTex, sampler_SkyColorTex, skyColorUV).rgb;
 
-				//float gradient = saturate(dot(viewDirWS, float3(0, 1, 0)));
-				float gradient = saturate(dirWS.y);
-				half3 skyColor = lerp(_BottomColor, _MiddleColor, saturate(gradient / _MiddleHeight));
-				skyColor = lerp(skyColor, _TopColor, saturate(saturate(gradient - _MiddleHeight) / (1 - _MiddleHeight)));
+				//float skyHeight = saturate(dot(viewDirWS, float3(0, 1, 0)));
+				float skyHeight = saturate(dirWS.y);
+				float horizonHeight = _HorizonHeight + 0.0001;
+				float lightHeight = smoothstep(-0.05, 0.05, saturate(_MainLightPosition.y));
+				float lightHeight1 = smoothstep(horizonHeight, horizonHeight * 0.7, saturate(_MainLightPosition.y));
+				float skyHorizon = smoothstep(horizonHeight, 0, skyHeight);
+				half3 skyColor = lerp(_BottomColor, _TopColor, skyHeight);			
+				skyColor = lerp(skyColor, _HorizonColor, (lightHeight + lightHeight1 - 1) * skyHorizon * (1 - _IsNight));
 
-				//sun
-				float glowIntensity = smoothstep(0.01, 0.25, saturate(_MainLightPosition.y));				
+				//sun				
 				float glowRadius = 1.0 + dot(dirWS, -_MainLightPosition.xyz); //[0, 2]
 				float lightRange = saturate(dot(dirWS, _MainLightPosition.xyz));
-				float horizon = smoothstep(0.01, 0.25, gradient);
-
+				float glowIntensity = smoothstep(0, 0.15, saturate(_MainLightPosition.y));
+				float shapeMask = smoothstep(0, 0.15, skyHeight);
+				shapeMask = 1;
 				float sunGlow = 1.0 / (0.25 + glowRadius * lerp(150, 5, _SunGlowRadius));
 				half3 sunGlowColor = _SunGlowColor * sunGlow * glowIntensity;
-				#if !defined(_SIMULATIONSHAPE)
+				#if !defined(_SIMULATIONSUNSHAPE)
 					float2 sunUV = IN.sunAndMoonUV.xy + 0.5;
 					half3 sunColor = SAMPLE_TEXTURE2D(_SunTex, sampler_SunTex, sunUV).rgb * _SunColor;
 				#else
 					half3 sunColor = smoothstep(0.3, 0.25, distance(IN.sunAndMoonUV.xy, float2(0, 0))) * _SunColor;
 				#endif								
 				sunColor *= lightRange;
-				sunColor *= horizon;
+				sunColor *= shapeMask;
 				sunColor += sunGlowColor;
 
 				//moon
@@ -154,13 +158,13 @@ Shader "Code Repository/Scene/Stylized Dynamic Sky"
 				half4 moonTexColor = SAMPLE_TEXTURE2D(_MoonTex, sampler_MoonTex, moonUV);
 				half3 moonColor = moonTexColor.r  * moonTexColor.g * _MoonColor;
 				moonColor *= lightRange; //消除另一面的moon
-				moonColor *= horizon;
+				moonColor *= shapeMask;
 				moonColor += moonGlowColor;
 
 				//star
 				float2 starUV = IN.starUV;
 				half3 starColor = SAMPLE_TEXTURE2D(_StarTex, sampler_StarTex, starUV).rgb;
-				starColor = saturate(starColor - _StarReduceValue) * _StarIntensity * (1 - moonTexColor.g) * gradient;
+				starColor = saturate(starColor - _StarReduceValue) * _StarIntensity * (1 - moonTexColor.g) * shapeMask * glowIntensity;
 
 				half3 finalColor = skyColor + sunColor * (1 - _IsNight) + (moonColor + starColor) * _IsNight;
 				return half4(finalColor, 1);
