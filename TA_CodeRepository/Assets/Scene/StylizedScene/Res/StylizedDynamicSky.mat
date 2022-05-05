@@ -117,7 +117,7 @@ Material:
     - _HorizonSoft_Night: 1
     - _Metallic: 0
     - _MiddleHeight: 0.7
-    - _MoonGlowRadius: 0.827
+    - _MoonGlowRadius: 0.7
     - _MoonSize: 7
     - _OcclusionStrength: 1
     - _Parallax: 0.005
@@ -133,7 +133,7 @@ Material:
     - _StarReduceValue: 0.1
     - _SunGlowColor: 1
     - _SunGlowIntensity: 1
-    - _SunGlowRadius: 0.41
+    - _SunGlowRadius: 0.1
     - _SunGlowSoftening: 0.566
     - _SunSize: 7
     - _Surface: 0
@@ -141,7 +141,7 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
-    - _BottomColor: {r: 0.39157256, g: 0.45078585, b: 0.5149178, a: 1}
+    - _BottomColor: {r: 0.4485582, g: 0.66973656, b: 0.9056604, a: 1}
     - _BottomColor_Day: {r: 0.6452474, g: 0.8403282, b: 0.9433962, a: 1}
     - _BottomColor_Night: {r: 0.4694286, g: 0.6562921, b: 0.7264151, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
@@ -149,12 +149,12 @@ Material:
     - _HorizonColor: {r: 0.7379107, g: 0.5520116, b: 0.14995982, a: 1}
     - _HorizonColor_Day: {r: 1, g: 0.6830088, b: 0.04313723, a: 1}
     - _HorizonColor_Night: {r: 0.17030078, g: 0.4674763, b: 0.8396226, a: 1}
-    - _MiddleColor: {r: 0.15, g: 0.45, b: 0.9, a: 1}
+    - _MiddleColor: {r: 0.18427375, g: 0.4924968, b: 0.9528302, a: 0.29803923}
     - _MoonColor: {r: 1, g: 1, b: 1, a: 1}
-    - _MoonGlowColor: {r: 0, g: 0.060534514, b: 0.31132078, a: 1}
+    - _MoonGlowColor: {r: 0.0047169924, g: 0.42676947, b: 1, a: 1}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
-    - _SunColor: {r: 1.4980392, g: 1.4980392, b: 1.4980392, a: 1}
-    - _SunGlowColor: {r: 0.41655052, g: 0.41655052, b: 0.41655052, a: 1}
+    - _SunColor: {r: 2, g: 2, b: 2, a: 1}
+    - _SunGlowColor: {r: 2, g: 2, b: 2, a: 1}
     - _TopColor: {r: 0, g: 0.19806935, b: 0.5647117, a: 1}
     - _TopColor_Day: {r: 0.1201495, g: 0.63521975, b: 0.9433962, a: 1}
     - _TopColor_Night: {r: 0, g: 0.2188592, b: 0.7735849, a: 1}
