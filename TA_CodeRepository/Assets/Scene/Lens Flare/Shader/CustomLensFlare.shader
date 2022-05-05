@@ -93,7 +93,7 @@ Shader "Code Repository/Scene/CustomLensFlare"
             {
 				float fade = 1 - saturate(distance(i.screenPos, float2(0, 0)) / 1.4); //sqart(1+1) = 1.4,耀斑靠近屏幕边缘降低亮度
                 half4 col = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv);
-                return col * i.color * fade * (1 - _IsNight);
+                return col * i.color * fade * _MainLightColor * step(0.01, _MainLightPosition.y) * (1 - _IsNight);
             }
 
 		ENDHLSL

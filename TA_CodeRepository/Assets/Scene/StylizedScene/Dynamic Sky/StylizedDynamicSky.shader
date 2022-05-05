@@ -139,17 +139,18 @@ Shader "Code Repository/Scene/Stylized Dynamic Sky"
 
 					float sunGlow = 1.0 / (1 + glowRadius * lerp(150, 10, _SunGlowRadius));
 					sunGlow *= pow(_SunGlowRadius, 0.5);
-					half3 sunGlowColor = _SunGlowColor * sunGlow;
 
 					#if !defined(_SIMULATIONSUNSHAPE)
 						float2 sunUV = IN.sunAndMoonUV.xy + 0.5;
-						half3 sunColor = SAMPLE_TEXTURE2D(_SunTex, sampler_SunTex, sunUV).rgb * _SunColor;
+						half4 sunTex = SAMPLE_TEXTURE2D(_SunTex, sampler_SunTex, sunUV);
+						half3 sunColor = sunTex.rgb * _SunColor;
+						half sunShape = sunTex.a * lightRange * shapeMask;
 					#else
-						half3 sunColor = smoothstep(0.3, 0.25, distance(IN.sunAndMoonUV.xy, float2(0, 0))) * _SunColor;
+						half3 sunColor =  _SunColor;
+						half sunShape = smoothstep(0.3, 0.25, distance(IN.sunAndMoonUV.xy, float2(0, 0))) * lightRange * shapeMask;;
 					#endif								
-					sunColor = sunColor * lightRange * shapeMask;
-
-					skyColor = skyColor + sunColor + sunGlowColor;
+					skyColor = lerp(skyColor, _SunGlowColor, sunGlow);
+					skyColor = lerp(skyColor, sunColor, sunShape);
 				#else
 					//moon
 					float glowRadius = 1.0 + dot(dirWS, -_MainLightPosition.xyz); //[0, 2]
@@ -158,19 +159,20 @@ Shader "Code Repository/Scene/Stylized Dynamic Sky"
 
 					float moonGlow = 1.0 / (1 + glowRadius * lerp(150, 10, _MoonGlowRadius));
 					moonGlow *= pow(_MoonGlowRadius, 0.5);
-					half3 moonGlowColor = _MoonGlowColor * moonGlow;
 
 					float2 moonUV = IN.sunAndMoonUV.zw + 0.5;
-					half4 moonTexColor = SAMPLE_TEXTURE2D(_MoonTex, sampler_MoonTex, moonUV);
-					half3 moonColor = moonTexColor.r  * moonTexColor.g * _MoonColor;
-					moonColor = moonColor * lightRange * shapeMask;
+					half4 moonTex = SAMPLE_TEXTURE2D(_MoonTex, sampler_MoonTex, moonUV);
+					half3 moonColor = moonTex.r  * _MoonColor;
+					half moonShape = moonTex.a * lightRange * shapeMask;
 
 					//star
 					float2 starUV = IN.starUV;
-					half3 starColor = SAMPLE_TEXTURE2D(_StarTex, sampler_StarTex, starUV).rgb;
-					starColor = saturate(starColor - _StarReduceValue) * _StarIntensity * (1 - moonTexColor.g) * shapeMask;
+					half3 starTex = SAMPLE_TEXTURE2D(_StarTex, sampler_StarTex, starUV).rgb;
+					half3 starColor = saturate(starTex - _StarReduceValue) * _StarIntensity * (1 - moonTex.a) * shapeMask;
 
-					skyColor = skyColor + moonColor + moonGlowColor + starColor;
+					//skyColor = lerp(skyColor, starColor, starTex.r);
+					//skyColor = lerp(skyColor, moonColor, moonShape);
+					skyColor += starColor + moonColor * moonShape + _MoonGlowColor * moonGlow;				
 				#endif
 
 				return half4(skyColor, 1);

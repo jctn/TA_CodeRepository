@@ -118,7 +118,7 @@ Material:
     - _Metallic: 0
     - _MiddleHeight: 0.7
     - _MoonGlowRadius: 0.7
-    - _MoonSize: 7
+    - _MoonSize: 8
     - _OcclusionStrength: 1
     - _Parallax: 0.005
     - _QueueOffset: 0
@@ -135,7 +135,7 @@ Material:
     - _SunGlowIntensity: 1
     - _SunGlowRadius: 0.1
     - _SunGlowSoftening: 0.566
-    - _SunSize: 7
+    - _SunSize: 8
     - _Surface: 0
     - _WorkflowMode: 1
     - _ZWrite: 1
