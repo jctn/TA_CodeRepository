@@ -20,7 +20,7 @@ RenderSettings:
   m_FogDensity: 0.01
   m_LinearFogStart: 0
   m_LinearFogEnd: 300
-  m_AmbientSkyColor: {r: 0.7927413, g: 0.66013557, b: 0.39115378, a: 0.8}
+  m_AmbientSkyColor: {r: 0.7949824, g: 0.77629226, b: 0.7389122, a: 0.8}
   m_AmbientEquatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
   m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
   m_AmbientIntensity: 1
@@ -151,7 +151,7 @@ Light:
   serializedVersion: 10
   m_Type: 1
   m_Shape: 0
-  m_Color: {r: 0.9909266, g: 0.82516944, b: 0.4889422, a: 1}
+  m_Color: {r: 0.9937279, g: 0.97036535, b: 0.92364025, a: 1}
   m_Intensity: 1
   m_Range: 10
   m_SpotAngle: 30
@@ -209,7 +209,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 117187080}
-  m_LocalRotation: {x: 0.27678978, y: 0.9345812, z: -0.039471112, w: 0.21997139}
+  m_LocalRotation: {x: 0.32846537, y: 0.88349533, z: -0.3073045, w: 0.13080709}
   m_LocalPosition: {x: 0, y: 3, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
@@ -417,7 +417,6 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 1
   m_VolumeTrigger: {fileID: 0}
-  m_VolumeFrameworkUpdateModeOption: 2
   m_RenderPostProcessing: 1
   m_Antialiasing: 0
   m_AntialiasingQuality: 2
@@ -500,6 +499,7 @@ GameObject:
   - component: {fileID: 1352775600}
   - component: {fileID: 1352775601}
   - component: {fileID: 1352775602}
+  - component: {fileID: 1352775603}
   m_Layer: 0
   m_Name: DynamicWeather
   m_TagString: Untagged
@@ -537,7 +537,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 440ddd4e1099e2241b929b4c25ef1575, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  TimeofDay: 6.33
+  TimeofDay: 8.8
   AllDayInMinutes: 1
   DayStartTime: 5
   DayDuration: 14
@@ -614,10 +614,10 @@ MonoBehaviour:
   BottomColor:
     serializedVersion: 2
     key0: {r: 0, g: 0.33333334, b: 0.5921569, a: 1}
-    key1: {r: 0.990566, g: 0.49575898, b: 0.014017418, a: 1}
+    key1: {r: 1, g: 0.41683236, b: 0.2028302, a: 1}
     key2: {r: 0.47592562, g: 0.71283674, b: 0.8773585, a: 0}
     key3: {r: 0.4745098, g: 0.7137255, b: 0.8784314, a: 0}
-    key4: {r: 0.99215686, g: 0.49411765, b: 0.015686275, a: 0}
+    key4: {r: 1, g: 0.41568628, b: 0.20392157, a: 0}
     key5: {r: 0, g: 0.33333334, b: 0.5921569, a: 0}
     key6: {r: 0, g: 0.33333334, b: 0.5921569, a: 0}
     key7: {r: 0, g: 0.33333334, b: 0.5921569, a: 0}
@@ -998,6 +998,18 @@ MonoBehaviour:
     m_RotationOrder: 4
   SkyBoxRender: {fileID: 1711813854321038011}
   Light: {fileID: 117187082}
+--- !u!114 &1352775603
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1352775599}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f331185d56949dd448285f200a121dfe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1601686354
 GameObject:
   m_ObjectHideFlags: 0
@@ -1385,8 +1397,8 @@ MonoBehaviour:
   LayersToReflect:
     serializedVersion: 2
     m_Bits: 39
-  ReflectionTextureDown: 2
-  BlurReflectionTex: 1
+  ReflectionTextureDown: 1
+  BlurReflectionTex: 0
   BlurRadius: 0
   Iteration: 1
   RTDownScaling: 1

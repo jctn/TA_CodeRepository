@@ -2,10 +2,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[RequireComponent(typeof(TimeCtrl))]
+[RequireComponent(typeof(DynamicSkyCtrl))]
 [ExecuteAlways]
 public class WeatherCtrl : MonoBehaviour
 {
+    public WeatherSetting[] WeatherSettings;
+
     // Start is called before the first frame update
     void Start()
     {

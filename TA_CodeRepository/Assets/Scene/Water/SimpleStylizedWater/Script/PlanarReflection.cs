@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering;
 
+//优化 https://zhuanlan.zhihu.com/p/37648960
 [ExecuteInEditMode]
 public class PlanarReflection : MonoBehaviour
 {

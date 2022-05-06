@@ -6,7 +6,7 @@ using UnityEngine;
 [ExecuteAlways]
 public class DynamicSkyCtrl : MonoBehaviour
 {
-    [Header("Sky")]
+    [Header("Sky Color")]
     [GradientUsage(true, ColorSpace.Linear)]
     public Gradient TopColor;
 
