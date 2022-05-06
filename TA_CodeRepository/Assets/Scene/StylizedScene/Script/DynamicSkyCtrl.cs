@@ -43,6 +43,7 @@ public class DynamicSkyCtrl : MonoBehaviour
     public Transform Light;
 
     TimeCtrl mTimeCtrl;
+    WeatherCtrl mWeatherCtrl;
     MaterialPropertyBlock mMaterialPropertyBlock;
     Light mLightCom;
 
@@ -60,10 +61,12 @@ public class DynamicSkyCtrl : MonoBehaviour
     private void Start()
     {       
         mTimeCtrl = GetComponent<TimeCtrl>();
+        mWeatherCtrl = GetComponent<WeatherCtrl>();
+        if (!mWeatherCtrl.enabled) mWeatherCtrl = null;
         if (Light != null)  mLightCom = Light.GetComponent<Light>(); 
     }
 
-    private void Update()
+    private void LateUpdate()
     {
         UpdateLight();
         UpdateSkyBox();
@@ -81,23 +84,40 @@ public class DynamicSkyCtrl : MonoBehaviour
     {
         if(SkyBoxRender != null)
         {
-            float colorKey = 0f;
-            float floatKey = 0f;
-            if (mTimeCtrl != null)
+            if(mWeatherCtrl != null && mWeatherCtrl.DynamicSkyOutputData != null)
             {
-                colorKey = mTimeCtrl.GradientTime;
-                floatKey = mTimeCtrl.CurveTime;
+                DynamicSkyOutput output = mWeatherCtrl.DynamicSkyOutputData;
+                if (mMaterialPropertyBlock == null) mMaterialPropertyBlock = new MaterialPropertyBlock();
+                mMaterialPropertyBlock.SetVector(mID_BottomColor, output.BottomColor);
+                mMaterialPropertyBlock.SetVector(mID_MiddleColor, output.MiddleColor);
+                mMaterialPropertyBlock.SetVector(mID_TopColor, output.TopColor);
+                mMaterialPropertyBlock.SetVector(mID_SunColor, output.SunColor);
+                mMaterialPropertyBlock.SetVector(mID_SunGlowColor, output.SunGlowColor);
+                mMaterialPropertyBlock.SetFloat(mID_SunGlowRadius, output.SunGlowRadius);
+                mMaterialPropertyBlock.SetFloat(mID_MoonGlowRadius, output.MoonGlowRadius);
+                mMaterialPropertyBlock.SetFloat(mID_StarIntensity, output.StarIntensity);
+                SkyBoxRender.SetPropertyBlock(mMaterialPropertyBlock);
             }
-            if (mMaterialPropertyBlock == null) mMaterialPropertyBlock = new MaterialPropertyBlock();
-            mMaterialPropertyBlock.SetVector(mID_BottomColor, BottomColor.Evaluate(colorKey));
-            mMaterialPropertyBlock.SetVector(mID_MiddleColor, MiddleColor.Evaluate(colorKey));
-            mMaterialPropertyBlock.SetVector(mID_TopColor, TopColor.Evaluate(colorKey));
-            mMaterialPropertyBlock.SetVector(mID_SunColor, SunColor.Evaluate(colorKey));
-            mMaterialPropertyBlock.SetVector(mID_SunGlowColor, SunGlowColor.Evaluate(colorKey));
-            mMaterialPropertyBlock.SetFloat(mID_SunGlowRadius, SunGlowRadius.Evaluate(floatKey));
-            mMaterialPropertyBlock.SetFloat(mID_MoonGlowRadius, MoonGlowRadius.Evaluate(floatKey));
-            mMaterialPropertyBlock.SetFloat(mID_StarIntensity, StarIntensity.Evaluate(floatKey));
-            SkyBoxRender.SetPropertyBlock(mMaterialPropertyBlock);
+            else
+            {
+                float colorKey = 0f;
+                float floatKey = 0f;
+                if (mTimeCtrl != null)
+                {
+                    colorKey = mTimeCtrl.GradientTime;
+                    floatKey = mTimeCtrl.CurveTime;
+                }
+                if (mMaterialPropertyBlock == null) mMaterialPropertyBlock = new MaterialPropertyBlock();
+                mMaterialPropertyBlock.SetVector(mID_BottomColor, BottomColor.Evaluate(colorKey));
+                mMaterialPropertyBlock.SetVector(mID_MiddleColor, MiddleColor.Evaluate(colorKey));
+                mMaterialPropertyBlock.SetVector(mID_TopColor, TopColor.Evaluate(colorKey));
+                mMaterialPropertyBlock.SetVector(mID_SunColor, SunColor.Evaluate(colorKey));
+                mMaterialPropertyBlock.SetVector(mID_SunGlowColor, SunGlowColor.Evaluate(colorKey));
+                mMaterialPropertyBlock.SetFloat(mID_SunGlowRadius, SunGlowRadius.Evaluate(floatKey));
+                mMaterialPropertyBlock.SetFloat(mID_MoonGlowRadius, MoonGlowRadius.Evaluate(floatKey));
+                mMaterialPropertyBlock.SetFloat(mID_StarIntensity, StarIntensity.Evaluate(floatKey));
+                SkyBoxRender.SetPropertyBlock(mMaterialPropertyBlock);
+            }
         }
     }
 
@@ -139,8 +159,17 @@ public class DynamicSkyCtrl : MonoBehaviour
                 colorKey = mTimeCtrl.GradientTime;
                 floatKey = mTimeCtrl.CurveTime;
             }
-            mLightCom.color = LightColor.Evaluate(colorKey);
-            mLightCom.intensity = LightIntensity.Evaluate(floatKey);
+            if (mWeatherCtrl != null && mWeatherCtrl.DynamicSkyOutputData != null)
+            {
+                DynamicSkyOutput output = mWeatherCtrl.DynamicSkyOutputData;
+                mLightCom.color = output.LightColor;
+                mLightCom.intensity = output.LightIntensity;
+            }
+            else
+            {
+                mLightCom.color = LightColor.Evaluate(colorKey);
+                mLightCom.intensity = LightIntensity.Evaluate(floatKey);
+            }
             RenderSettings.ambientLight = mLightCom.color * mLightCom.intensity * 0.8f;
         }
     }

@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d83206fd45a57e4408d07644e6141685, type: 3}
-  m_Name: Weather Setting
+  m_Name: Sunny
   m_EditorClassIdentifier: 
   TopColor:
     serializedVersion: 2
@@ -453,5 +453,3 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  SkyBoxRender: {fileID: 0}
-  Light: {fileID: 0}

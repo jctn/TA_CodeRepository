@@ -2,21 +2,66 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[RequireComponent(typeof(DynamicSkyCtrl))]
+[RequireComponent(typeof(TimeCtrl))]
 [ExecuteAlways]
 public class WeatherCtrl : MonoBehaviour
 {
-    public WeatherSetting[] WeatherSettings;
+    public EWeatherType InitWeather;
+    public float TranslationTime = 2f;
+    public Weather [] Weathers;
 
-    // Start is called before the first frame update
-    void Start()
+    DynamicSkyOutput mDynamicSkyOutput = null;
+
+    public DynamicSkyOutput DynamicSkyOutputData
     {
-        
+        get { return mDynamicSkyOutput; }
     }
 
-    // Update is called once per frame
-    void Update()
+    private void OnValidate()
     {
-        
+        Awake();
+    }
+
+    private void Awake()
+    {
+        TimeCtrl timeCtrl = GetComponent<TimeCtrl>();
+
+        for (int i = 0; i < Weathers.Length; i++)
+        {
+            if (Weathers[i].WeatherType == InitWeather)
+            {
+                mDynamicSkyOutput = new DynamicSkyOutput(Weathers[i].WeatherSettingData, timeCtrl);
+                break;
+            }
+        }
+    }
+
+    private void Update()
+    {
+        mDynamicSkyOutput?.UpdateData();
+    }
+
+    public void SetWeather(EWeatherType weatherType)
+    {
+        for(int i = 0; i < Weathers.Length; i++)
+        {
+            if(Weathers[i].WeatherType == weatherType)
+            {
+                mDynamicSkyOutput?.SetTranslation(Weathers[i].WeatherSettingData, Time.time, TranslationTime);
+                break;
+            }
+        }
+    }
+
+    public void SetWeather(EWeatherType weatherType, float duration)
+    {
+        for (int i = 0; i < Weathers.Length; i++)
+        {
+            if (Weathers[i].WeatherType == weatherType)
+            {
+                mDynamicSkyOutput?.SetTranslation(Weathers[i].WeatherSettingData, Time.time, duration);
+                break;
+            }
+        }
     }
 }

@@ -5,6 +5,7 @@ using UnityEngine;
 [ExecuteAlways]
 public class TimeCtrl : MonoBehaviour
 {
+    public bool UpdateTime = true;
     [Range(0f, 24f)]
     public float TimeofDay = 6f;
     public float AllDayInMinutes = 10f;
@@ -68,7 +69,7 @@ public class TimeCtrl : MonoBehaviour
 
     private void Update()
     {
-        if(Application.isPlaying)
+        if(Application.isPlaying && UpdateTime)
         {
             TimeofDay += Time.deltaTime * mTimeProgression;
             if(TimeofDay >= 24f)
