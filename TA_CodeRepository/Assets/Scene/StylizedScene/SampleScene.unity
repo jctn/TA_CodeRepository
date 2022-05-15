@@ -20,7 +20,7 @@ RenderSettings:
   m_FogDensity: 0.01
   m_LinearFogStart: 0
   m_LinearFogEnd: 300
-  m_AmbientSkyColor: {r: 0.7916096, g: 0.66255504, b: 0.4009529, a: 0.8}
+  m_AmbientSkyColor: {r: 0.09897212, g: 0.13695319, b: 0.16265187, a: 0.16420093}
   m_AmbientEquatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
   m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
   m_AmbientIntensity: 1
@@ -151,8 +151,8 @@ Light:
   serializedVersion: 10
   m_Type: 1
   m_Shape: 0
-  m_Color: {r: 0.98951197, g: 0.8281938, b: 0.50119114, a: 1}
-  m_Intensity: 1
+  m_Color: {r: 0.60275006, g: 0.8340586, b: 0.990566, a: 1}
+  m_Intensity: 0.20525116
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -209,7 +209,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 117187080}
-  m_LocalRotation: {x: 0.2801436, y: 0.93386275, z: -0.05385497, w: 0.21568394}
+  m_LocalRotation: {x: 0.27123386, y: 0.14966169, z: -0.9233642, w: -0.22678669}
   m_LocalPosition: {x: 0, y: 3, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
@@ -501,6 +501,7 @@ GameObject:
   - component: {fileID: 1352775601}
   - component: {fileID: 1352775603}
   - component: {fileID: 1352775602}
+  - component: {fileID: 1352775604}
   m_Layer: 0
   m_Name: DynamicWeather
   m_TagString: Untagged
@@ -539,7 +540,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   UpdateTime: 1
-  TimeofDay: 6.46
+  TimeofDay: 4.2
   AllDayInMinutes: 1
   DayStartTime: 5
   DayDuration: 14
@@ -1021,6 +1022,37 @@ MonoBehaviour:
   - WeatherType: 1
     WeatherSettingData: {fileID: 11400000, guid: 76311a1056b69884e92d741bdc9e9efb,
       type: 2}
+--- !u!114 &1352775604
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1352775599}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9eb547cf68a5f1a42b02196e2bc90505, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  RainShader: {fileID: 4800000, guid: 5b3acf381703e1c48b6d4111dd522a82, type: 3}
+  RainColor: {r: 1, g: 1, b: 1, a: 1}
+  RainShapeTexture: {fileID: 2800000, guid: c984d4eb3cf897544aec2b9cd2fcdf83, type: 3}
+  RainScale_One: {x: 2, y: 0.5}
+  RotateSpeed_One: 0.5
+  RotateAmount_One: 0.5
+  DropSpeed_One: 30
+  RainScale_Two: {x: 2.3, y: 0.5}
+  RotateSpeed_Two: 0.6
+  RotateAmount_Two: 1
+  DropSpeed_Two: 25
+  RainScale_Three: {x: 2.5, y: 1.5}
+  RotateSpeed_Three: 0.5
+  RotateAmount_Three: 0.5
+  DropSpeed_Three: 30
+  RainScale_Four: {x: 2.5, y: 2}
+  RotateSpeed_Four: 0.6
+  RotateAmount_Four: 1
+  DropSpeed_Four: 30
 --- !u!1 &1601686354
 GameObject:
   m_ObjectHideFlags: 0
