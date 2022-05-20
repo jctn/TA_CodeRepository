@@ -65,7 +65,8 @@ public class RainFeature : ScriptableRendererFeature
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
         if (RainMgr.Instance.RainCtrls.Count <= 0) return;
-        if (renderingData.cameraData.camera.cameraType == CameraType.Game || renderingData.cameraData.camera.cameraType == CameraType.SceneView)
+        bool mainGameCam = renderingData.cameraData.camera.cameraType == CameraType.Game && renderingData.cameraData.camera == Camera.main;
+        if (mainGameCam || renderingData.cameraData.camera.cameraType == CameraType.SceneView)
         {
             mRainPass.Setup(renderer.cameraColorTarget);
             renderer.EnqueuePass(mRainPass);

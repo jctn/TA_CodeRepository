@@ -67,7 +67,8 @@ public class GlobalFogFeature : ScriptableRendererFeature
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
         if (!GlobalFogSetting.EnableGlobalFog) return;
-        if (renderingData.cameraData.camera.cameraType == CameraType.Game || renderingData.cameraData.camera.cameraType == CameraType.SceneView)
+        bool mainGameCam = renderingData.cameraData.camera.cameraType == CameraType.Game && renderingData.cameraData.camera == Camera.main;
+        if (mainGameCam || renderingData.cameraData.camera.cameraType == CameraType.SceneView)
         {
             if(mGlobalFogMat == null)
             {

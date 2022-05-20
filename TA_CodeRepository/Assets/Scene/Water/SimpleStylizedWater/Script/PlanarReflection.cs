@@ -8,6 +8,7 @@ using UnityEngine.Rendering;
 [ExecuteInEditMode]
 public class PlanarReflection : MonoBehaviour
 {
+    public ScriptableRendererData PlanarReflectionRender;
     public LayerMask LayersToReflect = -1;
     [Min(1)]
     public int ReflectionTextureDown = 1;
@@ -23,6 +24,7 @@ public class PlanarReflection : MonoBehaviour
     private RenderTexture mReflectionRT = null;
     private Renderer mPlaneRender;
     private int mID_ReflectionTex = Shader.PropertyToID("_ReflectionTex");
+    const string planarReflectionRender_Str = "PlanarReflection_Render";
 
     private void OnEnable()
     {
@@ -116,13 +118,24 @@ public class PlanarReflection : MonoBehaviour
             mReflectionCamera = go.AddComponent<Camera>();
             mReflectionCamera.enabled = false;
             mReflectionCamera.cullingMask = ~(1 << 4) & LayersToReflect.value;
-            mReflectionCamera.cameraType = CameraType.Reflection;
+            //mReflectionCamera.cameraType = CameraType.Reflection; 非Game类型相机会创建UniversalAdditionalCameraData，使下面的设定无效
+
+            if (UniversalRenderPipeline.asset)
+            {
+#if UNITY_EDITOR
+                if (PlanarReflectionRender == null) PlanarReflectionRender = PipelineUtilities.GetRenderer((planarReflectionRender_Str));
+                PipelineUtilities.ValidatePipelineRenderers(PlanarReflectionRender);
+#endif
+            }
 
             UniversalAdditionalCameraData destAdditionalData = mReflectionCamera.GetUniversalAdditionalCameraData();
             if (destAdditionalData != null)
             {
+                destAdditionalData.renderPostProcessing = false;
+                destAdditionalData.renderShadows = false;
                 destAdditionalData.requiresColorOption = CameraOverrideOption.Off;
                 destAdditionalData.requiresDepthOption = CameraOverrideOption.Off;
+                PipelineUtilities.AssignRendererToCamera(destAdditionalData, PlanarReflectionRender);
             }
         }
 
@@ -135,7 +148,7 @@ public class PlanarReflection : MonoBehaviour
                 RenderTexture.ReleaseTemporary(mReflectionRT);
             }
             mReflectionRT = RenderTexture.GetTemporary(CreateRenderTextureDescriptor(sourceCam, w, h, false));
-            mReflectionRT.name = "ReflectionTexture" + transform.name;
+            mReflectionRT.name = "_ReflectionTexture" + transform.name;
             mReflectionCamera.targetTexture = mReflectionRT;
 
             if (mPlaneRender == null) mPlaneRender = GetComponent<Renderer>();

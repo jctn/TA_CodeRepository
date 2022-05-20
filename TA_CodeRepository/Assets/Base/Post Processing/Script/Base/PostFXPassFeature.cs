@@ -68,7 +68,8 @@ public class PostFXPassFeature : ScriptableRendererFeature
 
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
-        if(renderingData.cameraData.camera.cameraType == CameraType.Game)
+        bool mainGameCam = renderingData.cameraData.camera.cameraType == CameraType.Game && renderingData.cameraData.camera == Camera.main;
+        if (mainGameCam)
         {
             mPostFXPass.Setup(renderer.cameraColorTarget);
             renderer.EnqueuePass(mPostFXPass);

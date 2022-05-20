@@ -25,12 +25,16 @@ Shader "Code Repository/Base/DepthToWorldPosTemplate"
 
 			//总览：Way1为公式回推，适合投射和正交；way2-way4实际都是求从相机出发经过所求点的向量，再利用相似三角形求所求点世界坐标，只适合透视相机。
 			//注意如果用在后处理，需要代码传哪些用来回推世界坐标的矩阵：UNITY_MATRIX_I_V，unity_CameraInvProjection（在urp不用重传），因为这些都会被blit重置，way4无法用在后处理
+			//way1：GPU代价最小。
 			//way1：在ps里进行了矩阵乘法。
 			//Way2:在ps里没有矩阵乘法
 			//way3：在ps里没有矩阵乘法。
 			//way4：在ps里没有矩阵乘法。
 			//GetPosWOrtho,正交相机下的求法。
 			//故如果只有透视相机，用2-4，如果只有正交相机用GetPosWOrtho，如果追求泛用性用1
+
+			//https://www.jianshu.com/p/80a932d1f11e
+			void GetPosW0(){}
 
 			//world = M ^-1 * ndc * Clip.w
 			//1 = world.w = (M ^-1 * ndc).w * Clip.w ==> Clip.w = 1/(M ^-1 * ndc).w

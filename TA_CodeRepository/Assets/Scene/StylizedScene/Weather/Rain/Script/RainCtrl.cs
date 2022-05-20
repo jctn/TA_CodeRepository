@@ -26,7 +26,7 @@ public class RainCtrl : MonoBehaviour
     public float RotateAmount_Three = 0.5f;
     public float DropSpeed_Three = 1f;
 
-    [Header("Layer Two")]
+    [Header("Layer Four")]
     public Vector2 RainScale_Four = Vector2.one * 2f;
     public float RotateSpeed_Four = 1f;
     public float RotateAmount_Four = 0.5f;
