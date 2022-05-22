@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "StatusShowSetting", menuName = "StatusShowSetting")]
+[CreateAssetMenu(fileName = "StatusShowSetting", menuName = "Code Repository/Effect/StatusShowSetting")]
 public class StatusShowSetting : ScriptableObject
 {
     [Header("Hit")]

@@ -8,7 +8,7 @@ using UnityEngine.Rendering;
 [ExecuteInEditMode]
 public class PlanarReflection : MonoBehaviour
 {
-    public ScriptableRendererData PlanarReflectionRender;
+    public int PlanarReflectionRenderIndex = -1;
     public LayerMask LayersToReflect = -1;
     [Min(1)]
     public int ReflectionTextureDown = 1;
@@ -123,8 +123,8 @@ public class PlanarReflection : MonoBehaviour
             if (UniversalRenderPipeline.asset)
             {
 #if UNITY_EDITOR
-                if (PlanarReflectionRender == null) PlanarReflectionRender = PipelineUtilities.GetRenderer((planarReflectionRender_Str));
-                PipelineUtilities.ValidatePipelineRenderers(PlanarReflectionRender);
+                ScriptableRendererData planarReflectionRender = PipelineUtilities.GetRenderer<ForwardRendererData>(planarReflectionRender_Str, nameof(ForwardRendererData));
+                PipelineUtilities.ValidatePipelineRenderers(planarReflectionRender, ref PlanarReflectionRenderIndex);
 #endif
             }
 
@@ -135,7 +135,10 @@ public class PlanarReflection : MonoBehaviour
                 destAdditionalData.renderShadows = false;
                 destAdditionalData.requiresColorOption = CameraOverrideOption.Off;
                 destAdditionalData.requiresDepthOption = CameraOverrideOption.Off;
-                PipelineUtilities.AssignRendererToCamera(destAdditionalData, PlanarReflectionRender);
+                if(PlanarReflectionRenderIndex >= 0)
+                {
+                    destAdditionalData.SetRenderer(PlanarReflectionRenderIndex);
+                }
             }
         }
 
@@ -148,7 +151,7 @@ public class PlanarReflection : MonoBehaviour
                 RenderTexture.ReleaseTemporary(mReflectionRT);
             }
             mReflectionRT = RenderTexture.GetTemporary(CreateRenderTextureDescriptor(sourceCam, w, h, false));
-            mReflectionRT.name = "_ReflectionTexture" + transform.name;
+            mReflectionRT.name = "_ReflectionTexture for " + transform.name;
             mReflectionCamera.targetTexture = mReflectionRT;
 
             if (mPlaneRender == null) mPlaneRender = GetComponent<Renderer>();

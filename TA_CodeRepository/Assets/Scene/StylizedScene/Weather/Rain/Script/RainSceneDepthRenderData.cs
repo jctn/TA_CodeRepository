@@ -24,10 +24,10 @@ public class RainSceneDepthRenderData : ScriptableRendererData
         }
     }
 
-    [MenuItem("Assets/Create/Code Repository/Scene/RainSceneDepthRenderData")]
+    [MenuItem("Assets/Create/Code Repository/Scene/RainSceneDepthRender")]
     static void CreateForwardRendererData()
     {
-        ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateRainSceneDepthRenderAsset>(), "RainSceneDepthRenderData.asset", null, null);
+        ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateRainSceneDepthRenderAsset>(), "RainSceneDepthRender.asset", null, null);
     }
 #endif
 

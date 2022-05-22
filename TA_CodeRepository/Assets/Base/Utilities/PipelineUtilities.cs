@@ -12,14 +12,14 @@ public static class PipelineUtilities
 
 #if UNITY_EDITOR
     /// <summary>
-    /// 根据文件名寻找项目内ForwardRendererData文件
+    /// 根据文件名寻找项目内RendererData文件
     /// </summary>
     /// <param name="assetName"></param>
     /// <returns></returns>
-    public static ForwardRendererData GetRenderer(string assetName)
+    public static T GetRenderer<T>(string assetName, string typeStr) where T : Object
     {
-
-        string[] GUIDs = AssetDatabase.FindAssets(assetName + " t:ForwardRendererData");
+        string filter = assetName + " t:" + typeStr;
+        string[] GUIDs = AssetDatabase.FindAssets(filter);
 
         if (GUIDs.Length == 0)
         {
@@ -28,12 +28,45 @@ public static class PipelineUtilities
         }
 
         string assetPath = AssetDatabase.GUIDToAssetPath(GUIDs[0]);
-
-        ForwardRendererData data = (ForwardRendererData)AssetDatabase.LoadAssetAtPath(assetPath, typeof(ForwardRendererData));
-
+        T data = AssetDatabase.LoadAssetAtPath<T>(assetPath);
         return data;
     }
-#endif
+
+    /// <summary>
+    /// 检测给定的renderer是否加入了pipeline asset, 如果没有则加入
+    /// </summary>
+    /// <param name="render"></param>
+    public static void ValidatePipelineRenderers(ScriptableRendererData render, ref int index)
+    {
+        if (render == null)
+        {
+            Debug.LogError("render is null");
+            return;
+        }
+
+        BindingFlags bindings = BindingFlags.NonPublic | BindingFlags.Instance;
+
+        ScriptableRendererData[] m_rendererDataList = (ScriptableRendererData[])typeof(UniversalRenderPipelineAsset).GetField(renderDataListFieldName, bindings).GetValue(UniversalRenderPipeline.asset);
+        bool exist = false;
+
+        for (int i = 0; i < m_rendererDataList.Length; i++)
+        {
+            if (m_rendererDataList[i] == render)
+            {
+                exist = true;
+                index = i;
+            }
+        }
+
+        if (!exist)
+        {
+            List<ScriptableRendererData> rendererDataList = new List<ScriptableRendererData>(m_rendererDataList);
+            rendererDataList.Add(render);
+            index = rendererDataList.Count - 1;
+            typeof(UniversalRenderPipelineAsset).GetField(renderDataListFieldName, bindings).SetValue(UniversalRenderPipeline.asset, rendererDataList.ToArray());
+            AssetDatabase.SaveAssets();
+        }
+    }
 
     /// <summary>
     /// 检测给定的renderer是否加入了pipeline asset, 如果没有则加入
@@ -54,27 +87,21 @@ public static class PipelineUtilities
 
         for (int i = 0; i < m_rendererDataList.Length; i++)
         {
-            if (m_rendererDataList[i] == render) exist = true;
+            if (m_rendererDataList[i] == render)
+            {
+                exist = true;
+            }
         }
 
         if (!exist)
         {
-            AddRendererToPipeline(render);
+            List<ScriptableRendererData> rendererDataList = new List<ScriptableRendererData>(m_rendererDataList);
+            rendererDataList.Add(render);
+            typeof(UniversalRenderPipelineAsset).GetField(renderDataListFieldName, bindings).SetValue(UniversalRenderPipeline.asset, rendererDataList.ToArray());
+            AssetDatabase.SaveAssets();
         }
     }
-
-    private static void AddRendererToPipeline(ScriptableRendererData render)
-    {
-        if (render == null) return;
-
-        BindingFlags bindings = BindingFlags.NonPublic | BindingFlags.Instance;
-
-        ScriptableRendererData[] m_rendererDataList = (ScriptableRendererData[])typeof(UniversalRenderPipelineAsset).GetField(renderDataListFieldName, bindings).GetValue(UniversalRenderPipeline.asset);
-        List<ScriptableRendererData> rendererDataList = new List<ScriptableRendererData>(m_rendererDataList);
-        rendererDataList.Add(render);
-
-        typeof(UniversalRenderPipelineAsset).GetField(renderDataListFieldName, bindings).SetValue(UniversalRenderPipeline.asset, rendererDataList.ToArray());
-    }
+#endif
 
     /// <summary>
     /// 从pipeline asset移除给定的render
@@ -92,27 +119,5 @@ public static class PipelineUtilities
         if (rendererDataList.Contains(render)) rendererDataList.Remove((render));
 
         typeof(UniversalRenderPipelineAsset).GetField(renderDataListFieldName, bindings).SetValue(UniversalRenderPipeline.asset, rendererDataList.ToArray());
-    }
-
-    /// <summary>
-    /// 给指定相机分配render
-    /// </summary>
-    /// <param name="camData"></param>
-    /// <param name="render"></param>
-    public static void AssignRendererToCamera(UniversalAdditionalCameraData camData, ScriptableRendererData render)
-    {
-        if (UniversalRenderPipeline.asset)
-        {
-            if (render)
-            {
-                BindingFlags bindings = BindingFlags.NonPublic | BindingFlags.Instance;
-                ScriptableRendererData[] rendererDataList = (ScriptableRendererData[])typeof(UniversalRenderPipelineAsset).GetField(renderDataListFieldName, bindings).GetValue(UniversalRenderPipeline.asset);
-
-                for (int i = 0; i < rendererDataList.Length; i++)
-                {
-                    if (rendererDataList[i] == render) camData.SetRenderer(i);
-                }
-            }
-        }
     }
 }

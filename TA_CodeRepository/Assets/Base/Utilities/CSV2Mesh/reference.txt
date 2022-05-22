@@ -1,0 +1,2 @@
+https://github.com/Alunice/TaTa/tree/master/CSV2Mesh
+dependencies: package "com.unity.formats.fbx"

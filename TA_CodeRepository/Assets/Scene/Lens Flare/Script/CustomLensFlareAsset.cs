@@ -33,7 +33,7 @@ namespace CustomLensFlare
         _1L2M8S
     }
 
-    [CreateAssetMenu(fileName = "CustomLensFlareAsset", menuName = "Code Repository/Scene/Create CustomLensFlareAsset")]
+    [CreateAssetMenu(fileName = "CustomLensFlareAsset", menuName = "Code Repository/Scene/CustomLensFlareAsset")]
     public class CustomLensFlareAsset : ScriptableObject
     {
         public Texture2D FlareAtlasTexture;
