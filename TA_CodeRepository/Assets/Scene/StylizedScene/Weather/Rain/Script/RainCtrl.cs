@@ -11,7 +11,6 @@ public class RainCtrl : MonoBehaviour
     public int RainSceneDepthRenderIndex = -1;
     public Shader RainShader;
     public Texture2D RainHeightmap;
-    public Texture2D RainNoiseTexture;
     public Texture2D RainShapeTexture;
 
     [Space]
@@ -74,7 +73,6 @@ public class RainCtrl : MonoBehaviour
     static readonly int id_RainDepthRange = Shader.PropertyToID("_RainDepthRange");
     static readonly int id_RainOpacities = Shader.PropertyToID("_RainOpacities");
     static readonly int id_RainHeightmap = Shader.PropertyToID("_RainHeightmap");
-    static readonly int id_NoiseTexture = Shader.PropertyToID("_NoiseTexture");
     static readonly int id_SceneDepthCamMatrixVP = Shader.PropertyToID("_SceneDepthCamMatrixVP");
 
     static RainCtrl instance;
@@ -133,7 +131,6 @@ public class RainCtrl : MonoBehaviour
         mRainMat.SetVector(id_RainDepthRange, new Vector4(RainDepthRange_One, RainDepthRange_Two, RainDepthRange_Three, RainDepthRange_Four));
         mRainMat.SetVector(id_RainOpacities, new Vector4(RainOpacity_One, RainOpacity_Two, RainOpacity_Three, RainOpacity_Four));
         mRainMat.SetTexture(id_RainHeightmap, RainHeightmap);
-        mRainMat.SetTexture(id_NoiseTexture, RainNoiseTexture);
     }
 
     void DisposeCreatedRes()

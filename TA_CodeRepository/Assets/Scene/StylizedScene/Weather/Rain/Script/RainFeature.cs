@@ -36,7 +36,7 @@ public class RainFeature : ScriptableRendererFeature
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
             base.Configure(cmd, cameraTextureDescriptor);
-            RenderTextureDescriptor desc = GetDescriptor(256, 256);
+            RenderTextureDescriptor desc = GetDescriptor((int)(cameraTextureDescriptor.width * 0.25f), (int)(cameraTextureDescriptor.height * 0.25f));
             cmd.GetTemporaryRT(rainMaskTexture.id, desc, FilterMode.Bilinear);
             ConfigureClear(ClearFlag.All, Color.clear);
             ConfigureTarget(rainMaskTexture.id);
@@ -50,7 +50,7 @@ public class RainFeature : ScriptableRendererFeature
                 CommandBuffer cmd = CommandBufferPool.Get(CMDSTR);
                 Matrix4x4 matrix = Matrix4x4.identity;
                 Camera curCam = renderingData.cameraData.camera;
-                matrix.SetTRS(curCam.transform.position, Quaternion.Euler(90f, 0f, 0f), Vector3.one * 100f);
+                matrix.SetTRS(curCam.transform.position, Quaternion.Euler(-90f, 0f, 0f), Vector3.one);
                 cmd.DrawMesh(postProcessingMesh, matrix, RainCtrl.Instance.RainMaterial, 0, 0);
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
@@ -86,7 +86,7 @@ public class RainFeature : ScriptableRendererFeature
                 CommandBuffer cmd = CommandBufferPool.Get(CMDSTR);
                 Matrix4x4 matrix = Matrix4x4.identity;
                 Camera curCam = renderingData.cameraData.camera;
-                matrix.SetTRS(curCam.transform.position, Quaternion.Euler(90f, 0f, 0f), Vector3.one * 100f);
+                matrix.SetTRS(curCam.transform.position, Quaternion.Euler(-90f, 0f, 0f), Vector3.one);
                 cmd.DrawMesh(postProcessingMesh, matrix, RainCtrl.Instance.RainMaterial, 0, 1);
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);

@@ -29,10 +29,7 @@ Shader "Code Repository/Scene/Rain"
 
 			TEXTURE2D(_RainHeightmap);
 			SAMPLER(sampler_RainHeightmap);
-
-			TEXTURE2D(_NoiseTexture);
-			SAMPLER(sampler_NoiseTexture);			
-			
+		
 			TEXTURE2D(_RainShapeTex);
 			SAMPLER(sampler_RainShapeTex);
 
@@ -61,7 +58,7 @@ Shader "Code Repository/Scene/Rain"
 				#if UNITY_REVERSED_Z
 					sceneDepth = 1.0 - sceneDepth;
 				#endif
-				return step(posNDC.z, sceneDepth - 0.02);
+				return step(posNDC.z, sceneDepth);
 			}
 		ENDHLSL
 
@@ -88,10 +85,9 @@ Shader "Code Repository/Scene/Rain"
 				float4 positionCS 		: SV_POSITION;
 				float2 UV				: TEXCOORD0;	
 				float4 UVLayer12		: TEXCOORD1;
-				float4 UVLayer3			: TEXCOORD2;
-				float4 UVLayer4			: TEXCOORD3;
-				float4 ScreenPosition	: TEXCOORD4;
-				float4 ViewDirVS		: TEXCOORD5;
+				float4 UVLayer34		: TEXCOORD2;
+				float4 ScreenPosition	: TEXCOORD3;
+				float4 ViewDirVS		: TEXCOORD4;
 			};
 
 			Varyings vertex(Attributes IN) 
@@ -112,12 +108,17 @@ Shader "Code Repository/Scene/Rain"
 				UVLayer12 *= _RainScale_Layer12;
 				OUT.UVLayer12 = UVLayer12;
 
-				float4 UVLayer3Scale = float4(4, 1, 2, 1);
-				float4 UVLayer3Speed = float4(0, 1, 0, 0.5);
-				OUT.UVLayer3 = IN.uv.xyxy * UVLayer3Scale + UVLayer3Speed * _Time.y;
-				float4 UVLayer4Scale = float4(3, 1, 2, 1);
-				float4 UVLayer4Speed = float4(0, 1, 0, 0.5);
-				OUT.UVLayer4 = IN.uv.xyxy * UVLayer4Scale + UVLayer4Speed * _Time.y;
+				float4 UVLayer34 = IN.uv.xyxy;
+				SinT = sin(_Time.xx * TWO_PI * _RotateSpeed.zw + float2(0, 0.1)) * _RotateAmount.zw * 0.1;
+				Cosines = float4(cos(SinT), sin(SinT));
+				CenteredUV = UVLayer34 - 0.5;
+				RotatedUV = float4(dot(Cosines.xz * float2(1, -1), CenteredUV.xy)
+										 , dot(Cosines.zx, CenteredUV.xy)
+										 , dot(Cosines.yw * float2(1, -1), CenteredUV.zw)
+										 , dot(Cosines.wy, CenteredUV.zw)) + 0.5;
+				UVLayer34 = RotatedUV + float4(0, 1, 0, 1) * _Time.x * _DropSpeed.zzww;
+				UVLayer34 *= _RainScale_Layer34;
+				OUT.UVLayer34 = UVLayer34;
 
 				OUT.ScreenPosition = ComputeScreenPos(OUT.positionCS);
 				float3 posWS = TransformObjectToWorld(IN.positionOS.xyz);
@@ -129,35 +130,30 @@ Shader "Code Repository/Scene/Rain"
 
 			half4 fragment(Varyings IN) : SV_Target 
 			{
-				float layer3Noise1 = pow(SAMPLE_TEXTURE2D(_NoiseTexture, sampler_NoiseTexture, IN.UVLayer3.xy).r, 0.4);
-				float layer3Noise2 = pow(SAMPLE_TEXTURE2D(_NoiseTexture, sampler_NoiseTexture, IN.UVLayer3.zw).r, 2);
-				float layerMask3 = layer3Noise1 + layer3Noise2;
-				layerMask3 =saturate(layerMask3);
-
-				// Layer 4
-				float layer4Noise1 = pow(SAMPLE_TEXTURE2D(_NoiseTexture, sampler_NoiseTexture, IN.UVLayer4.xy).r, 2);
-				float layer4Noise2 = pow(SAMPLE_TEXTURE2D(_NoiseTexture, sampler_NoiseTexture, IN.UVLayer4.zw).r, 2);
-				float layerMask4 = layer4Noise1 + layer4Noise2 + 0.4;
-				layerMask4 =saturate(layerMask4);
-
-				// Layers12 view depth test
+				//view depth test
 				float backDepthVS = CalcSceneDepth(IN.ScreenPosition);
-				float2 virtualDepth = 0;
+				float4 virtualDepth = 0;
 				virtualDepth.x = SAMPLE_TEXTURE2D(_RainHeightmap, sampler_RainHeightmap, IN.UVLayer12.xy).r * _RainDepthRange.x + _RainDepthStart.x + 0.01;
 				virtualDepth.y = SAMPLE_TEXTURE2D(_RainHeightmap, sampler_RainHeightmap, IN.UVLayer12.zw).r * _RainDepthRange.z + _RainDepthStart.y;
-				float2 occlusionDistance = step(virtualDepth, backDepthVS - 0.2);
+				virtualDepth.z = SAMPLE_TEXTURE2D(_RainHeightmap, sampler_RainHeightmap, IN.UVLayer34.xy).r * _RainDepthRange.y + _RainDepthStart.z;
+				virtualDepth.w = SAMPLE_TEXTURE2D(_RainHeightmap, sampler_RainHeightmap, IN.UVLayer34.zw).r * _RainDepthRange.w + _RainDepthStart.w;
+				float4 occlusionDistance = step(virtualDepth, backDepthVS);
 
-				// Calc layers12 virtual position
-				float2 depthRatio = virtualDepth / IN.ViewDirVS.z;
+				// Calc virtual position
+				float4 depthRatio = virtualDepth / IN.ViewDirVS.z;
 				float3 virtualPosition1WS = _WorldSpaceCameraPos.xyz + IN.ViewDirVS.xyz * depthRatio.x;
 				float3 virtualPosition2WS = _WorldSpaceCameraPos.xyz + IN.ViewDirVS.xyz * depthRatio.y;
+				float3 virtualPosition3WS = _WorldSpaceCameraPos.xyz + IN.ViewDirVS.xyz * depthRatio.z;
+				float3 virtualPosition4WS = _WorldSpaceCameraPos.xyz + IN.ViewDirVS.xyz * depthRatio.w;
 
-				// Layers12 heigth depth test
-				float2 occlusionHeight = 0;
+				// heigth depth test
+				float4 occlusionHeight = 0;
 				occlusionHeight.x = RainHeightDepthMapTest(virtualPosition1WS);
 				occlusionHeight.y = RainHeightDepthMapTest(virtualPosition2WS);
+				occlusionHeight.z = RainHeightDepthMapTest(virtualPosition3WS);
+				occlusionHeight.w = RainHeightDepthMapTest(virtualPosition4WS);
 
-				half4 maskColor = float4(occlusionDistance * occlusionHeight, layerMask3, layerMask4);
+				half4 maskColor = occlusionDistance * occlusionHeight;
 				return maskColor;
 			}
 			ENDHLSL
@@ -226,10 +222,7 @@ Shader "Code Repository/Scene/Rain"
 
 			half4 fragment(Varyings IN) : SV_Target 
 			{
-				float backDepthVS = CalcSceneDepth(IN.ScreenPosition);
-				float4 mask = _RainOpacities * saturate((backDepthVS - _RainDepthStart) / max(_RainDepthRange, 0.1));
-				float2 maskLowUV = 0.5 * IN.ScreenPosition.xy / IN.ScreenPosition.w + 0.5;
-				float4 maskLow =  SAMPLE_TEXTURE2D(_RainMaskTexture, sampler_RainMaskTexture, maskLowUV);
+				float4 maskLow =  SAMPLE_TEXTURE2D(_RainMaskTexture, sampler_RainMaskTexture, IN.ScreenPosition.xy / IN.ScreenPosition.w);
 
 				half4 layer = 0;
 				layer.x = SAMPLE_TEXTURE2D(_RainShapeTex, sampler_RainShapeTex, IN.UVLayer12.xy).r;
@@ -237,11 +230,11 @@ Shader "Code Repository/Scene/Rain"
 				layer.z = SAMPLE_TEXTURE2D(_RainShapeTex, sampler_RainShapeTex, IN.UVLayer34.xy).r;
 				layer.w = SAMPLE_TEXTURE2D(_RainShapeTex, sampler_RainShapeTex, IN.UVLayer34.zw).r;
 
-				half rainShape = dot(layer, mask * maskLow);
+				half rainShape = dot(layer, maskLow);
 				rainShape = saturate(rainShape);
 
 				half3 finalColor = _RainColor * rainShape;
-				return half4(finalColor, _RainIntensity);
+				return half4(finalColor,  _RainIntensity);
 			}
 			ENDHLSL
 		}
