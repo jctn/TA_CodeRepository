@@ -12,10 +12,11 @@ public class RainCtrl : MonoBehaviour
     public Shader RainShader;
     public Texture2D RainHeightmap;
     public Texture2D RainNoiseTexture;
-    public Texture2D RainDistortionTexture;
     public Texture2D RainShapeTexture;
 
     [Space]
+    [Range(0f, 1f)]
+    public float RainIntensity = 1;
     public Color RainColor = Color.white;
     [Header("Layer One")]
     public Vector2 RainScale_One = Vector2.one;
@@ -24,6 +25,7 @@ public class RainCtrl : MonoBehaviour
     public float DropSpeed_One = 1f;
     public float RainDepthStart_One = 0f;
     public float RainDepthRange_One = 5f;
+    public float RainOpacity_One = 1f;
 
     [Header("Layer Two")]
     public Vector2 RainScale_Two = Vector2.one * 1.5f;
@@ -32,6 +34,7 @@ public class RainCtrl : MonoBehaviour
     public float DropSpeed_Two = 1f;
     public float RainDepthStart_Two = 5f;
     public float RainDepthRange_Two = 10f;
+    public float RainOpacity_Two = 1f;
 
     [Header("Layer Three")]
     public Vector2 RainScale_Three = Vector2.one * 1.7f;
@@ -40,6 +43,7 @@ public class RainCtrl : MonoBehaviour
     public float DropSpeed_Three = 1f;
     public float RainDepthStart_Three = 15f;
     public float RainDepthRange_Three = 20f;
+    public float RainOpacity_Three = 1f;
 
     [Header("Layer Four")]
     public Vector2 RainScale_Four = Vector2.one * 2f;
@@ -48,6 +52,7 @@ public class RainCtrl : MonoBehaviour
     public float DropSpeed_Four = 1f;
     public float RainDepthStart_Four = 35f;
     public float RainDepthRange_Four = 50f;
+    public float RainOpacity_Four = 1f;
 
     const string rainSceneDepthRenderStr = "RainSceneDepthRender";
     Camera sceneDepthCam;
@@ -57,6 +62,7 @@ public class RainCtrl : MonoBehaviour
     Material mRainMat;
     public Material RainMaterial { get { return mRainMat; } }
 
+    static readonly int id_RainIntensity = Shader.PropertyToID("_RainIntensity");
     static readonly int id_RainColor = Shader.PropertyToID("_RainColor");
     static readonly int id_RainShapeTex = Shader.PropertyToID("_RainShapeTex");
     static readonly int id_RainScale_Layer12 = Shader.PropertyToID("_RainScale_Layer12");
@@ -66,7 +72,9 @@ public class RainCtrl : MonoBehaviour
     static readonly int id_DropSpeed = Shader.PropertyToID("_DropSpeed");
     static readonly int id_RainDepthStart = Shader.PropertyToID("_RainDepthStart");
     static readonly int id_RainDepthRange = Shader.PropertyToID("_RainDepthRange");
+    static readonly int id_RainOpacities = Shader.PropertyToID("_RainOpacities");
     static readonly int id_RainHeightmap = Shader.PropertyToID("_RainHeightmap");
+    static readonly int id_NoiseTexture = Shader.PropertyToID("_NoiseTexture");
     static readonly int id_SceneDepthCamMatrixVP = Shader.PropertyToID("_SceneDepthCamMatrixVP");
 
     static RainCtrl instance;
@@ -113,6 +121,7 @@ public class RainCtrl : MonoBehaviour
     void UpdateRainMat()
     {
         if (mRainMat == null) return;
+        mRainMat.SetFloat(id_RainIntensity, RainIntensity);
         mRainMat.SetColor(id_RainColor, RainColor);
         mRainMat.SetTexture(id_RainShapeTex, RainShapeTexture);
         mRainMat.SetVector(id_RainScale_Layer12, new Vector4(RainScale_One.x, RainScale_One.y, RainScale_Two.x, RainScale_Two.y));
@@ -122,7 +131,9 @@ public class RainCtrl : MonoBehaviour
         mRainMat.SetVector(id_DropSpeed, new Vector4(DropSpeed_One, DropSpeed_Two, DropSpeed_Three, DropSpeed_Four));
         mRainMat.SetVector(id_RainDepthStart, new Vector4(RainDepthStart_One, RainDepthStart_Two, RainDepthStart_Three, RainDepthStart_Four));
         mRainMat.SetVector(id_RainDepthRange, new Vector4(RainDepthRange_One, RainDepthRange_Two, RainDepthRange_Three, RainDepthRange_Four));
+        mRainMat.SetVector(id_RainOpacities, new Vector4(RainOpacity_One, RainOpacity_Two, RainOpacity_Three, RainOpacity_Four));
         mRainMat.SetTexture(id_RainHeightmap, RainHeightmap);
+        mRainMat.SetTexture(id_NoiseTexture, RainNoiseTexture);
     }
 
     void DisposeCreatedRes()
@@ -164,8 +175,8 @@ public class RainCtrl : MonoBehaviour
 
     void BeginCameraRendering(ScriptableRenderContext context, Camera camera)
     {
-        //if (camera == Camera.main || camera.cameraType == CameraType.SceneView)
-        if (camera == Camera.main)
+        if (camera == Camera.main || camera.cameraType == CameraType.SceneView)
+        //if (camera == Camera.main)
         {
             if (sceneDepthCam == null)
             {

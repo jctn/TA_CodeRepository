@@ -50,7 +50,7 @@ public class RainFeature : ScriptableRendererFeature
                 CommandBuffer cmd = CommandBufferPool.Get(CMDSTR);
                 Matrix4x4 matrix = Matrix4x4.identity;
                 Camera curCam = renderingData.cameraData.camera;
-                matrix.SetTRS(curCam.transform.position, Quaternion.Euler(90f, 0f, 0f), Vector3.one * 2f);
+                matrix.SetTRS(curCam.transform.position, Quaternion.Euler(90f, 0f, 0f), Vector3.one * 100f);
                 cmd.DrawMesh(postProcessingMesh, matrix, RainCtrl.Instance.RainMaterial, 0, 0);
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
@@ -69,28 +69,12 @@ public class RainFeature : ScriptableRendererFeature
 
     class RainMergePass : ScriptableRenderPass
     {
-        const string CMDSTR = "Rain";
-        RenderTargetHandle mTemporaryColorTexture;
-        RenderTargetIdentifier mSource;
+        const string CMDSTR = "Rain Merge";
+        Mesh postProcessingMesh;
 
-        public RainMergePass()
+        public void Setup(Mesh ppMesh)
         {
-            mTemporaryColorTexture.Init("_RainTemporaryColorTexture");
-        }
-
-        public void Setup(RenderTargetIdentifier source)
-        {
-            mSource = source;
-        }
-
-        RenderTextureDescriptor GetDescriptor(RenderTextureDescriptor descriptor, int width, int height)
-        {
-            RenderTextureDescriptor desc = descriptor;
-            desc.msaaSamples = 1;
-            desc.depthBufferBits = 0;
-            desc.width = width;
-            desc.height = height;
-            return desc;
+            postProcessingMesh = ppMesh;
         }
 
 
@@ -98,13 +82,12 @@ public class RainFeature : ScriptableRendererFeature
         {
             try
             {
-                if (RainCtrl.Instance == null || RainCtrl.Instance.RainMaterial == null) return;
+                if (postProcessingMesh == null || RainCtrl.Instance == null || RainCtrl.Instance.RainMaterial == null) return;
                 CommandBuffer cmd = CommandBufferPool.Get(CMDSTR);
-                RenderTextureDescriptor camDesc = renderingData.cameraData.cameraTargetDescriptor;
-                RenderTextureDescriptor desc = GetDescriptor(camDesc, camDesc.width, camDesc.height);
-                cmd.GetTemporaryRT(mTemporaryColorTexture.id, desc, FilterMode.Bilinear);
-                cmd.Blit(mSource, mTemporaryColorTexture.Identifier(), RainCtrl.Instance.RainMaterial, 0); //有load操作，后续优化
-                cmd.Blit(mTemporaryColorTexture.Identifier(), mSource);
+                Matrix4x4 matrix = Matrix4x4.identity;
+                Camera curCam = renderingData.cameraData.camera;
+                matrix.SetTRS(curCam.transform.position, Quaternion.Euler(90f, 0f, 0f), Vector3.one * 100f);
+                cmd.DrawMesh(postProcessingMesh, matrix, RainCtrl.Instance.RainMaterial, 0, 1);
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
             }
@@ -112,11 +95,6 @@ public class RainFeature : ScriptableRendererFeature
             {
                 Debug.LogError("RainMerge feature is error" + e);
             }
-        }
-
-        public override void FrameCleanup(CommandBuffer cmd)
-        {
-            cmd.ReleaseTemporaryRT(mTemporaryColorTexture.id);
         }
     }
 
@@ -127,10 +105,14 @@ public class RainFeature : ScriptableRendererFeature
 
     public override void Create()
     {
-        rainMaskPass = new RainMaskPass();
-        rainMaskPass.renderPassEvent = RenderPassEvent.AfterRenderingTransparents;
-        mRainMergePass = new RainMergePass();
-        mRainMergePass.renderPassEvent = RenderPassEvent.BeforeRenderingPostProcessing;
+        rainMaskPass = new RainMaskPass
+        {
+            renderPassEvent = RenderPassEvent.AfterRenderingTransparents
+        };
+        mRainMergePass = new RainMergePass
+        {
+            renderPassEvent = RenderPassEvent.BeforeRenderingPostProcessing
+        };
 #if UNITY_EDITOR
         RainSceneDepthRenderData rainSceneDepthRender = PipelineUtilities.GetRenderer<RainSceneDepthRenderData>(rainSceneDepthRenderStr, nameof(RainSceneDepthRenderData));
         PipelineUtilities.ValidatePipelineRenderers(rainSceneDepthRender);
@@ -145,8 +127,8 @@ public class RainFeature : ScriptableRendererFeature
         {
             rainMaskPass.Setup(RainPostProcessingMesh);
             renderer.EnqueuePass(rainMaskPass);
-            //mRainMergePass.Setup(renderer.cameraColorTarget);
-            //renderer.EnqueuePass(mRainMergePass);
+            mRainMergePass.Setup(RainPostProcessingMesh);
+            renderer.EnqueuePass(mRainMergePass);
         }
     }
 }

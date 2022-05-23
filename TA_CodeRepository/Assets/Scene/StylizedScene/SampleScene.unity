@@ -417,7 +417,6 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 1
   m_VolumeTrigger: {fileID: 0}
-  m_VolumeFrameworkUpdateModeOption: 2
   m_RenderPostProcessing: 1
   m_Antialiasing: 0
   m_AntialiasingQuality: 2
@@ -1132,10 +1131,9 @@ MonoBehaviour:
   RainSceneDepthRenderIndex: 1
   RainShader: {fileID: 4800000, guid: 5b3acf381703e1c48b6d4111dd522a82, type: 3}
   RainHeightmap: {fileID: 2800000, guid: 457ac338a069174408117414424cc6ba, type: 3}
-  RainNoiseTexture: {fileID: 2800000, guid: 16c37c2da08d72e4eb94c75efe12fad4, type: 3}
-  RainDistortionTexture: {fileID: 2800000, guid: 5073e632a51641143b5cf04dd8b5338c,
-    type: 3}
+  RainNoiseTexture: {fileID: 2800000, guid: 5073e632a51641143b5cf04dd8b5338c, type: 3}
   RainShapeTexture: {fileID: 2800000, guid: c984d4eb3cf897544aec2b9cd2fcdf83, type: 3}
+  RainIntensity: 1
   RainColor: {r: 1, g: 1, b: 1, a: 1}
   RainScale_One: {x: 2, y: 0.5}
   RotateSpeed_One: 0.5
@@ -1143,24 +1141,28 @@ MonoBehaviour:
   DropSpeed_One: 30
   RainDepthStart_One: 0
   RainDepthRange_One: 10
+  RainOpacity_One: 1
   RainScale_Two: {x: 2.3, y: 0.5}
   RotateSpeed_Two: 0.6
   RotateAmount_Two: 1
   DropSpeed_Two: 25
   RainDepthStart_Two: 10
   RainDepthRange_Two: 15
+  RainOpacity_Two: 1
   RainScale_Three: {x: 2.5, y: 1.5}
   RotateSpeed_Three: 0.5
   RotateAmount_Three: 0.5
   DropSpeed_Three: 30
   RainDepthStart_Three: 25
   RainDepthRange_Three: 30
+  RainOpacity_Three: 1
   RainScale_Four: {x: 2.5, y: 2}
   RotateSpeed_Four: 0.6
   RotateAmount_Four: 1
   DropSpeed_Four: 30
   RainDepthStart_Four: 55
   RainDepthRange_Four: 45
+  RainOpacity_Four: 1
 --- !u!1 &1533023878
 GameObject:
   m_ObjectHideFlags: 0
