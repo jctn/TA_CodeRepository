@@ -57,7 +57,8 @@ public class RainCtrl : MonoBehaviour
     Camera sceneDepthCam;
     RenderTexture sceneDepthTex;
     int sceneDepthTexSize = 512;
-    float sceneDepthDistance = 100f;
+    float sceneDepthRadius = 100f;
+    float sceneDepthHeigth = 100f;
     Material mRainMat;
     public Material RainMaterial { get { return mRainMat; } }
 
@@ -183,6 +184,7 @@ public class RainCtrl : MonoBehaviour
                 sceneDepthCam = go.AddComponent<Camera>();
                 sceneDepthCam.enabled = false;
                 sceneDepthCam.orthographic = true;
+                sceneDepthCam.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
                 UniversalAdditionalCameraData destAdditionalData = sceneDepthCam.GetUniversalAdditionalCameraData();
                 if (destAdditionalData != null && RainSceneDepthRenderIndex >= 0)
                 {
@@ -212,60 +214,98 @@ public class RainCtrl : MonoBehaviour
     {
         if (camera == null || sceneDepthCam == null) return;
         sceneDepthCam.cullingMask = camera.cullingMask;
-        GetViewFrustumBox(camera, sceneDepthDistance, out Vector3 min, out Vector3 max);
         sceneDepthCam.nearClipPlane = 1f;
-        sceneDepthCam.farClipPlane = Mathf.Max(max.y - min.y, 0.1f) + sceneDepthCam.nearClipPlane;
-        sceneDepthCam.orthographicSize = 0.5f * Mathf.Max(max.x - min.x, 0.1f) / sceneDepthCam.aspect;
-
-        sceneDepthCam.transform.position = camera.transform.position + camera.transform.forward * sceneDepthCam.orthographicSize + camera.transform.up * (sceneDepthCam.farClipPlane - sceneDepthCam.nearClipPlane) * 0.5f;
-        //sceneDepthCam.transform.rotation = Quaternion.LookRotation(-camera.transform.up);
-        sceneDepthCam.transform.rotation = camera.transform.rotation;
-        sceneDepthCam.transform.Rotate(camera.transform.right, 90f, Space.World);
+        sceneDepthCam.farClipPlane = 1f + sceneDepthHeigth *1.5f;
+        sceneDepthCam.orthographicSize = sceneDepthRadius;
+        Vector3 pos = camera.transform.position;
+        pos.y += sceneDepthHeigth;
+        sceneDepthCam.transform.position = pos;
         Shader.SetGlobalMatrix(id_SceneDepthCamMatrixVP, sceneDepthCam.projectionMatrix * sceneDepthCam.worldToCameraMatrix);//在Unity中，投影矩阵遵循OpenGL;
     }
+    //void UpdateDepthCamera(Camera camera)
+    //{
+    //    if (camera == null || sceneDepthCam == null) return;
+    //    sceneDepthCam.cullingMask = camera.cullingMask;
+    //    GetViewFrustumBox(camera, sceneDepthRadius, out Vector3 min, out Vector3 max);
+    //    sceneDepthCam.nearClipPlane = 1f;
+    //    sceneDepthCam.farClipPlane = Mathf.Max(max.y - min.y, 0.1f) + sceneDepthCam.nearClipPlane;
+    //    sceneDepthCam.orthographicSize = 0.5f * Mathf.Max(Mathf.Max(max.x - min.x, max.z - min.z), 0.1f);
 
-    void GetViewFrustumBox(Camera camera, float distance, out Vector3 min, out Vector3 max)
-    {
-        if (camera == null)
-        {
-            min = Vector3.one;
-            max = Vector3.one;
-            return;
-        }
-        float near = camera.nearClipPlane;
-        float fov = Mathf.Deg2Rad * camera.fieldOfView;
-        float aspect = camera.aspect;
-        Vector3 forward = camera.transform.forward;
-        Vector3 right = camera.transform.right;
-        Vector3 up = camera.transform.up;
+    //    Vector3 pos = (max + min) * 0.5f;
+    //    pos.y = min.y + sceneDepthCam.farClipPlane;
+    //    sceneDepthCam.transform.position = pos;
+    //    Shader.SetGlobalMatrix(id_SceneDepthCamMatrixVP, sceneDepthCam.projectionMatrix * sceneDepthCam.worldToCameraMatrix);//在Unity中，投影矩阵遵循OpenGL;
+    //}
 
-        float halfHeight = near * Mathf.Tan(fov / 2f); //近裁剪面
-        float halfWidth = halfHeight * aspect;
-        Vector3 toTop = up * halfHeight;
-        Vector3 toRight = right * halfWidth;
+    //void GetViewFrustumBox(Camera camera, float distance, out Vector3 min, out Vector3 max)
+    //{
+    //    if (camera == null)
+    //    {
+    //        min = Vector3.one;
+    //        max = Vector3.one;
+    //        return;
+    //    }
+    //    float near = camera.nearClipPlane;
+    //    float fov = Mathf.Deg2Rad * camera.fieldOfView;
+    //    float aspect = camera.aspect;
+    //    Vector3 forward = camera.transform.forward;
+    //    Vector3 right = camera.transform.right;
+    //    Vector3 up = camera.transform.up;
+    //    Vector3 pos = camera.transform.position;
 
-        Vector3 toTopLeft = forward + toTop - toRight; //近裁剪面
-        Vector3 toBottomLeft = forward - toTop - toRight;
-        Vector3 toTopRight = forward + toTop + toRight;
-        Vector3 toBottomRight = forward - toTop + toRight;
+    //    float halfHeight = near * Mathf.Tan(fov / 2f); //近裁剪面
+    //    float halfWidth = halfHeight * aspect;
+    //    Vector3 toTop = up * halfHeight;
+    //    Vector3 toRight = right * halfWidth;
 
-        float f = distance / near;
-        Vector3 toTopLeftFar = f * toTopLeft; //相似三角形
-        Vector3 toBottomLeftFar = f * toBottomLeft;
-        Vector3 toTopRightFar = f * toTopRight;
-        Vector3 toBottomRightFar = f * toBottomRight;
+    //    Vector3 toTopLeft = forward + toTop - toRight; //近裁剪面
+    //    Vector3 toBottomLeft = forward - toTop - toRight;
+    //    Vector3 toTopRight = forward + toTop + toRight;
+    //    Vector3 toBottomRight = forward - toTop + toRight;
 
-        min = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
-        max = new Vector3(float.MinValue, float.MinValue, float.MinValue);
+    //    float f = distance / near;
+    //    Vector3 toTopLeftFar = f * toTopLeft; //相似三角形
+    //    Vector3 toBottomLeftFar = f * toBottomLeft;
+    //    Vector3 toTopRightFar = f * toTopRight;
+    //    Vector3 toBottomRightFar = f * toBottomRight;
 
-        min = Vector3.Min(min, toTopLeftFar);
-        min = Vector3.Min(min, toBottomLeftFar);
-        min = Vector3.Min(min, toTopRightFar);
-        min = Vector3.Min(min, toBottomRightFar);
+    //    Vector3 toTopLeftNear = toTopLeftFar;
+    //    toTopLeftNear.z = 0f;
+    //    Vector3 toBottomLeftNear = toBottomLeftFar;
+    //    toBottomLeftNear.z = 0f;
+    //    Vector3 toTopRightNear = toTopRightFar;
+    //    toTopRightNear.z = 0f;
+    //    Vector3 toBottomRightNear = toBottomRightFar;
+    //    toBottomRightNear.z = 0f;
 
-        max = Vector3.Max(max, toTopLeftFar);
-        max = Vector3.Max(max, toBottomLeftFar);
-        max = Vector3.Max(max, toTopRightFar);
-        max = Vector3.Max(max, toBottomRightFar);
-    }
+    //    toTopLeftFar += pos;
+    //    toBottomLeftFar += pos;
+    //    toTopRightFar += pos;
+    //    toBottomRightFar += pos;
+    //    toTopLeftNear += pos;
+    //    toBottomLeftNear += pos;
+    //    toTopRightNear += pos;
+    //    toBottomRightNear += pos;
+
+    //    min = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
+    //    max = new Vector3(float.MinValue, float.MinValue, float.MinValue);
+
+    //    min = Vector3.Min(min, toTopLeftFar);
+    //    min = Vector3.Min(min, toBottomLeftFar);
+    //    min = Vector3.Min(min, toTopRightFar);
+    //    min = Vector3.Min(min, toBottomRightFar);
+    //    min = Vector3.Min(min, toTopLeftNear);
+    //    min = Vector3.Min(min, toBottomLeftNear);
+    //    min = Vector3.Min(min, toTopRightNear);
+    //    min = Vector3.Min(min, toBottomRightNear);
+
+    //    max = Vector3.Max(max, toTopLeftFar);
+    //    max = Vector3.Max(max, toBottomLeftFar);
+    //    max = Vector3.Max(max, toTopRightFar);
+    //    max = Vector3.Max(max, toBottomRightFar);
+    //    max = Vector3.Max(max, toTopLeftNear);
+    //    max = Vector3.Max(max, toBottomLeftNear);
+    //    max = Vector3.Max(max, toTopRightNear);
+    //    max = Vector3.Max(max, toBottomRightNear);
+    //}
 }

@@ -140,7 +140,7 @@ Shader "Code Repository/Scene/Rain"
 				float4 occlusionDistance = step(virtualDepth, backDepthVS);
 
 				// Calc virtual position
-				float4 depthRatio = virtualDepth / IN.ViewDirVS.z;
+				float4 depthRatio = virtualDepth / IN.ViewDirVS.w;
 				float3 virtualPosition1WS = _WorldSpaceCameraPos.xyz + IN.ViewDirVS.xyz * depthRatio.x;
 				float3 virtualPosition2WS = _WorldSpaceCameraPos.xyz + IN.ViewDirVS.xyz * depthRatio.y;
 				float3 virtualPosition3WS = _WorldSpaceCameraPos.xyz + IN.ViewDirVS.xyz * depthRatio.z;
