@@ -58,7 +58,8 @@ Shader "Code Repository/Scene/Rain"
 				#if UNITY_REVERSED_Z
 					sceneDepth = 1.0 - sceneDepth;
 				#endif
-				return step(posNDC.z, sceneDepth);
+				//return step(posNDC.z, sceneDepth);
+				return smoothstep(sceneDepth, sceneDepth - 0.02, posNDC.z);
 			}
 		ENDHLSL
 
@@ -137,7 +138,8 @@ Shader "Code Repository/Scene/Rain"
 				virtualDepth.y = SAMPLE_TEXTURE2D(_RainHeightmap, sampler_RainHeightmap, IN.UVLayer12.zw).r * _RainDepthRange.z + _RainDepthStart.y;
 				virtualDepth.z = SAMPLE_TEXTURE2D(_RainHeightmap, sampler_RainHeightmap, IN.UVLayer34.xy).r * _RainDepthRange.y + _RainDepthStart.z;
 				virtualDepth.w = SAMPLE_TEXTURE2D(_RainHeightmap, sampler_RainHeightmap, IN.UVLayer34.zw).r * _RainDepthRange.w + _RainDepthStart.w;
-				float4 occlusionDistance = step(virtualDepth, backDepthVS);
+				//float4 occlusionDistance = step(virtualDepth, backDepthVS);
+				float4 occlusionDistance = smoothstep(backDepthVS, backDepthVS - 3, virtualDepth);
 
 				// Calc virtual position
 				float4 depthRatio = virtualDepth / IN.ViewDirVS.w;
@@ -184,6 +186,7 @@ Shader "Code Repository/Scene/Rain"
 				float4 UVLayer12		: TEXCOORD1;
 				float4 UVLayer34		: TEXCOORD2;
 				float4 ScreenPosition	: TEXCOORD3;
+				half GradientFactor		: TEXCOORD4;
 			};
 
 			Varyings vertex(Attributes IN) 
@@ -217,6 +220,7 @@ Shader "Code Repository/Scene/Rain"
 				OUT.UVLayer34 = UVLayer34;
 
 				OUT.ScreenPosition = ComputeScreenPos(OUT.positionCS);
+				OUT.GradientFactor = smoothstep(1, 0.95, abs(IN.positionOS.z));
 				return OUT;
 			}
 
@@ -234,7 +238,7 @@ Shader "Code Repository/Scene/Rain"
 				rainShape = saturate(rainShape);
 
 				half3 finalColor = _RainColor * rainShape;
-				return half4(finalColor,  _RainIntensity);
+				return half4(finalColor,  _RainIntensity * IN.GradientFactor);
 			}
 			ENDHLSL
 		}
