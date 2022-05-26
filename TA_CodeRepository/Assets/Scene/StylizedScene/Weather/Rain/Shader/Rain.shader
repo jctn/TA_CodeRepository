@@ -155,7 +155,7 @@ Shader "Code Repository/Scene/Rain"
 				occlusionHeight.z = RainHeightDepthMapTest(virtualPosition3WS);
 				occlusionHeight.w = RainHeightDepthMapTest(virtualPosition4WS);
 
-				half4 maskColor = occlusionDistance * occlusionHeight;
+				half4 maskColor = occlusionDistance * occlusionHeight * _RainOpacities;
 				return maskColor;
 			}
 			ENDHLSL

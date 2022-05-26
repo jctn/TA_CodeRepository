@@ -1227,8 +1227,8 @@ MonoBehaviour:
   RainSceneDepthRenderIndex: 1
   RainShader: {fileID: 4800000, guid: 5b3acf381703e1c48b6d4111dd522a82, type: 3}
   RainHeightmap: {fileID: 2800000, guid: 457ac338a069174408117414424cc6ba, type: 3}
-  RainShapeTexture: {fileID: 2800000, guid: c984d4eb3cf897544aec2b9cd2fcdf83, type: 3}
-  RainIntensity: 0.19
+  RainShapeTexture: {fileID: 2800000, guid: a88c1f80ffee0fc46bd9bb03b9eb7480, type: 3}
+  RainIntensity: 0.496
   RainColor: {r: 1, g: 1, b: 1, a: 1}
   RainScale_One: {x: 7, y: 3}
   RotateSpeed_One: 0.5

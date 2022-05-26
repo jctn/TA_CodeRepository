@@ -24,6 +24,7 @@ public class RainCtrl : MonoBehaviour
     public float DropSpeed_One = 1f;
     public float RainDepthStart_One = 0f;
     public float RainDepthRange_One = 5f;
+    [Range(0f, 1f)]
     public float RainOpacity_One = 1f;
 
     [Header("Layer Two")]
@@ -33,6 +34,7 @@ public class RainCtrl : MonoBehaviour
     public float DropSpeed_Two = 1f;
     public float RainDepthStart_Two = 5f;
     public float RainDepthRange_Two = 10f;
+    [Range(0f, 1f)]
     public float RainOpacity_Two = 1f;
 
     [Header("Layer Three")]
@@ -42,6 +44,7 @@ public class RainCtrl : MonoBehaviour
     public float DropSpeed_Three = 1f;
     public float RainDepthStart_Three = 15f;
     public float RainDepthRange_Three = 20f;
+    [Range(0f, 1f)]
     public float RainOpacity_Three = 1f;
 
     [Header("Layer Four")]
@@ -51,6 +54,7 @@ public class RainCtrl : MonoBehaviour
     public float DropSpeed_Four = 1f;
     public float RainDepthStart_Four = 35f;
     public float RainDepthRange_Four = 50f;
+    [Range(0f, 1f)]
     public float RainOpacity_Four = 1f;
 
     const string rainSceneDepthRenderStr = "RainSceneDepthRender";
