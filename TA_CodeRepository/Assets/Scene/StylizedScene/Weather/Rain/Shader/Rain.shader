@@ -26,6 +26,10 @@ Shader "Code Repository/Scene/Rain"
 			float4 _RainOpacities;
 
 			float4x4 _SceneDepthCamMatrixVP;
+			float3 _SceneDepthCamPram; //Near,Far,Height
+
+			TEXTURE2D(_RainSplashTex);
+			SAMPLER(sampler_RainSplashTex);
 
 			TEXTURE2D(_RainHeightmap);
 			SAMPLER(sampler_RainHeightmap);
@@ -50,6 +54,17 @@ Shader "Code Repository/Scene/Rain"
 				return eyeDepth;
 			}
 
+			float GetSceneDepth(float3 posWS)
+			{
+				float4 posCS = mul(_SceneDepthCamMatrixVP, float4(posWS, 1.0));
+				float3 posNDC = 0.5 * posCS.xyz / posCS.w + 0.5;
+				float sceneDepth = SAMPLE_TEXTURE2D_LOD(_SceneDepthTex, sampler_SceneDepthTex, posNDC.xy, 0).r;
+				#if UNITY_REVERSED_Z
+					sceneDepth = 1.0 - sceneDepth;
+				#endif
+				return _SceneDepthCamPram.z - lerp(_SceneDepthCamPram.x, _SceneDepthCamPram.y, sceneDepth);
+			}
+
 			float RainHeightDepthMapTest(float3 virtualPosWS)
 			{
 				float4 posCS = mul(_SceneDepthCamMatrixVP, float4(virtualPosWS, 1.0));
@@ -62,6 +77,59 @@ Shader "Code Repository/Scene/Rain"
 				return smoothstep(sceneDepth, sceneDepth - 0.02, posNDC.z);
 			}
 		ENDHLSL
+
+		pass
+		{
+			Name "Rain Splash"
+
+			HLSLPROGRAM
+			#pragma multi_compile_instancing
+
+			#pragma vertex vertex
+			#pragma fragment fragment
+
+			UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
+				UNITY_DEFINE_INSTANCED_PROP(float, _RainSplashPosX)
+				UNITY_DEFINE_INSTANCED_PROP(float, _RainSplashPosZ)
+			UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)
+			//float _RainSplashPosX;
+			//float _RainSplashPosZ;
+
+			struct Attributes 
+			{
+				float4 positionOS		: POSITION;
+				float2 uv				: TEXCOORD0;
+				UNITY_VERTEX_INPUT_INSTANCE_ID
+			};
+
+			struct Varyings 
+			{
+				float4 positionCS 		: SV_POSITION;
+				float2 UV				: TEXCOORD0;
+				UNITY_VERTEX_INPUT_INSTANCE_ID
+			};
+
+			Varyings vertex(Attributes IN) 
+			{
+				Varyings OUT;
+				UNITY_SETUP_INSTANCE_ID(IN);
+				UNITY_TRANSFER_INSTANCE_ID(IN, OUT);
+				float rainSplashPosX = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _RainSplashPosX);
+				float rainSplashPosZ = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _RainSplashPosZ);
+				float3 posWS = float3(rainSplashPosX, GetSceneDepth(float3(rainSplashPosX, _SceneDepthCamPram.z-_SceneDepthCamPram.x, rainSplashPosZ)), rainSplashPosZ);
+				OUT.positionCS = TransformWorldToHClip(posWS);
+				OUT.UV = IN.uv;
+				return OUT;
+			}
+
+			half4 fragment(Varyings IN) : SV_Target 
+			{
+				UNITY_SETUP_INSTANCE_ID(IN);
+				half4 rainSplashColor = SAMPLE_TEXTURE2D(_RainSplashTex, sampler_RainSplashTex, IN.UV);
+				return rainSplashColor;
+			}
+			ENDHLSL
+		}
 
 		Pass
 		{

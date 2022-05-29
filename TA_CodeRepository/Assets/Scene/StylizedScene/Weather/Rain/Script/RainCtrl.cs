@@ -4,6 +4,20 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
+public class RainSplashInfo
+{
+    public float posX;
+    public float posZ;
+    public float lifeTime;
+
+    public RainSplashInfo(Vector2 posPra, float lifeTimePra)
+    {
+        posX = posPra.x;
+        posZ = posPra.y;
+        lifeTime = lifeTimePra;
+    }
+}
+
 [ExecuteAlways]
 public class RainCtrl : MonoBehaviour
 {
@@ -17,7 +31,7 @@ public class RainCtrl : MonoBehaviour
     [Range(0f, 1f)]
     public float RainIntensity = 1;
     public Color RainColor = Color.white;
-    [Header("Layer One")]
+    [Header("Raindrop Layer One")]
     public Vector2 RainScale_One = Vector2.one;
     public float RotateSpeed_One = 1f;
     public float RotateAmount_One = 0.5f;
@@ -27,7 +41,7 @@ public class RainCtrl : MonoBehaviour
     [Range(0f, 1f)]
     public float RainOpacity_One = 1f;
 
-    [Header("Layer Two")]
+    [Header("Raindrop Layer Two")]
     public Vector2 RainScale_Two = Vector2.one * 1.5f;
     public float RotateSpeed_Two = 1f;
     public float RotateAmount_Two = 0.5f;
@@ -37,7 +51,7 @@ public class RainCtrl : MonoBehaviour
     [Range(0f, 1f)]
     public float RainOpacity_Two = 1f;
 
-    [Header("Layer Three")]
+    [Header("Raindrop Layer Three")]
     public Vector2 RainScale_Three = Vector2.one * 1.7f;
     public float RotateSpeed_Three = 1f;
     public float RotateAmount_Three = 0.5f;
@@ -47,7 +61,7 @@ public class RainCtrl : MonoBehaviour
     [Range(0f, 1f)]
     public float RainOpacity_Three = 1f;
 
-    [Header("Layer Four")]
+    [Header("Raindrop Layer Four")]
     public Vector2 RainScale_Four = Vector2.one * 2f;
     public float RotateSpeed_Four = 1f;
     public float RotateAmount_Four = 0.5f;
@@ -57,14 +71,26 @@ public class RainCtrl : MonoBehaviour
     [Range(0f, 1f)]
     public float RainOpacity_Four = 1f;
 
+    [Header("RainSplash")]
+    public bool EnableRainSplash = true;
+    public float SplashDuration = 1f;
+    public int SplashCreateCountMin = 5;
+    public int SplashCreateCountMax = 10;
+
     const string rainSceneDepthRenderStr = "RainSceneDepthRender";
+    Material mRainMat;
     Camera sceneDepthCam;
     RenderTexture sceneDepthTex;
     int sceneDepthTexSize = 512;
     float sceneDepthRadius = 100f;
     float sceneDepthHeigth = 100f;
-    Material mRainMat;
+    float rainSplashRadius = 50f;
+    int splashCountMax = 100;
+    List<RainSplashInfo> rainSplashPosArr;
+    Queue<RainSplashInfo> rainSplashPosPool;
+
     public Material RainMaterial { get { return mRainMat; } }
+    public List<RainSplashInfo> RainSplashPosArr { get { return rainSplashPosArr; } }
 
     static readonly int id_RainIntensity = Shader.PropertyToID("_RainIntensity");
     static readonly int id_RainColor = Shader.PropertyToID("_RainColor");
@@ -79,6 +105,7 @@ public class RainCtrl : MonoBehaviour
     static readonly int id_RainOpacities = Shader.PropertyToID("_RainOpacities");
     static readonly int id_RainHeightmap = Shader.PropertyToID("_RainHeightmap");
     static readonly int id_SceneDepthCamMatrixVP = Shader.PropertyToID("_SceneDepthCamMatrixVP");
+    static readonly int id_SceneDepthCamPram = Shader.PropertyToID("_SceneDepthCamPram");
 
     static RainCtrl instance;
     public static RainCtrl Instance
@@ -109,6 +136,7 @@ public class RainCtrl : MonoBehaviour
     private void Update()
     {
         UpdateRainMat();
+        UpdateRainSplashPos();
     }
 
     private void OnDisable()
@@ -136,6 +164,70 @@ public class RainCtrl : MonoBehaviour
         mRainMat.SetVector(id_RainDepthRange, new Vector4(RainDepthRange_One, RainDepthRange_Two, RainDepthRange_Three, RainDepthRange_Four));
         mRainMat.SetVector(id_RainOpacities, new Vector4(RainOpacity_One, RainOpacity_Two, RainOpacity_Three, RainOpacity_Four));
         mRainMat.SetTexture(id_RainHeightmap, RainHeightmap);
+        mRainMat.enableInstancing = true;
+    }
+
+    void UpdateRainSplashPos()
+    {
+        if (EnableRainSplash)
+        {
+            if (rainSplashPosArr == null) rainSplashPosArr = new List<RainSplashInfo>();
+            //add splash
+            if (rainSplashPosArr.Count < splashCountMax)
+            {
+                int cout = Random.Range(SplashCreateCountMin, SplashCreateCountMax);
+                for (int i = 0; i < cout; i++)
+                {
+                    if (rainSplashPosArr.Count >= splashCountMax) break;
+                    Vector2 pos = Random.insideUnitCircle * rainSplashRadius + new Vector2(Camera.main.transform.position.x, Camera.main.transform.position.z);
+                    rainSplashPosArr.Add(GetRainSplash(pos));
+                }
+            }
+
+            //update splash
+            for (int i = rainSplashPosArr.Count - 1; i >= 0; i--)
+            {
+                rainSplashPosArr[i].lifeTime += Time.deltaTime;
+                if (rainSplashPosArr[i].lifeTime > SplashDuration)
+                {
+                    AddRainSplashPool(rainSplashPosArr[i]);
+                    rainSplashPosArr.RemoveAt(i);
+                }
+            }
+        }
+        else
+        {
+            if (rainSplashPosArr != null)
+            {
+                rainSplashPosArr.Clear();
+                rainSplashPosArr = null;
+            }
+            if(rainSplashPosPool != null)
+            {
+                rainSplashPosPool.Clear();
+                rainSplashPosPool = null;
+            }
+        }
+    }
+
+    void AddRainSplashPool(RainSplashInfo rainSplashInfo)
+    {
+        if (rainSplashPosPool == null) rainSplashPosPool = new Queue<RainSplashInfo> ();
+
+        if (rainSplashPosPool.Count >= splashCountMax) return;
+        rainSplashPosPool.Enqueue (rainSplashInfo);
+    }
+
+    RainSplashInfo GetRainSplash(Vector2 pos)
+    {
+        if (rainSplashPosPool == null) rainSplashPosPool = new Queue<RainSplashInfo>();
+
+        if (rainSplashPosPool.Count <= 0) return new RainSplashInfo(pos, 0f);
+        RainSplashInfo rainSplash = rainSplashPosPool.Dequeue ();
+        rainSplash.posX = pos.x;
+        rainSplash.posZ = pos.y;
+        rainSplash.lifeTime = 0f;
+        return rainSplash;
     }
 
     void DisposeCreatedRes()
@@ -219,24 +311,26 @@ public class RainCtrl : MonoBehaviour
         if (camera == null || sceneDepthCam == null) return;
         sceneDepthCam.cullingMask = camera.cullingMask;
         sceneDepthCam.nearClipPlane = 1f;
-        sceneDepthCam.farClipPlane = 1f + sceneDepthHeigth *1.5f;
+        sceneDepthCam.farClipPlane = sceneDepthHeigth * 1.5f;
         sceneDepthCam.orthographicSize = sceneDepthRadius;
         Vector3 pos = camera.transform.position;
         pos.y += sceneDepthHeigth;
         sceneDepthCam.transform.position = pos;
         Shader.SetGlobalMatrix(id_SceneDepthCamMatrixVP, sceneDepthCam.projectionMatrix * sceneDepthCam.worldToCameraMatrix);//在Unity中，投影矩阵遵循OpenGL;
+        Shader.SetGlobalVector(id_SceneDepthCamPram, new Vector4(sceneDepthCam.nearClipPlane, sceneDepthCam.farClipPlane, pos.y, 0f));
     }
+
     //void UpdateDepthCamera(Camera camera)
     //{
     //    if (camera == null || sceneDepthCam == null) return;
     //    sceneDepthCam.cullingMask = camera.cullingMask;
     //    GetViewFrustumBox(camera, sceneDepthRadius, out Vector3 min, out Vector3 max);
     //    sceneDepthCam.nearClipPlane = 1f;
-    //    sceneDepthCam.farClipPlane = Mathf.Max(max.y - min.y, 0.1f) + sceneDepthCam.nearClipPlane;
+    //    sceneDepthCam.farClipPlane = sceneDepthHeigth * 1.5f;
     //    sceneDepthCam.orthographicSize = 0.5f * Mathf.Max(Mathf.Max(max.x - min.x, max.z - min.z), 0.1f);
 
-    //    Vector3 pos = (max + min) * 0.5f;
-    //    pos.y = min.y + sceneDepthCam.farClipPlane;
+    //    Vector3 pos = camera.transform.position;
+    //    pos.y += sceneDepthHeigth;
     //    sceneDepthCam.transform.position = pos;
     //    Shader.SetGlobalMatrix(id_SceneDepthCamMatrixVP, sceneDepthCam.projectionMatrix * sceneDepthCam.worldToCameraMatrix);//在Unity中，投影矩阵遵循OpenGL;
     //}
@@ -274,13 +368,13 @@ public class RainCtrl : MonoBehaviour
     //    Vector3 toBottomRightFar = f * toBottomRight;
 
     //    Vector3 toTopLeftNear = toTopLeftFar;
-    //    toTopLeftNear.z = 0f;
+    //    toTopLeftNear.z = -toTopLeftNear.z;
     //    Vector3 toBottomLeftNear = toBottomLeftFar;
-    //    toBottomLeftNear.z = 0f;
+    //    toBottomLeftNear.z = -toBottomLeftNear.z;
     //    Vector3 toTopRightNear = toTopRightFar;
-    //    toTopRightNear.z = 0f;
+    //    toTopRightNear.z = -toTopRightNear.z;
     //    Vector3 toBottomRightNear = toBottomRightFar;
-    //    toBottomRightNear.z = 0f;
+    //    toBottomRightNear.z = -toBottomRightNear.z;
 
     //    toTopLeftFar += pos;
     //    toBottomLeftFar += pos;

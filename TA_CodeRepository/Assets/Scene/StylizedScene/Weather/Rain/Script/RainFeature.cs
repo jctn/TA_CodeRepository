@@ -6,6 +6,55 @@ using UnityEngine.Rendering.Universal;
 
 public class RainFeature : ScriptableRendererFeature
 {
+    class RainSplashPass : ScriptableRenderPass
+    {
+        const string CMDSTR = "Rain Splash";
+        Mesh rainSplashMesh;
+        MaterialPropertyBlock mMPB;
+        int id_RainSplashPosX;
+        int id_RainSplashPosZ;
+
+        public RainSplashPass()
+        {
+            mMPB = new MaterialPropertyBlock();
+            id_RainSplashPosX = Shader.PropertyToID("_RainSplashPosX");
+            id_RainSplashPosZ = Shader.PropertyToID("_RainSplashPosZ");
+        }
+
+        public void Setup(Mesh rainSplashMeshPra)
+        {
+            rainSplashMesh = rainSplashMeshPra;
+        }
+
+        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+            try
+            {
+                if (RainCtrl.Instance == null || RainCtrl.Instance.RainSplashPosArr.Count <= 0 || rainSplashMesh == null || RainCtrl.Instance.RainMaterial == null) return;
+                CommandBuffer cmd = CommandBufferPool.Get(CMDSTR);
+                mMPB.Clear();
+                Matrix4x4[] matrices = new Matrix4x4[RainCtrl.Instance.RainSplashPosArr.Count];
+                float[] posXArr = new float[RainCtrl.Instance.RainSplashPosArr.Count];
+                float[] posZArr = new float[RainCtrl.Instance.RainSplashPosArr.Count];
+                for (int i = 0; i < RainCtrl.Instance.RainSplashPosArr.Count; i++)
+                {
+                    matrices[i] = Matrix4x4.identity;
+                    posXArr[i] = RainCtrl.Instance.RainSplashPosArr[i].posX;
+                    posZArr[i] = RainCtrl.Instance.RainSplashPosArr[i].posZ;
+                }
+                mMPB.SetFloatArray(id_RainSplashPosX, posXArr);
+                mMPB.SetFloatArray(id_RainSplashPosZ, posZArr);
+                cmd.DrawMeshInstanced(rainSplashMesh, 0, RainCtrl.Instance.RainMaterial, 0, matrices, RainCtrl.Instance.RainSplashPosArr.Count, mMPB);
+                context.ExecuteCommandBuffer(cmd);
+                CommandBufferPool.Release(cmd);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError("RainSplashPass is error" + e);
+            }
+        }
+    }
+
     class RainMaskPass : ScriptableRenderPass
     {
         const string CMDSTR = "RainMask";
@@ -51,13 +100,13 @@ public class RainFeature : ScriptableRendererFeature
                 Matrix4x4 matrix = Matrix4x4.identity;
                 Camera curCam = renderingData.cameraData.camera;
                 matrix.SetTRS(curCam.transform.position, Quaternion.Euler(-90f, 0f, 0f), Vector3.one);
-                cmd.DrawMesh(postProcessingMesh, matrix, RainCtrl.Instance.RainMaterial, 0, 0);
+                cmd.DrawMesh(postProcessingMesh, matrix, RainCtrl.Instance.RainMaterial, 0, 1);
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
             }
             catch (System.Exception e)
             {
-                Debug.LogError("RainMask feature is error" + e);
+                Debug.LogError("RainMaskPass is error" + e);
             }
         }
 
@@ -87,24 +136,35 @@ public class RainFeature : ScriptableRendererFeature
                 Matrix4x4 matrix = Matrix4x4.identity;
                 Camera curCam = renderingData.cameraData.camera;
                 matrix.SetTRS(curCam.transform.position, Quaternion.Euler(-90f, 0f, 0f), Vector3.one);
-                cmd.DrawMesh(postProcessingMesh, matrix, RainCtrl.Instance.RainMaterial, 0, 1);
+                cmd.DrawMesh(postProcessingMesh, matrix, RainCtrl.Instance.RainMaterial, 0, 2);
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
             }
             catch(System.Exception e)
             {
-                Debug.LogError("RainMerge feature is error" + e);
+                Debug.LogError("RainMergePass is error" + e);
             }
         }
     }
 
     public Mesh RainPostProcessingMesh;
+    public Mesh RainSplashMesh;
+
+    RainSplashPass rainSplashPass;
     RainMaskPass rainMaskPass;
     RainMergePass mRainMergePass;
     const string rainSceneDepthRenderStr = "RainSceneDepthRender";
 
     public override void Create()
     {
+        if (RainPostProcessingMesh == null) Debug.LogError("RainPostProcessingMesh Is Null!");
+        if (RainSplashMesh == null) Debug.LogError("RainSplashMesh Is NUll!");
+
+        rainSplashPass = new RainSplashPass
+        {
+            renderPassEvent = RenderPassEvent.AfterRenderingOpaques
+        };
+
         rainMaskPass = new RainMaskPass
         {
             renderPassEvent = RenderPassEvent.AfterRenderingTransparents
@@ -121,14 +181,23 @@ public class RainFeature : ScriptableRendererFeature
 
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
-        if (RainPostProcessingMesh == null || RainCtrl.Instance == null || !RainCtrl.Instance.enabled) return;
+        if (RainCtrl.Instance == null || !RainCtrl.Instance.enabled) return;
+
         bool mainGameCam = renderingData.cameraData.camera.cameraType == CameraType.Game && renderingData.cameraData.camera == Camera.main;
         if (mainGameCam || renderingData.cameraData.camera.cameraType == CameraType.SceneView)
         {
-            rainMaskPass.Setup(RainPostProcessingMesh);
-            renderer.EnqueuePass(rainMaskPass);
-            mRainMergePass.Setup(RainPostProcessingMesh);
-            renderer.EnqueuePass(mRainMergePass);
+            if(RainPostProcessingMesh != null)
+            {
+                rainMaskPass.Setup(RainPostProcessingMesh);
+                renderer.EnqueuePass(rainMaskPass);
+                mRainMergePass.Setup(RainPostProcessingMesh);
+                renderer.EnqueuePass(mRainMergePass);
+            }
+            if(RainCtrl.Instance.EnableRainSplash && RainSplashMesh != null)
+            {
+                rainSplashPass.Setup(RainSplashMesh);
+                renderer.EnqueuePass(rainSplashPass);
+            }
         }
     }
 }
