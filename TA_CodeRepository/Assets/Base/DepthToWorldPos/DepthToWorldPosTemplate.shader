@@ -71,7 +71,7 @@ Shader "Code Repository/Base/DepthToWorldPosTemplate"
 			float3 GetPosW4(float3 rayWS, float viewZ, float2 screenPos)
 			{
 				float depthTextureValue = SAMPLE_TEXTURE2D(_CameraDepthTexture, sampler_CameraDepthTexture, screenPos).r;
-				float eyeDepth = LinearEyeDepth(depthTextureValue, _ZBufferParams); //_ZBufferParams包含反转z的操作，LinearEyeDepth只能用于投射相机
+				float eyeDepth = LinearEyeDepth(depthTextureValue, _ZBufferParams); ////0：near，1：far，_ZBufferParams包含反转z的操作，LinearEyeDepth只能用于投射相机
 				float3 targetRayWS = -(eyeDepth / viewZ) * rayWS; //targetRayWS/rayWS = eyeDepth / viewZ,相似三角形
 				float3 worldSpacePos = _WorldSpaceCameraPos + targetRayWS;
 				return worldSpacePos;
@@ -83,7 +83,7 @@ Shader "Code Repository/Base/DepthToWorldPosTemplate"
 				#if UNITY_REVERSED_Z
 					depthTextureValue = 1 - depthTextureValue;
 				#endif
-				float zView = -lerp(_ProjectionParams.y, _ProjectionParams.z, depthTextureValue);
+				float zView = -lerp(_ProjectionParams.y, _ProjectionParams.z, depthTextureValue);//0：near，1：far
 				float2 xyView = (screenPos.xy * 2 - 1) * unity_OrthoParams.xy;
 				float4 posView = float4(xyView, zView, 1);
 				return mul(UNITY_MATRIX_I_V, posView).xyz;
