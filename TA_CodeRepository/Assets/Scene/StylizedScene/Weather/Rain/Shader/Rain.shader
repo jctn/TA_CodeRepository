@@ -81,7 +81,7 @@ Shader "Code Repository/Scene/Rain"
 		pass
 		{
 			Name "Rain Splash"
-
+			Cull Off
 			HLSLPROGRAM
 			#pragma multi_compile_instancing
 
@@ -116,9 +116,10 @@ Shader "Code Repository/Scene/Rain"
 				UNITY_TRANSFER_INSTANCE_ID(IN, OUT);
 				float rainSplashPosX = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _RainSplashPosX);
 				float rainSplashPosZ = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _RainSplashPosZ);
-				float3 posWS = float3(rainSplashPosX, GetSceneDepth(float3(rainSplashPosX, _SceneDepthCamPram.z-_SceneDepthCamPram.x, rainSplashPosZ)), rainSplashPosZ);
+				//float rainSplashPosX = _RainSplashPosX;
+				//float rainSplashPosZ = _RainSplashPosZ;
+				float3 posWS = float3(rainSplashPosX, GetSceneDepth(float3(rainSplashPosX, _SceneDepthCamPram.z-_SceneDepthCamPram.x, rainSplashPosZ)), rainSplashPosZ) + TransformObjectToWorld(IN.positionOS);
 				OUT.positionCS = TransformWorldToHClip(posWS);
-				OUT.UV = IN.uv;
 				return OUT;
 			}
 

@@ -30,7 +30,6 @@ public class RainFeature : ScriptableRendererFeature
         {
             try
             {
-                if (RainCtrl.Instance == null || RainCtrl.Instance.RainSplashPosArr.Count <= 0 || rainSplashMesh == null || RainCtrl.Instance.RainMaterial == null) return;
                 CommandBuffer cmd = CommandBufferPool.Get(CMDSTR);
                 mMPB.Clear();
                 Matrix4x4[] matrices = new Matrix4x4[RainCtrl.Instance.RainSplashPosArr.Count];
@@ -95,7 +94,6 @@ public class RainFeature : ScriptableRendererFeature
         {
             try
             {
-                if (postProcessingMesh == null || RainCtrl.Instance == null || RainCtrl.Instance.RainMaterial == null) return;
                 CommandBuffer cmd = CommandBufferPool.Get(CMDSTR);
                 Matrix4x4 matrix = Matrix4x4.identity;
                 Camera curCam = renderingData.cameraData.camera;
@@ -131,7 +129,6 @@ public class RainFeature : ScriptableRendererFeature
         {
             try
             {
-                if (postProcessingMesh == null || RainCtrl.Instance == null || RainCtrl.Instance.RainMaterial == null) return;
                 CommandBuffer cmd = CommandBufferPool.Get(CMDSTR);
                 Matrix4x4 matrix = Matrix4x4.identity;
                 Camera curCam = renderingData.cameraData.camera;
@@ -181,22 +178,23 @@ public class RainFeature : ScriptableRendererFeature
 
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
-        if (RainCtrl.Instance == null || !RainCtrl.Instance.enabled) return;
+        if (RainCtrl.Instance == null || !RainCtrl.Instance.enabled || RainCtrl.Instance.RainMaterial == null) return;
 
         bool mainGameCam = renderingData.cameraData.camera.cameraType == CameraType.Game && renderingData.cameraData.camera == Camera.main;
         if (mainGameCam || renderingData.cameraData.camera.cameraType == CameraType.SceneView)
         {
-            if(RainPostProcessingMesh != null)
+            if (RainCtrl.Instance.EnableRainSplash && RainCtrl.Instance.RainSplashPosArr.Count > 0 && RainSplashMesh != null)
+            {
+                rainSplashPass.Setup(RainSplashMesh);
+                renderer.EnqueuePass(rainSplashPass);
+            }
+
+            if (RainPostProcessingMesh != null)
             {
                 rainMaskPass.Setup(RainPostProcessingMesh);
                 renderer.EnqueuePass(rainMaskPass);
                 mRainMergePass.Setup(RainPostProcessingMesh);
                 renderer.EnqueuePass(mRainMergePass);
-            }
-            if(RainCtrl.Instance.EnableRainSplash && RainSplashMesh != null)
-            {
-                rainSplashPass.Setup(RainSplashMesh);
-                renderer.EnqueuePass(rainSplashPass);
             }
         }
     }
