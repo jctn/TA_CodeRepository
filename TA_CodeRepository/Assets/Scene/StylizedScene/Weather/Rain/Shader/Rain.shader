@@ -15,6 +15,7 @@ Shader "Code Repository/Scene/Rain"
 			#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
 			half _RainIntensity;
+			half _RainOpacityInAll;
 			half3 _RainColor;
 			float4 _RainScale_Layer12;
 			float4 _RainScale_Layer34;
@@ -82,6 +83,9 @@ Shader "Code Repository/Scene/Rain"
 		{
 			Name "Rain Splash"
 			Cull Off
+			Blend SrcAlpha OneMinusSrcAlpha
+			ZWrite Off
+
 			HLSLPROGRAM
 			#pragma multi_compile_instancing
 
@@ -89,11 +93,8 @@ Shader "Code Repository/Scene/Rain"
 			#pragma fragment fragment
 
 			UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
-				UNITY_DEFINE_INSTANCED_PROP(float, _RainSplashPosX)
-				UNITY_DEFINE_INSTANCED_PROP(float, _RainSplashPosZ)
+				UNITY_DEFINE_INSTANCED_PROP(float3, _RainSplashPosIndex)
 			UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)
-			//float _RainSplashPosX;
-			//float _RainSplashPosZ;
 
 			struct Attributes 
 			{
@@ -114,12 +115,10 @@ Shader "Code Repository/Scene/Rain"
 				Varyings OUT;
 				UNITY_SETUP_INSTANCE_ID(IN);
 				UNITY_TRANSFER_INSTANCE_ID(IN, OUT);
-				float rainSplashPosX = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _RainSplashPosX);
-				float rainSplashPosZ = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _RainSplashPosZ);
-				//float rainSplashPosX = _RainSplashPosX;
-				//float rainSplashPosZ = _RainSplashPosZ;
-				float3 posWS = float3(rainSplashPosX, GetSceneDepth(float3(rainSplashPosX, _SceneDepthCamPram.z-_SceneDepthCamPram.x, rainSplashPosZ)), rainSplashPosZ) + TransformObjectToWorld(IN.positionOS);
+				float3 rainSplashPosIndex = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _RainSplashPosIndex);
+				float3 posWS = float3(rainSplashPosIndex.x, GetSceneDepth(float3(rainSplashPosIndex.x, _SceneDepthCamPram.z-_SceneDepthCamPram.x, rainSplashPosIndex.y)), rainSplashPosIndex.y) + TransformObjectToWorld(IN.positionOS);
 				OUT.positionCS = TransformWorldToHClip(posWS);
+				OUT.UV = IN.uv * 0.5 + float2(0, 0.5) + float2(rainSplashPosIndex.z % 2, -floor(rainSplashPosIndex.z / 2)) * 0.5;
 				return OUT;
 			}
 
@@ -127,6 +126,7 @@ Shader "Code Repository/Scene/Rain"
 			{
 				UNITY_SETUP_INSTANCE_ID(IN);
 				half4 rainSplashColor = SAMPLE_TEXTURE2D(_RainSplashTex, sampler_RainSplashTex, IN.UV);
+				//return rainSplashColor.r;
 				return rainSplashColor;
 			}
 			ENDHLSL
@@ -224,7 +224,7 @@ Shader "Code Repository/Scene/Rain"
 				occlusionHeight.z = RainHeightDepthMapTest(virtualPosition3WS);
 				occlusionHeight.w = RainHeightDepthMapTest(virtualPosition4WS);
 
-				half4 maskColor = occlusionDistance * occlusionHeight * _RainOpacities;
+				half4 maskColor = occlusionDistance * occlusionHeight * _RainOpacities * _RainOpacityInAll;
 				return maskColor;
 			}
 			ENDHLSL
@@ -246,6 +246,7 @@ Shader "Code Repository/Scene/Rain"
 			{
 				float4 positionOS		: POSITION;
 				float2 uv				: TEXCOORD0;
+				float3 color			: COLOR;
 			};
 
 			struct Varyings 
@@ -289,7 +290,7 @@ Shader "Code Repository/Scene/Rain"
 				OUT.UVLayer34 = UVLayer34;
 
 				OUT.ScreenPosition = ComputeScreenPos(OUT.positionCS);
-				OUT.GradientFactor = smoothstep(1, 0.95, abs(IN.positionOS.z));
+				OUT.GradientFactor = smoothstep(0, 1, IN.color);
 				return OUT;
 			}
 
@@ -302,12 +303,12 @@ Shader "Code Repository/Scene/Rain"
 				layer.y = SAMPLE_TEXTURE2D(_RainShapeTex, sampler_RainShapeTex, IN.UVLayer12.zw).r;
 				layer.z = SAMPLE_TEXTURE2D(_RainShapeTex, sampler_RainShapeTex, IN.UVLayer34.xy).r;
 				layer.w = SAMPLE_TEXTURE2D(_RainShapeTex, sampler_RainShapeTex, IN.UVLayer34.zw).r;
-
+				layer = pow(layer, _RainIntensity);
 				half rainShape = dot(layer, maskLow);
 				rainShape = saturate(rainShape);
 
 				half3 finalColor = _RainColor * rainShape;
-				return half4(finalColor,  _RainIntensity * IN.GradientFactor);
+				return half4(finalColor, IN.GradientFactor);
 			}
 			ENDHLSL
 		}

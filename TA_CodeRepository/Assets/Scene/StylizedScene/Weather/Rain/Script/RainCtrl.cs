@@ -8,13 +8,23 @@ public class RainSplashInfo
 {
     public float posX;
     public float posZ;
+    public float index;
     public float lifeTime;
+    public float timePerFrame;
+    public float indexTimeCounter;
 
     public RainSplashInfo(Vector2 posPra, float lifeTimePra)
+    {
+        Init(posPra, lifeTimePra);
+    }
+    public void Init(Vector2 posPra, float lifeTimePra)
     {
         posX = posPra.x;
         posZ = posPra.y;
         lifeTime = lifeTimePra;
+        timePerFrame = lifeTime / 4f;
+        index = 0;
+        indexTimeCounter = 0f;
     }
 }
 
@@ -26,10 +36,13 @@ public class RainCtrl : MonoBehaviour
     public Shader RainShader;
     public Texture2D RainHeightmap;
     public Texture2D RainShapeTexture;
+    public Texture2D RainSplashTex;
 
     [Space]
     [Range(0f, 1f)]
-    public float RainIntensity = 1;
+    public float RainIntensity = 1f;
+    [Range(0f, 1f)]
+    public float RainOpacityInAll = 1f;
     public Color RainColor = Color.white;
     [Header("Raindrop Layer One")]
     public Vector2 RainScale_One = Vector2.one;
@@ -99,6 +112,7 @@ public class RainCtrl : MonoBehaviour
     public List<RainSplashInfo> RainSplashPosArr { get { return rainSplashPosArr; } }
 
     static readonly int id_RainIntensity = Shader.PropertyToID("_RainIntensity");
+    static readonly int id_RainOpacityInAll = Shader.PropertyToID("_RainOpacityInAll");
     static readonly int id_RainColor = Shader.PropertyToID("_RainColor");
     static readonly int id_RainShapeTex = Shader.PropertyToID("_RainShapeTex");
     static readonly int id_RainScale_Layer12 = Shader.PropertyToID("_RainScale_Layer12");
@@ -110,6 +124,7 @@ public class RainCtrl : MonoBehaviour
     static readonly int id_RainDepthRange = Shader.PropertyToID("_RainDepthRange");
     static readonly int id_RainOpacities = Shader.PropertyToID("_RainOpacities");
     static readonly int id_RainHeightmap = Shader.PropertyToID("_RainHeightmap");
+    static readonly int id_RainSplashTex = Shader.PropertyToID("_RainSplashTex");
     static readonly int id_SceneDepthCamMatrixVP = Shader.PropertyToID("_SceneDepthCamMatrixVP");
     static readonly int id_SceneDepthCamPram = Shader.PropertyToID("_SceneDepthCamPram");
 
@@ -158,7 +173,8 @@ public class RainCtrl : MonoBehaviour
     void UpdateRainMat()
     {
         if (mRainMat == null) return;
-        mRainMat.SetFloat(id_RainIntensity, RainIntensity);
+        mRainMat.SetFloat(id_RainIntensity, Mathf.Lerp(5f, 1f, RainIntensity));
+        mRainMat.SetFloat(id_RainOpacityInAll, RainOpacityInAll);
         mRainMat.SetColor(id_RainColor, RainColor);
         mRainMat.SetTexture(id_RainShapeTex, RainShapeTexture);
         mRainMat.SetVector(id_RainScale_Layer12, new Vector4(RainScale_One.x, RainScale_One.y, RainScale_Two.x, RainScale_Two.y));
@@ -170,6 +186,7 @@ public class RainCtrl : MonoBehaviour
         mRainMat.SetVector(id_RainDepthRange, new Vector4(RainDepthRange_One, RainDepthRange_Two, RainDepthRange_Three, RainDepthRange_Four));
         mRainMat.SetVector(id_RainOpacities, new Vector4(RainOpacity_One, RainOpacity_Two, RainOpacity_Three, RainOpacity_Four));
         mRainMat.SetTexture(id_RainHeightmap, RainHeightmap);
+        mRainMat.SetTexture(id_RainSplashTex, RainSplashTex);
         mRainMat.enableInstancing = true;
     }
 
@@ -203,6 +220,15 @@ public class RainCtrl : MonoBehaviour
                     AddRainSplashPool(rainSplashPosArr[i]);
                     rainSplashPosArr.RemoveAt(i);
                 }
+                else
+                {
+                    rainSplashPosArr[i].indexTimeCounter += Time.deltaTime;
+                    if(rainSplashPosArr[i].indexTimeCounter >= rainSplashPosArr[i].timePerFrame)
+                    {
+                        rainSplashPosArr[i].indexTimeCounter -= rainSplashPosArr[i].timePerFrame;
+                        rainSplashPosArr[i].index += 1;
+                    }
+                }
             }
         }
         else
@@ -230,9 +256,7 @@ public class RainCtrl : MonoBehaviour
     {
         if (rainSplashPosPool.Count <= 0) return new RainSplashInfo(pos, lifeTime);
         RainSplashInfo rainSplash = rainSplashPosPool.Dequeue ();
-        rainSplash.posX = pos.x;
-        rainSplash.posZ = pos.y;
-        rainSplash.lifeTime = lifeTime;
+        rainSplash.Init(pos, lifeTime);
         return rainSplash;
     }
 

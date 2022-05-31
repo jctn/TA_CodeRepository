@@ -11,14 +11,12 @@ public class RainFeature : ScriptableRendererFeature
         const string CMDSTR = "Rain Splash";
         Mesh rainSplashMesh;
         MaterialPropertyBlock mMPB;
-        int id_RainSplashPosX;
-        int id_RainSplashPosZ;
+        int id_RainSplashPosIndex;
 
         public RainSplashPass()
         {
             mMPB = new MaterialPropertyBlock();
-            id_RainSplashPosX = Shader.PropertyToID("_RainSplashPosX");
-            id_RainSplashPosZ = Shader.PropertyToID("_RainSplashPosZ");
+            id_RainSplashPosIndex = Shader.PropertyToID("_RainSplashPosIndex");
         }
 
         public void Setup(Mesh rainSplashMeshPra)
@@ -33,16 +31,13 @@ public class RainFeature : ScriptableRendererFeature
                 CommandBuffer cmd = CommandBufferPool.Get(CMDSTR);
                 mMPB.Clear();
                 Matrix4x4[] matrices = new Matrix4x4[RainCtrl.Instance.RainSplashPosArr.Count];
-                float[] posXArr = new float[RainCtrl.Instance.RainSplashPosArr.Count];
-                float[] posZArr = new float[RainCtrl.Instance.RainSplashPosArr.Count];
+                Vector4[] rainSplashPosIndexArr = new Vector4[RainCtrl.Instance.RainSplashPosArr.Count];
                 for (int i = 0; i < RainCtrl.Instance.RainSplashPosArr.Count; i++)
                 {
                     matrices[i] = Matrix4x4.identity;
-                    posXArr[i] = RainCtrl.Instance.RainSplashPosArr[i].posX;
-                    posZArr[i] = RainCtrl.Instance.RainSplashPosArr[i].posZ;
+                    rainSplashPosIndexArr[i] = new Vector4(RainCtrl.Instance.RainSplashPosArr[i].posX, RainCtrl.Instance.RainSplashPosArr[i].posZ, RainCtrl.Instance.RainSplashPosArr[i].index, 0f);
                 }
-                mMPB.SetFloatArray(id_RainSplashPosX, posXArr);
-                mMPB.SetFloatArray(id_RainSplashPosZ, posZArr);
+                mMPB.SetVectorArray(id_RainSplashPosIndex, rainSplashPosIndexArr);
                 cmd.DrawMeshInstanced(rainSplashMesh, 0, RainCtrl.Instance.RainMaterial, 0, matrices, RainCtrl.Instance.RainSplashPosArr.Count, mMPB);
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);

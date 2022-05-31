@@ -26,9 +26,10 @@ MonoBehaviour:
   m_Name: RainFeature
   m_EditorClassIdentifier: 
   m_Active: 1
-  RainPostProcessingMesh: {fileID: 2198822385121339636, guid: f3b2c9fb162cb994bb8cd6a42bc2b162,
+  RainPostProcessingMesh: {fileID: 2198822385121339636, guid: 4cf53e15c68d8dd47bbf1495a4f5a84e,
     type: 3}
-  RainSplashMesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+  RainSplashMesh: {fileID: 1698299227701109266, guid: 500f2bc5d26489848a2796926f39a1aa,
+    type: 3}
 --- !u!114 &-4205172354079780217
 MonoBehaviour:
   m_ObjectHideFlags: 0
