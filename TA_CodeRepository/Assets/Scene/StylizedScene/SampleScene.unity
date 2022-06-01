@@ -1165,10 +1165,14 @@ MonoBehaviour:
   RainDepthRange_Four: 45
   RainOpacity_Four: 0.721
   EnableRainSplash: 1
-  SplashDurationMin: 0.3
-  SplashDurationMax: 0.8
-  SplashCreateCountMin: 25
-  SplashCreateCountMax: 35
+  SplashCount: 50
+  SplashPlayTime: 0.2
+  SplashIntervalMin: 0.3
+  SplashIntervalMax: 0.4
+  SplashScaleMin: 0.5
+  SplashScaleMax: 1
+  SplashOpacityMin: 0.5
+  SplashOpacityMax: 1
 --- !u!1 &1533023878
 GameObject:
   m_ObjectHideFlags: 0

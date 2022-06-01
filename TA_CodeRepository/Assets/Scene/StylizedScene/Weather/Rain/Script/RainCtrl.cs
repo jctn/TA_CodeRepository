@@ -4,30 +4,6 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
-public class RainSplashInfo
-{
-    public float posX;
-    public float posZ;
-    public float index;
-    public float lifeTime;
-    public float timePerFrame;
-    public float indexTimeCounter;
-
-    public RainSplashInfo(Vector2 posPra, float lifeTimePra)
-    {
-        Init(posPra, lifeTimePra);
-    }
-    public void Init(Vector2 posPra, float lifeTimePra)
-    {
-        posX = posPra.x;
-        posZ = posPra.y;
-        lifeTime = lifeTimePra;
-        timePerFrame = lifeTime / 4f;
-        index = 0;
-        indexTimeCounter = 0f;
-    }
-}
-
 [ExecuteAlways]
 public class RainCtrl : MonoBehaviour
 {
@@ -86,30 +62,34 @@ public class RainCtrl : MonoBehaviour
 
     [Header("RainSplash")]
     public bool EnableRainSplash = true;
-    public float SplashDurationMin = 0.5f;
-    public float SplashDurationMax = 1f;
-    public int SplashCreateCountMin = 5;
-    public int SplashCreateCountMax = 10;
+    public int SplashCount = 50;
+    public float SplashPlayTime = 0.2f; 
+    public float SplashIntervalMin = 0.3f;
+    public float SplashIntervalMax = 0.5f;
+    public float SplashScaleMin = 0.5f;
+    public float SplashScaleMax = 1f;
+    public float SplashOpacityMin = 0.5f;
+    public float SplashOpacityMax = 1f;
 
     //const
-    int sceneDepthTexSize = 512;
-    float sceneDepthRadius = 100f;
-    float sceneDepthHeigth = 100f;
-    float rainSplashRadius = 100f;
-    int splashCountMax = 100;
-    float splashCreateDurationMin = 0.5f;
-    float splashCreateDurationMax = 1.5f;
+    const int sceneDepthTexSize = 512;
+    const float sceneDepthRadius = 100f;
+    const float sceneDepthHeigth = 100f;
+    const float rainSplashRadius = 100f;
 
     const string rainSceneDepthRenderStr = "RainSceneDepthRender";
     Material mRainMat;
     Camera sceneDepthCam;
     RenderTexture sceneDepthTex;
-    List<RainSplashInfo> rainSplashPosArr = new List<RainSplashInfo>();
-    Queue<RainSplashInfo> rainSplashPosPool = new Queue<RainSplashInfo>();
-    float splashTimeCounter = 0f;
+    Vector4[] splashInfo_1;//pos.xz,scale,index
+    float[] splashInfo_2;  //opacity
+    Vector2[] splashTimeCounter; //interval, timecounter
+    Matrix4x4[] splashMatrix;
 
     public Material RainMaterial { get { return mRainMat; } }
-    public List<RainSplashInfo> RainSplashPosArr { get { return rainSplashPosArr; } }
+    public Vector4[] SplashInfo_1 { get { return splashInfo_1; } }
+    public float[] SplashInfo_2 { get { return splashInfo_2; } }
+    public Matrix4x4[] SplashMatrix { get { return splashMatrix; } }
 
     static readonly int id_RainIntensity = Shader.PropertyToID("_RainIntensity");
     static readonly int id_RainOpacityInAll = Shader.PropertyToID("_RainOpacityInAll");
@@ -140,7 +120,9 @@ public class RainCtrl : MonoBehaviour
         if(RainShader != null)
         {
             mRainMat = new Material(RainShader);
+            mRainMat.enableInstancing = true;
         }
+        InitRainSplash();
 
 #if UNITY_EDITOR
         RainSceneDepthRenderData rainSceneDepthRender = PipelineUtilities.GetRenderer<RainSceneDepthRenderData>(rainSceneDepthRenderStr, nameof(RainSceneDepthRenderData));
@@ -157,7 +139,7 @@ public class RainCtrl : MonoBehaviour
     private void Update()
     {
         UpdateRainMat();
-        UpdateRainSplashPos();
+        UpdateRainSplash();
     }
 
     private void OnDisable()
@@ -187,77 +169,52 @@ public class RainCtrl : MonoBehaviour
         mRainMat.SetVector(id_RainOpacities, new Vector4(RainOpacity_One, RainOpacity_Two, RainOpacity_Three, RainOpacity_Four));
         mRainMat.SetTexture(id_RainHeightmap, RainHeightmap);
         mRainMat.SetTexture(id_RainSplashTex, RainSplashTex);
-        mRainMat.enableInstancing = true;
     }
 
-    void UpdateRainSplashPos()
+    void InitRainSplash()
     {
-        if (EnableRainSplash)
+        if(EnableRainSplash)
         {
-            //add splash
-            if (rainSplashPosArr.Count < splashCountMax)
-            {               
-                if(splashTimeCounter <= 0f)
-                {
-                    splashTimeCounter = Random.Range(splashCreateDurationMin, splashCreateDurationMax);
-                    int cout = Random.Range(SplashCreateCountMin, SplashCreateCountMax);
-                    for (int i = 0; i < cout; i++)
-                    {
-                        if (rainSplashPosArr.Count >= splashCountMax) break;
-                        Vector2 pos = Random.insideUnitCircle * rainSplashRadius + new Vector2(Camera.main.transform.position.x, Camera.main.transform.position.z);
-                        rainSplashPosArr.Add(GetRainSplash(pos, Random.Range(SplashDurationMin, SplashDurationMax)));
-                    }
-                }
-                splashTimeCounter -= Time.deltaTime;
+            splashInfo_1 = new Vector4[SplashCount];
+            splashInfo_2 = new float[SplashCount];
+            splashTimeCounter = new Vector2[SplashCount];
+            splashMatrix = new Matrix4x4[SplashCount];
+            for (int i = 0; i < SplashCount; i++)
+            {
+                splashMatrix[i] = Matrix4x4.identity;
+            }
+        }
+    }
+
+    void UpdateRainSplash()
+    {
+        if(EnableRainSplash)
+        {
+            if (splashInfo_1 == null || splashInfo_1.Length != SplashCount)
+            {
+                InitRainSplash();
             }
 
-            //update splash
-            for (int i = rainSplashPosArr.Count - 1; i >= 0; i--)
+            for (int i = 0; i < SplashCount; i++)
             {
-                rainSplashPosArr[i].lifeTime -= Time.deltaTime;
-                if (rainSplashPosArr[i].lifeTime <= 0f)
+                if (splashTimeCounter[i].y >= splashTimeCounter[i].x)
                 {
-                    AddRainSplashPool(rainSplashPosArr[i]);
-                    rainSplashPosArr.RemoveAt(i);
+                    splashTimeCounter[i].x = Random.Range(SplashIntervalMin, SplashIntervalMax);
+                    splashTimeCounter[i].y = 0f;
+                    Vector2 pos = Random.insideUnitCircle * rainSplashRadius;
+                    splashInfo_1[i].x = pos.x + Camera.main.transform.position.x;
+                    splashInfo_1[i].y = pos.y + Camera.main.transform.position.z;
+                    splashInfo_1[i].z = Random.Range(SplashScaleMin, SplashScaleMax);
+                    splashInfo_1[i].w = 0f;
+                    splashInfo_2[i] = Random.Range(SplashOpacityMin, SplashOpacityMax);
                 }
                 else
                 {
-                    rainSplashPosArr[i].indexTimeCounter += Time.deltaTime;
-                    if(rainSplashPosArr[i].indexTimeCounter >= rainSplashPosArr[i].timePerFrame)
-                    {
-                        rainSplashPosArr[i].indexTimeCounter -= rainSplashPosArr[i].timePerFrame;
-                        rainSplashPosArr[i].index += 1;
-                    }
+                    splashTimeCounter[i].y += Time.deltaTime;
+                    splashInfo_1[i].w = Mathf.Floor(splashTimeCounter[i].y / SplashPlayTime);
                 }
             }
         }
-        else
-        {
-            if (rainSplashPosArr != null)
-            {
-                rainSplashPosArr.Clear();
-                rainSplashPosArr = null;
-            }
-            if(rainSplashPosPool != null)
-            {
-                rainSplashPosPool.Clear();
-                rainSplashPosPool = null;
-            }
-        }
-    }
-
-    void AddRainSplashPool(RainSplashInfo rainSplashInfo)
-    {
-        if (rainSplashPosPool.Count >= splashCountMax) return;
-        rainSplashPosPool.Enqueue (rainSplashInfo);
-    }
-
-    RainSplashInfo GetRainSplash(Vector2 pos, float lifeTime)
-    {
-        if (rainSplashPosPool.Count <= 0) return new RainSplashInfo(pos, lifeTime);
-        RainSplashInfo rainSplash = rainSplashPosPool.Dequeue ();
-        rainSplash.Init(pos, lifeTime);
-        return rainSplash;
     }
 
     void DisposeCreatedRes()

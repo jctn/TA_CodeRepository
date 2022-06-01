@@ -11,12 +11,14 @@ public class RainFeature : ScriptableRendererFeature
         const string CMDSTR = "Rain Splash";
         Mesh rainSplashMesh;
         MaterialPropertyBlock mMPB;
-        int id_RainSplashPosIndex;
+        int id_SplashInfo_1;
+        int id_SplashInfo_2;
 
         public RainSplashPass()
         {
             mMPB = new MaterialPropertyBlock();
-            id_RainSplashPosIndex = Shader.PropertyToID("_RainSplashPosIndex");
+            id_SplashInfo_1 = Shader.PropertyToID("_SplashInfo_1");
+            id_SplashInfo_2 = Shader.PropertyToID("_SplashInfo_2");
         }
 
         public void Setup(Mesh rainSplashMeshPra)
@@ -30,15 +32,9 @@ public class RainFeature : ScriptableRendererFeature
             {
                 CommandBuffer cmd = CommandBufferPool.Get(CMDSTR);
                 mMPB.Clear();
-                Matrix4x4[] matrices = new Matrix4x4[RainCtrl.Instance.RainSplashPosArr.Count];
-                Vector4[] rainSplashPosIndexArr = new Vector4[RainCtrl.Instance.RainSplashPosArr.Count];
-                for (int i = 0; i < RainCtrl.Instance.RainSplashPosArr.Count; i++)
-                {
-                    matrices[i] = Matrix4x4.identity;
-                    rainSplashPosIndexArr[i] = new Vector4(RainCtrl.Instance.RainSplashPosArr[i].posX, RainCtrl.Instance.RainSplashPosArr[i].posZ, RainCtrl.Instance.RainSplashPosArr[i].index, 0f);
-                }
-                mMPB.SetVectorArray(id_RainSplashPosIndex, rainSplashPosIndexArr);
-                cmd.DrawMeshInstanced(rainSplashMesh, 0, RainCtrl.Instance.RainMaterial, 0, matrices, RainCtrl.Instance.RainSplashPosArr.Count, mMPB);
+                mMPB.SetVectorArray(id_SplashInfo_1, RainCtrl.Instance.SplashInfo_1);
+                mMPB.SetFloatArray(id_SplashInfo_2, RainCtrl.Instance.SplashInfo_2);
+                cmd.DrawMeshInstanced(rainSplashMesh, 0, RainCtrl.Instance.RainMaterial, 0, RainCtrl.Instance.SplashMatrix, RainCtrl.Instance.SplashCount, mMPB);
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
             }
@@ -178,7 +174,7 @@ public class RainFeature : ScriptableRendererFeature
         bool mainGameCam = renderingData.cameraData.camera.cameraType == CameraType.Game && renderingData.cameraData.camera == Camera.main;
         if (mainGameCam || renderingData.cameraData.camera.cameraType == CameraType.SceneView)
         {
-            if (RainCtrl.Instance.EnableRainSplash && RainCtrl.Instance.RainSplashPosArr.Count > 0 && RainSplashMesh != null)
+            if (RainCtrl.Instance.EnableRainSplash && RainCtrl.Instance.SplashInfo_1 != null && RainSplashMesh != null)
             {
                 rainSplashPass.Setup(RainSplashMesh);
                 renderer.EnqueuePass(rainSplashPass);

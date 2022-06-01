@@ -93,7 +93,8 @@ Shader "Code Repository/Scene/Rain"
 			#pragma fragment fragment
 
 			UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
-				UNITY_DEFINE_INSTANCED_PROP(float3, _RainSplashPosIndex)
+				UNITY_DEFINE_INSTANCED_PROP(float4, _SplashInfo_1)//pos.xz,scale,index
+				UNITY_DEFINE_INSTANCED_PROP(half, _SplashInfo_2) //opacity
 			UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)
 
 			struct Attributes 
@@ -115,10 +116,10 @@ Shader "Code Repository/Scene/Rain"
 				Varyings OUT;
 				UNITY_SETUP_INSTANCE_ID(IN);
 				UNITY_TRANSFER_INSTANCE_ID(IN, OUT);
-				float3 rainSplashPosIndex = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _RainSplashPosIndex);
-				float3 posWS = float3(rainSplashPosIndex.x, GetSceneDepth(float3(rainSplashPosIndex.x, _SceneDepthCamPram.z-_SceneDepthCamPram.x, rainSplashPosIndex.y)), rainSplashPosIndex.y) + TransformObjectToWorld(IN.positionOS);
+				float4 splashInfo_1 = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _SplashInfo_1);
+				float3 posWS = float3(splashInfo_1.x, GetSceneDepth(float3(splashInfo_1.x, _SceneDepthCamPram.z-_SceneDepthCamPram.x, splashInfo_1.y)), splashInfo_1.y) + TransformObjectToWorld(IN.positionOS * splashInfo_1.z);
 				OUT.positionCS = TransformWorldToHClip(posWS);
-				OUT.UV = IN.uv * 0.5 + float2(0, 0.5) + float2(rainSplashPosIndex.z % 2, -floor(rainSplashPosIndex.z / 2)) * 0.5;
+				OUT.UV = IN.uv * 0.5 + float2(0, 0.5) + float2(splashInfo_1.w % 2, -floor(splashInfo_1.w / 2)) * 0.5;
 				return OUT;
 			}
 
@@ -126,7 +127,7 @@ Shader "Code Repository/Scene/Rain"
 			{
 				UNITY_SETUP_INSTANCE_ID(IN);
 				half4 rainSplashColor = SAMPLE_TEXTURE2D(_RainSplashTex, sampler_RainSplashTex, IN.UV);
-				//return rainSplashColor.r;
+				rainSplashColor.a *= UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _SplashInfo_2);
 				return rainSplashColor;
 			}
 			ENDHLSL
