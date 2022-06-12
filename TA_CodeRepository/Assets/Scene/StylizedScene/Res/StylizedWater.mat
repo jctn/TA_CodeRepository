@@ -48,7 +48,7 @@ Material:
     - _BumpScale: 1
     - _CausticsDepthRange: 10.32
     - _CausticsFlowSpeed: 1
-    - _CausticsIntensity: 5
+    - _CausticsIntensity: 2
     - _CausticsScale: 10
     - _CausticsShallowRange: 1.5
     - _CausticsSmoothDepth: 1
