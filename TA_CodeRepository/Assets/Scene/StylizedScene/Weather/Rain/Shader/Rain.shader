@@ -117,7 +117,8 @@ Shader "Code Repository/Scene/Rain"
 				UNITY_SETUP_INSTANCE_ID(IN);
 				UNITY_TRANSFER_INSTANCE_ID(IN, OUT);
 				float4 splashInfo_1 = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _SplashInfo_1);
-				float3 posWS = float3(splashInfo_1.x, GetSceneDepth(float3(splashInfo_1.x, _SceneDepthCamPram.z-_SceneDepthCamPram.x, splashInfo_1.y)), splashInfo_1.y) + TransformObjectToWorld(IN.positionOS * splashInfo_1.z);
+				float yPos = GetSceneDepth(float3(splashInfo_1.x, _SceneDepthCamPram.z-_SceneDepthCamPram.x, splashInfo_1.y));
+				float3 posWS = float3(splashInfo_1.x, yPos, splashInfo_1.y) + TransformObjectToWorld(IN.positionOS.xyz * splashInfo_1.z);
 				OUT.positionCS = TransformWorldToHClip(posWS);
 				OUT.UV = IN.uv * 0.5 + float2(0, 0.5) + float2(splashInfo_1.w % 2, -floor(splashInfo_1.w / 2)) * 0.5;
 				return OUT;
@@ -291,7 +292,7 @@ Shader "Code Repository/Scene/Rain"
 				OUT.UVLayer34 = UVLayer34;
 
 				OUT.ScreenPosition = ComputeScreenPos(OUT.positionCS);
-				OUT.GradientFactor = smoothstep(0, 1, IN.color);
+				OUT.GradientFactor = smoothstep(0, 1, IN.color.r);
 				return OUT;
 			}
 
@@ -304,7 +305,7 @@ Shader "Code Repository/Scene/Rain"
 				layer.y = SAMPLE_TEXTURE2D(_RainShapeTex, sampler_RainShapeTex, IN.UVLayer12.zw).r;
 				layer.z = SAMPLE_TEXTURE2D(_RainShapeTex, sampler_RainShapeTex, IN.UVLayer34.xy).r;
 				layer.w = SAMPLE_TEXTURE2D(_RainShapeTex, sampler_RainShapeTex, IN.UVLayer34.zw).r;
-				layer = pow(layer, _RainIntensity);
+				layer = pow(max(0, layer), lerp(6, 1, _RainIntensity)) * (1 - step(_RainIntensity, 0));
 				half rainShape = dot(layer, maskLow);
 				rainShape = saturate(rainShape);
 

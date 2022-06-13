@@ -18,10 +18,6 @@ void DoWetProcess(inout half3 diffuse, inout half gloss, half wetLevel)
 
 void GroundWet(inout half3 diffuse, inout half3 specular, inout half gloss, inout float3 normalWS, WetData wetdata)
 {
-    //test
-    _WetLevel = 0.5;
-    _FloodLevel = 1;
-
     half height = wetdata.height;
     half4 vColor = wetdata.vColor;
     half accumulatedWater = 0;

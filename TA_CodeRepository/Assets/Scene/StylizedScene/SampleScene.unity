@@ -1279,7 +1279,7 @@ MonoBehaviour:
   RainHeightmap: {fileID: 2800000, guid: 457ac338a069174408117414424cc6ba, type: 3}
   RainShapeTexture: {fileID: 2800000, guid: a88c1f80ffee0fc46bd9bb03b9eb7480, type: 3}
   RainSplashTex: {fileID: 2800000, guid: c0621173d7c5e014094441ce7e76295c, type: 3}
-  RainIntensity: 0.738
+  RainIntensity: 0.845
   RainOpacityInAll: 1
   RainColor: {r: 1, g: 1, b: 1, a: 1}
   RainScale_One: {x: 6, y: 6}
@@ -1319,6 +1319,17 @@ MonoBehaviour:
   SplashScaleMax: 1
   SplashOpacityMin: 0.5
   SplashOpacityMax: 1
+  MaxWetLevel: 1
+  WetTime: 5
+  DryTime: 10
+  MaxGapFloodLevel: 1
+  GapAccumulatedWaterTime: 10
+  GapWaterRemainTime: 5
+  GapWaterRemoveTime: 15
+  MaxPuddleFloodLevel: 1
+  PuddleAccumulatedWaterTime: 10
+  PuddleWaterRemainTime: 10
+  PuddleWaterRemoveTime: 30
 --- !u!1 &1409887387
 GameObject:
   m_ObjectHideFlags: 0
