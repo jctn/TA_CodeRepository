@@ -41,7 +41,8 @@ public class CapsuleAOMgr : MonoBehaviour
 
     public void AddSphere(SphereAO sphereAO)
     {
-        sphereAOs.Add(sphereAO);
+        if(!sphereAOs.Contains(sphereAO))
+            sphereAOs.Add(sphereAO);
     }
 
     public void RemoveSphere(SphereAO sphereAO)

@@ -82,8 +82,7 @@ Shader "Code Repository/Scene/CapsuleAO"
                 float4 shadowCoord = TransformWorldToShadowCoord(IN.posWS);
                 Light light = GetMainLight(shadowCoord);
 				half4 baseMap = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, IN.uv);
-				float ao = SimpleSpheresAO_1(IN.posWS, normalize(IN.normalWS));
-				//float ao = SimpleSpheresAO_2(IN.posWS, normalize(IN.normalWS));
+				float ao = SpheresAO_AmbientTerm_2(IN.posWS, normalize(IN.normalWS));
 				return baseMap * _BaseColor * IN.color * light.shadowAttenuation * ao;
 			}
 			ENDHLSL
