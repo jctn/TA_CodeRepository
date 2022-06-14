@@ -1,53 +1,22 @@
-using System;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
-public enum EWeatherType
+public class DynamicSkyOutput : BaseOutput
 {
-    Sunny,
-    Rain,
-    thunderstorm
-}
-
-[Serializable]
-public class Weather
-{
-    public EWeatherType WeatherType = EWeatherType.Sunny;
-    public WeatherSetting WeatherSettingData;
-}
-
-public class DynamicSkyOutput
-{
-    WeatherSetting mCurWeatherSetting;
-    WeatherSetting mTargetWeatherSetting;
-    float mTranslationInitTime;
-    float mTranslationDurationTime;
-    TimeCtrl mTimeCtrlCom;
-    float mTranslationProgression;
-
-    public DynamicSkyOutput(WeatherSetting cur, TimeCtrl timeCtrl)
+    public DynamicSkyOutput(WeatherSetting cur, TimeCtrl timeCtrl): base(cur, timeCtrl)
     {
-        mCurWeatherSetting = cur;
-        mTimeCtrlCom = timeCtrl;
+
     }
 
-    public void SetTranslation(WeatherSetting targetWeatherSetting, float translationInitTime, float translationDurationTime)
+    public override void UpdateData()
     {
-        mTargetWeatherSetting = targetWeatherSetting;
-        mTranslationInitTime = translationInitTime;
-        mTranslationDurationTime = translationDurationTime;
+        base.UpdateData();
     }
 
-    public void UpdateData()
+    public override void SetTranslation(WeatherSetting targetWeatherSetting, float translationInitTime, float translationDurationTime)
     {
-        if (mTargetWeatherSetting != null)
-        {
-            mTranslationProgression = mTranslationDurationTime > 0f ? Mathf.Clamp01((Time.time - mTranslationInitTime) / mTranslationDurationTime) : 1f;
-            if(mTranslationProgression >= 1f)
-            {
-                mCurWeatherSetting = mTargetWeatherSetting;
-                mTargetWeatherSetting = null;
-            }
-        }
+        base.SetTranslation(targetWeatherSetting, translationInitTime, translationDurationTime);
     }
 
     #region Output
@@ -55,7 +24,7 @@ public class DynamicSkyOutput
     {
         get
         {
-            if(mTargetWeatherSetting != null)
+            if (mTargetWeatherSetting != null)
             {
                 Color cur = mCurWeatherSetting.TopColor.Evaluate(mTimeCtrlCom.GradientTime);
                 Color target = mTargetWeatherSetting.TopColor.Evaluate(mTimeCtrlCom.GradientTime);

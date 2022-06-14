@@ -1,6 +1,22 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+
+
+public enum EWeatherType
+{
+    Sunny,
+    Rain,
+    thunderstorm
+}
+
+[Serializable]
+public class Weather
+{
+    public EWeatherType WeatherType = EWeatherType.Sunny;
+    public WeatherSetting WeatherSettingData;
+}
 
 [RequireComponent(typeof(TimeCtrl))]
 [ExecuteAlways]

@@ -115,6 +115,9 @@ public class RainCtrl : MonoBehaviour
     float wetLevel = 0f;
     Vector2 floodLevel = Vector2.zero;
 
+    //component
+    WeatherCtrl weatherCtrl;
+
     public Material RainMaterial { get { return mRainMat; } }
     public Vector4[] SplashInfo_1 { get { return splashInfo_1; } }
     public float[] SplashInfo_2 { get { return splashInfo_2; } }
@@ -148,12 +151,7 @@ public class RainCtrl : MonoBehaviour
     private void Awake()
     {
         instance = this;
-        if(RainShader != null)
-        {
-            mRainMat = new Material(RainShader);
-            mRainMat.enableInstancing = true;
-        }
-        InitRainSplash();
+        weatherCtrl = GetComponent<WeatherCtrl>();
 
 #if UNITY_EDITOR
         RainSceneDepthRenderData rainSceneDepthRender = PipelineUtilities.GetRenderer<RainSceneDepthRenderData>(rainSceneDepthRenderStr, nameof(RainSceneDepthRenderData));
@@ -186,12 +184,20 @@ public class RainCtrl : MonoBehaviour
 
     void UpdateRainDrop()
     {
+        if(mRainMat == null && RainShader != null)
+        {
+            mRainMat = new Material(RainShader);
+            mRainMat.enableInstancing = true;
+        }
         if (mRainMat != null) 
         {
+            mRainMat.SetTexture(id_RainShapeTex, RainShapeTexture);
+            mRainMat.SetTexture(id_RainHeightmap, RainHeightmap);
+            mRainMat.SetTexture(id_RainSplashTex, RainSplashTex);
+
             mRainMat.SetFloat(id_RainIntensity, RainIntensity);
             mRainMat.SetFloat(id_RainOpacityInAll, RainOpacityInAll);
             mRainMat.SetColor(id_RainColor, RainColor);
-            mRainMat.SetTexture(id_RainShapeTex, RainShapeTexture);
             mRainMat.SetVector(id_RainScale_Layer12, new Vector4(RainScale_One.x, RainScale_One.y, RainScale_Two.x, RainScale_Two.y));
             mRainMat.SetVector(id_RainScale_Layer34, new Vector4(RainScale_Three.x, RainScale_Three.y, RainScale_Four.x, RainScale_Four.y));
             mRainMat.SetVector(id_RotateSpeed, new Vector4(RotateSpeed_One, RotateSpeed_Two, RotateSpeed_Three, RotateSpeed_Four));
@@ -200,8 +206,6 @@ public class RainCtrl : MonoBehaviour
             mRainMat.SetVector(id_RainDepthStart, new Vector4(RainDepthStart_One, RainDepthStart_Two, RainDepthStart_Three, RainDepthStart_Four));
             mRainMat.SetVector(id_RainDepthRange, new Vector4(RainDepthRange_One, RainDepthRange_Two, RainDepthRange_Three, RainDepthRange_Four));
             mRainMat.SetVector(id_RainOpacities, new Vector4(RainOpacity_One, RainOpacity_Two, RainOpacity_Three, RainOpacity_Four));
-            mRainMat.SetTexture(id_RainHeightmap, RainHeightmap);
-            mRainMat.SetTexture(id_RainSplashTex, RainSplashTex);
         }
     }
 
