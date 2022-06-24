@@ -72,7 +72,7 @@ Material:
     - _FresnelPower: 6
     - _NormalMapScale: 20
     - _ReflectionDistortion: 0.05
-    - _ReflectionIntensity: 0.8
+    - _ReflectionIntensity: 0.277
     - _RefractionDistortion: 0.1
     - _ShoreEdgeIntensity: 0.3
     - _ShoreEdgeWidth: 10

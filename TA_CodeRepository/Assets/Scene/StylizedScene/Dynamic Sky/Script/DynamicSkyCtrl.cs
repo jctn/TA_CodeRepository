@@ -84,9 +84,9 @@ public class DynamicSkyCtrl : MonoBehaviour
     {
         if(SkyBoxRender != null)
         {
-            if(mWeatherCtrl != null && mWeatherCtrl.DynamicSkyOutputData != null)
+            if(mWeatherCtrl != null && mWeatherCtrl.WeatherOutputData != null)
             {
-                DynamicSkyOutput output = mWeatherCtrl.DynamicSkyOutputData;
+                DynamicSkyOutput output = mWeatherCtrl.WeatherOutputData.DynamicSkyOutputData;
                 if (mMaterialPropertyBlock == null) mMaterialPropertyBlock = new MaterialPropertyBlock();
                 mMaterialPropertyBlock.SetVector(mID_BottomColor, output.BottomColor);
                 mMaterialPropertyBlock.SetVector(mID_MiddleColor, output.MiddleColor);
@@ -159,9 +159,9 @@ public class DynamicSkyCtrl : MonoBehaviour
                 colorKey = mTimeCtrl.GradientTime;
                 floatKey = mTimeCtrl.CurveTime;
             }
-            if (mWeatherCtrl != null && mWeatherCtrl.DynamicSkyOutputData != null)
+            if (mWeatherCtrl != null && mWeatherCtrl.WeatherOutputData != null)
             {
-                DynamicSkyOutput output = mWeatherCtrl.DynamicSkyOutputData;
+                DynamicSkyOutput output = mWeatherCtrl.WeatherOutputData.DynamicSkyOutputData;
                 mLightCom.color = output.LightColor;
                 mLightCom.intensity = output.LightIntensity;
             }

@@ -366,8 +366,8 @@ MonoBehaviour:
     m_RotationOrder: 4
   LightColor:
     serializedVersion: 2
-    key0: {r: 0.43347278, g: 0.4618758, b: 0.4811321, a: 1}
-    key1: {r: 0.43347278, g: 0.4618758, b: 0.4811321, a: 1}
+    key0: {r: 0.8773585, g: 0.87322, b: 0.87322, a: 1}
+    key1: {r: 0.8784314, g: 0.8745098, b: 0.8745098, a: 1}
     key2: {r: 0.6039216, g: 0.8352941, b: 0.99215686, a: 0.5568628}
     key3: {r: 0.6039216, g: 0.8352941, b: 0.99215686, a: 0.5568628}
     key4: {r: 0.6039216, g: 0.8352941, b: 0.99215686, a: 0.5568628}
@@ -375,7 +375,7 @@ MonoBehaviour:
     key6: {r: 0.6039216, g: 0.8352941, b: 0.99215686, a: 0.5568628}
     key7: {r: 0.6039216, g: 0.8352941, b: 0.99215686, a: 0.5568628}
     ctime0: 0
-    ctime1: 64130
+    ctime1: 65535
     ctime2: 51904
     ctime3: 51904
     ctime4: 51904
@@ -398,7 +398,7 @@ MonoBehaviour:
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 0.4
+      value: 0.5
       inSlope: 0
       outSlope: 0
       tangentMode: 65
@@ -407,7 +407,7 @@ MonoBehaviour:
       outWeight: 0
     - serializedVersion: 3
       time: 24
-      value: 0.4
+      value: 0.5
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -417,38 +417,39 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  RainHeightmap: {fileID: 0}
-  RainShapeTexture: {fileID: 0}
-  RainSplashTex: {fileID: 0}
-  RainIntensity: 1
-  RainOpacityInAll: 1
-  RainColor: {r: 1, g: 1, b: 1, a: 1}
-  RainScale_One: {x: 1, y: 1}
+  RainHeightmap: {fileID: 2800000, guid: 457ac338a069174408117414424cc6ba, type: 3}
+  RainShapeTexture: {fileID: 2800000, guid: a88c1f80ffee0fc46bd9bb03b9eb7480, type: 3}
+  RainSplashTex: {fileID: 2800000, guid: c0621173d7c5e014094441ce7e76295c, type: 3}
+  RainIntensity: 0.649
+  RainOpacityInAll: 0.8
+  RainColor: {r: 0.6509434, g: 0.635591, b: 0.635591, a: 1}
+  RainScale_One: {x: 6, y: 6}
   RotateSpeed_One: 1
-  RotateAmount_One: 0.5
-  DropSpeed_One: 1
+  RotateAmount_One: 0.4
+  DropSpeed_One: 13
   RainOpacity_One: 1
-  RainScale_Two: {x: 1.5, y: 1.5}
-  RotateSpeed_Two: 1
-  RotateAmount_Two: 0.5
-  DropSpeed_Two: 1
+  RainScale_Two: {x: 6, y: 5.5}
+  RotateSpeed_Two: 0.6
+  RotateAmount_Two: 0.6
+  DropSpeed_Two: 12
   RainOpacity_Two: 1
-  RainScale_Three: {x: 1.7, y: 1.7}
-  RotateSpeed_Three: 1
+  RainScale_Three: {x: 6, y: 5}
+  RotateSpeed_Three: 0.5
   RotateAmount_Three: 0.5
-  DropSpeed_Three: 1
-  RainOpacity_Three: 1
-  RainScale_Four: {x: 2, y: 2}
-  RotateSpeed_Four: 1
-  RotateAmount_Four: 0.5
-  DropSpeed_Four: 1
-  RainOpacity_Four: 1
-  EnableRainSplash: 1
-  SplashCount: 50
-  SplashPlayTime: 0.2
-  SplashIntervalMin: 0.3
-  SplashIntervalMax: 0.5
+  DropSpeed_Three: 8
+  RainOpacity_Three: 0.8
+  RainScale_Four: {x: 8, y: 4}
+  RotateSpeed_Four: 0.6
+  RotateAmount_Four: 1
+  DropSpeed_Four: 6
+  RainOpacity_Four: 0.774
+  SplashPlayTime: 0.1
+  SplashIntervalMin: 0.2
+  SplashIntervalMax: 0.4
   SplashScaleMin: 0.5
-  SplashScaleMax: 1
+  SplashScaleMax: 0.8
   SplashOpacityMin: 0.5
   SplashOpacityMax: 1
+  MaxWetLevel: 1
+  MaxGapFloodLevel: 1
+  MaxPuddleFloodLevel: 1

@@ -7,6 +7,7 @@ using UnityEngine.Rendering.Universal;
 [ExecuteAlways]
 public class RainCtrl : MonoBehaviour
 {
+    #region Data
     [Header("Asset")]
     public int RainSceneDepthRenderIndex = -1;
     public Shader RainShader;
@@ -62,7 +63,7 @@ public class RainCtrl : MonoBehaviour
 
     [Header("RainSplash")]
     public bool EnableRainSplash = true;
-    public int SplashCount = 50;
+    public int SplashCountMax = 50;
     public float SplashPlayTime = 0.2f; 
     public float SplashIntervalMin = 0.3f;
     public float SplashIntervalMax = 0.5f;
@@ -88,6 +89,7 @@ public class RainCtrl : MonoBehaviour
     public float PuddleAccumulatedWaterTime = 10f;
     public float PuddleWaterRemainTime = 20f;
     public float PuddleWaterRemoveTime = 40f;
+    #endregion
 
     //const
     const int sceneDepthTexSize = 512;
@@ -118,11 +120,25 @@ public class RainCtrl : MonoBehaviour
     //component
     WeatherCtrl weatherCtrl;
 
+    //public Data
+    public bool EnableRaindrop 
+    {
+        get 
+        {
+            if(weatherCtrl != null && weatherCtrl.WeatherOutputData != null)
+            {
+                return weatherCtrl.WeatherOutputData.RainOutputData.RainIntensity > 0;
+            }
+            return RainIntensity > 0; 
+        } 
+    }
+
     public Material RainMaterial { get { return mRainMat; } }
     public Vector4[] SplashInfo_1 { get { return splashInfo_1; } }
     public float[] SplashInfo_2 { get { return splashInfo_2; } }
     public Matrix4x4[] SplashMatrix { get { return splashMatrix; } }
 
+    #region shader property
     static readonly int id_RainIntensity = Shader.PropertyToID("_RainIntensity");
     static readonly int id_RainOpacityInAll = Shader.PropertyToID("_RainOpacityInAll");
     static readonly int id_RainColor = Shader.PropertyToID("_RainColor");
@@ -141,6 +157,7 @@ public class RainCtrl : MonoBehaviour
     static readonly int id_SceneDepthCamPram = Shader.PropertyToID("_SceneDepthCamPram");
     static readonly int id_WetLevel = Shader.PropertyToID("_WetLevel");
     static readonly int id_FloodLevel = Shader.PropertyToID("_FloodLevel");
+    #endregion
 
     static RainCtrl instance;
     public static RainCtrl Instance
@@ -165,10 +182,13 @@ public class RainCtrl : MonoBehaviour
         RenderPipelineManager.beginCameraRendering += BeginCameraRendering;
     }
 
-    private void Update()
+    private void LateUpdate()
     {
-        UpdateRainDrop();
-        UpdateRainSplash();
+        if(EnableRaindrop)
+        {
+            UpdateRainDrop();
+            UpdateRainSplash();
+        }
         UpdateWetAndAccumulatedWater();
     }
 
@@ -191,35 +211,43 @@ public class RainCtrl : MonoBehaviour
         }
         if (mRainMat != null) 
         {
-            mRainMat.SetTexture(id_RainShapeTex, RainShapeTexture);
-            mRainMat.SetTexture(id_RainHeightmap, RainHeightmap);
-            mRainMat.SetTexture(id_RainSplashTex, RainSplashTex);
-
-            mRainMat.SetFloat(id_RainIntensity, RainIntensity);
-            mRainMat.SetFloat(id_RainOpacityInAll, RainOpacityInAll);
-            mRainMat.SetColor(id_RainColor, RainColor);
-            mRainMat.SetVector(id_RainScale_Layer12, new Vector4(RainScale_One.x, RainScale_One.y, RainScale_Two.x, RainScale_Two.y));
-            mRainMat.SetVector(id_RainScale_Layer34, new Vector4(RainScale_Three.x, RainScale_Three.y, RainScale_Four.x, RainScale_Four.y));
-            mRainMat.SetVector(id_RotateSpeed, new Vector4(RotateSpeed_One, RotateSpeed_Two, RotateSpeed_Three, RotateSpeed_Four));
-            mRainMat.SetVector(id_RotateAmount, new Vector4(RotateAmount_One, RotateAmount_Two, RotateAmount_Three, RotateAmount_Four));
-            mRainMat.SetVector(id_DropSpeed, new Vector4(DropSpeed_One, DropSpeed_Two, DropSpeed_Three, DropSpeed_Four));
-            mRainMat.SetVector(id_RainDepthStart, new Vector4(RainDepthStart_One, RainDepthStart_Two, RainDepthStart_Three, RainDepthStart_Four));
-            mRainMat.SetVector(id_RainDepthRange, new Vector4(RainDepthRange_One, RainDepthRange_Two, RainDepthRange_Three, RainDepthRange_Four));
-            mRainMat.SetVector(id_RainOpacities, new Vector4(RainOpacity_One, RainOpacity_Two, RainOpacity_Three, RainOpacity_Four));
-        }
-    }
-
-    void InitRainSplash()
-    {
-        if(EnableRainSplash)
-        {
-            splashInfo_1 = new Vector4[SplashCount];
-            splashInfo_2 = new float[SplashCount];
-            splashTimeCounter = new Vector2[SplashCount];
-            splashMatrix = new Matrix4x4[SplashCount];
-            for (int i = 0; i < SplashCount; i++)
+            if (weatherCtrl != null && weatherCtrl.WeatherOutputData != null)
             {
-                splashMatrix[i] = Matrix4x4.identity;
+                RainOutput rainOutput = weatherCtrl.WeatherOutputData.RainOutputData;
+
+                mRainMat.SetTexture(id_RainShapeTex, rainOutput.RainShapeTexture);
+                mRainMat.SetTexture(id_RainHeightmap, rainOutput.RainHeightmap);
+                mRainMat.SetTexture(id_RainSplashTex, rainOutput.RainSplashTex);
+
+                mRainMat.SetFloat(id_RainIntensity, rainOutput.RainIntensity);
+                mRainMat.SetFloat(id_RainOpacityInAll, rainOutput.RainOpacityInAll);
+                mRainMat.SetColor(id_RainColor, rainOutput.RainColor);
+                mRainMat.SetVector(id_RainScale_Layer12, rainOutput.RainScale_Layer12);
+                mRainMat.SetVector(id_RainScale_Layer34, rainOutput.RainScale_Layer34);
+                mRainMat.SetVector(id_RotateSpeed, rainOutput.RotateSpeed);
+                mRainMat.SetVector(id_RotateAmount, rainOutput.RotateAmount);
+                mRainMat.SetVector(id_DropSpeed, rainOutput.DropSpeed);
+                mRainMat.SetVector(id_RainDepthStart, new Vector4(RainDepthStart_One, RainDepthStart_Two, RainDepthStart_Three, RainDepthStart_Four));
+                mRainMat.SetVector(id_RainDepthRange, new Vector4(RainDepthRange_One, RainDepthRange_Two, RainDepthRange_Three, RainDepthRange_Four));
+                mRainMat.SetVector(id_RainOpacities, rainOutput.RainOpacity);
+            }
+            else
+            {
+                mRainMat.SetTexture(id_RainShapeTex, RainShapeTexture);
+                mRainMat.SetTexture(id_RainHeightmap, RainHeightmap);
+                mRainMat.SetTexture(id_RainSplashTex, RainSplashTex);
+
+                mRainMat.SetFloat(id_RainIntensity, RainIntensity);
+                mRainMat.SetFloat(id_RainOpacityInAll, RainOpacityInAll);
+                mRainMat.SetColor(id_RainColor, RainColor);
+                mRainMat.SetVector(id_RainScale_Layer12, new Vector4(RainScale_One.x, RainScale_One.y, RainScale_Two.x, RainScale_Two.y));
+                mRainMat.SetVector(id_RainScale_Layer34, new Vector4(RainScale_Three.x, RainScale_Three.y, RainScale_Four.x, RainScale_Four.y));
+                mRainMat.SetVector(id_RotateSpeed, new Vector4(RotateSpeed_One, RotateSpeed_Two, RotateSpeed_Three, RotateSpeed_Four));
+                mRainMat.SetVector(id_RotateAmount, new Vector4(RotateAmount_One, RotateAmount_Two, RotateAmount_Three, RotateAmount_Four));
+                mRainMat.SetVector(id_DropSpeed, new Vector4(DropSpeed_One, DropSpeed_Two, DropSpeed_Three, DropSpeed_Four));
+                mRainMat.SetVector(id_RainDepthStart, new Vector4(RainDepthStart_One, RainDepthStart_Two, RainDepthStart_Three, RainDepthStart_Four));
+                mRainMat.SetVector(id_RainDepthRange, new Vector4(RainDepthRange_One, RainDepthRange_Two, RainDepthRange_Three, RainDepthRange_Four));
+                mRainMat.SetVector(id_RainOpacities, new Vector4(RainOpacity_One, RainOpacity_Two, RainOpacity_Three, RainOpacity_Four));
             }
         }
     }
@@ -228,28 +256,78 @@ public class RainCtrl : MonoBehaviour
     {
         if(EnableRainSplash)
         {
-            if (splashInfo_1 == null || splashInfo_1.Length != SplashCount)
-            {
-                InitRainSplash();
+            if (splashInfo_1 == null || splashInfo_1.Length != SplashCountMax)
+            {     
+                if(splashInfo_1 == null)
+                {
+                    splashInfo_1 = new Vector4[SplashCountMax];
+                    splashInfo_2 = new float[SplashCountMax];
+                    splashTimeCounter = new Vector2[SplashCountMax];
+                }
+                else
+                {
+                    System.Array.Resize(ref splashInfo_1, SplashCountMax);
+                    System.Array.Resize(ref splashInfo_2, SplashCountMax);
+                    System.Array.Resize(ref splashTimeCounter, SplashCountMax);
+                }
+
+                splashMatrix = new Matrix4x4[SplashCountMax];
+                for (int i = 0; i < SplashCountMax; i++)
+                {
+                    splashMatrix[i] = Matrix4x4.identity;
+                }
             }
 
-            for (int i = 0; i < SplashCount; i++)
+            Vector3 splashData_1;
+            Vector4 splashData_2;
+            float actualSplashCount;
+
+            if (weatherCtrl != null && weatherCtrl.WeatherOutputData != null)
+            {
+                RainOutput rainOutput = weatherCtrl.WeatherOutputData.RainOutputData;
+                splashData_1 = rainOutput.SplashData_1;
+                splashData_2 = rainOutput.SplashData_2;
+                actualSplashCount = Mathf.RoundToInt(SplashCountMax * rainOutput.RainIntensity);
+            }
+            else
+            {
+                splashData_1.x = SplashIntervalMin;
+                splashData_1.y = SplashIntervalMax;
+                splashData_1.z = SplashPlayTime;
+
+                splashData_2.x = SplashScaleMin;
+                splashData_2.y = SplashScaleMax;
+                splashData_2.z = SplashOpacityMin;
+                splashData_2.w = SplashOpacityMax;
+
+                actualSplashCount = SplashCountMax * RainIntensity;
+            }
+
+            for (int i = 0; i < SplashCountMax; i++)
             {
                 if (splashTimeCounter[i].y >= splashTimeCounter[i].x)
                 {
-                    splashTimeCounter[i].x = Random.Range(SplashIntervalMin, SplashIntervalMax);
-                    splashTimeCounter[i].y = 0f;
-                    Vector2 pos = Random.insideUnitCircle * rainSplashRadius;
-                    splashInfo_1[i].x = pos.x + Camera.main.transform.position.x;
-                    splashInfo_1[i].y = pos.y + Camera.main.transform.position.z;
-                    splashInfo_1[i].z = Random.Range(SplashScaleMin, SplashScaleMax);
-                    splashInfo_1[i].w = 0f;
-                    splashInfo_2[i] = Random.Range(SplashOpacityMin, SplashOpacityMax);
+                    if(i < actualSplashCount)
+                    {
+                        splashTimeCounter[i].x = Random.Range(splashData_1.x, splashData_1.y);
+                        splashTimeCounter[i].y = 0f;
+                        Vector2 pos = Random.insideUnitCircle * rainSplashRadius;
+                        Vector3 campos = Camera.main.transform.position;
+                        splashInfo_1[i].x = pos.x + campos.x;
+                        splashInfo_1[i].y = pos.y + campos.z;
+                        splashInfo_1[i].z = Random.Range(splashData_2.x, splashData_2.y);
+                        splashInfo_1[i].w = 0f;
+                        splashInfo_2[i] = Random.Range(splashData_2.z, splashData_2.w);
+                    }
+                    else
+                    {
+                        splashInfo_2[i] = 0f;
+                    }
                 }
                 else
                 {
                     splashTimeCounter[i].y += Time.deltaTime;
-                    splashInfo_1[i].w = Mathf.Floor(splashTimeCounter[i].y / SplashPlayTime);
+                    splashInfo_1[i].w = Mathf.Floor(splashTimeCounter[i].y / splashData_1.z);
                 }
             }
         }
@@ -257,7 +335,28 @@ public class RainCtrl : MonoBehaviour
 
     void UpdateWetAndAccumulatedWater()
     {
-        if (RainIntensity == 0f)
+        float rainIntensity;
+        float maxWetLevel;
+        float maxGapFloodLevel;
+        float maxPuddleFloodLevel;
+
+        if (weatherCtrl != null && weatherCtrl.WeatherOutputData != null)
+        {
+            RainOutput rainOutput = weatherCtrl.WeatherOutputData.RainOutputData;
+            rainIntensity = rainOutput.RainIntensity;
+            maxWetLevel = rainOutput.WetData.x;
+            maxGapFloodLevel = rainOutput.WetData.y;
+            maxPuddleFloodLevel = rainOutput.WetData.z;
+        }
+        else
+        {
+            rainIntensity = RainIntensity;
+            maxWetLevel = MaxWetLevel;
+            maxGapFloodLevel = MaxGapFloodLevel;
+            maxPuddleFloodLevel = MaxPuddleFloodLevel;
+        }
+
+        if (rainIntensity == 0f)
         {
             if(rainState == RainState.raining)
             {
@@ -273,28 +372,35 @@ public class RainCtrl : MonoBehaviour
             }
         }
 
-        if(rainState == RainState.raining)
+        maxWetLevel = Mathf.Max(wetLevel, maxWetLevel);
+        maxGapFloodLevel = Mathf.Max(floodLevel.x, maxGapFloodLevel);
+        maxPuddleFloodLevel = Mathf.Max(floodLevel.y, maxPuddleFloodLevel);
+
+        if (rainState == RainState.raining)
         {
-            wetLevel += WetTime <= 0f ? 1f : RainIntensity * Time.deltaTime / WetTime;
-            floodLevel.x += GapAccumulatedWaterTime <= 0f ? 1f : RainIntensity * Time.deltaTime / GapAccumulatedWaterTime;
-            floodLevel.y += PuddleAccumulatedWaterTime <= 0f ? 1f : RainIntensity * Time.deltaTime / PuddleAccumulatedWaterTime;
+            if (wetLevel < maxWetLevel) wetLevel += WetTime <= 0f ? 1f : rainIntensity * Time.deltaTime / WetTime;
+            if (floodLevel.x < maxGapFloodLevel) floodLevel.x += GapAccumulatedWaterTime <= 0f ? 1f : rainIntensity * Time.deltaTime / GapAccumulatedWaterTime;
+            if (floodLevel.y < maxPuddleFloodLevel) floodLevel.y += PuddleAccumulatedWaterTime <= 0f ? 1f : rainIntensity * Time.deltaTime / PuddleAccumulatedWaterTime;
         }
         else
         {
-            wetLevel -= DryTime <= 0f ? 1f : Time.deltaTime / DryTime;
+            if(wetLevel > 0) wetLevel -= DryTime <= 0f ? 1f : Time.deltaTime / DryTime;
             float timeDuartion = Time.time - rainStopTime;
-            if (timeDuartion > GapWaterRemainTime)
+            if (timeDuartion > GapWaterRemainTime && floodLevel.x > 0)
             {
                 floodLevel.x -= GapWaterRemoveTime <= 0f ? 1 : Time.deltaTime / GapWaterRemoveTime;
             }
-            if(timeDuartion > PuddleWaterRemainTime)
+            if(timeDuartion > PuddleWaterRemainTime && floodLevel.y > 0)
             {
                 floodLevel.y -= PuddleWaterRemoveTime <= 0f ? 1 : Time.deltaTime / PuddleWaterRemoveTime;
             }
+
         }
-        wetLevel = Mathf.Clamp(wetLevel, 0f, MaxWetLevel);
-        floodLevel.x = Mathf.Clamp(floodLevel.x, 0f, MaxGapFloodLevel);
-        floodLevel.y = Mathf.Clamp(floodLevel.y, 0f, MaxPuddleFloodLevel);
+
+        wetLevel = Mathf.Clamp01(wetLevel);
+        floodLevel.x = Mathf.Clamp01(floodLevel.x);
+        floodLevel.y = Mathf.Clamp01(floodLevel.y);
+
         Shader.SetGlobalFloat(id_WetLevel, wetLevel);
         Shader.SetGlobalVector(id_FloodLevel, floodLevel);
     }

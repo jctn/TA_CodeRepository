@@ -26,11 +26,19 @@ public class WeatherCtrl : MonoBehaviour
     public float TranslationTime = 2f;
     public Weather [] Weathers;
 
-    DynamicSkyOutput mDynamicSkyOutput = null;
-
-    public DynamicSkyOutput DynamicSkyOutputData
+    WeatherOutput weatherOutput;
+    public WeatherOutput WeatherOutputData
     {
-        get { return mDynamicSkyOutput; }
+        get { return weatherOutput; }
+    }
+
+    EWeatherType curWeather;
+    public EWeatherType CurWeather
+    {
+        get
+        {
+            return curWeather;
+        }
     }
 
     private void OnValidate()
@@ -46,7 +54,7 @@ public class WeatherCtrl : MonoBehaviour
         {
             if (Weathers[i].WeatherType == InitWeather)
             {
-                mDynamicSkyOutput = new DynamicSkyOutput(Weathers[i].WeatherSettingData, timeCtrl);
+                weatherOutput = new WeatherOutput(Weathers[i].WeatherSettingData, timeCtrl);
                 break;
             }
         }
@@ -54,7 +62,8 @@ public class WeatherCtrl : MonoBehaviour
 
     private void Update()
     {
-        mDynamicSkyOutput?.UpdateData();
+        weatherOutput.OutputTranslation();
+        weatherOutput.UpdateOutput();
     }
 
     public void SetWeather(EWeatherType weatherType)
@@ -63,19 +72,8 @@ public class WeatherCtrl : MonoBehaviour
         {
             if(Weathers[i].WeatherType == weatherType)
             {
-                mDynamicSkyOutput?.SetTranslation(Weathers[i].WeatherSettingData, Time.time, TranslationTime);
-                break;
-            }
-        }
-    }
-
-    public void SetWeather(EWeatherType weatherType, float duration)
-    {
-        for (int i = 0; i < Weathers.Length; i++)
-        {
-            if (Weathers[i].WeatherType == weatherType)
-            {
-                mDynamicSkyOutput?.SetTranslation(Weathers[i].WeatherSettingData, Time.time, duration);
+                curWeather = weatherType;
+                weatherOutput.SetTranslation(Weathers[i].WeatherSettingData, Time.time, TranslationTime);
                 break;
             }
         }

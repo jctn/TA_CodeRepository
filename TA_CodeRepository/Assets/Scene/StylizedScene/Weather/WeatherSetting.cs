@@ -76,8 +76,7 @@ public class WeatherSetting : ScriptableObject
     public float RainOpacity_Four = 1f;
 
     [Header("RainSplash")]
-    public bool EnableRainSplash = true;
-    public int SplashCount = 50;
+    //public int SplashCountMax = 50;
     public float SplashPlayTime = 0.2f;
     public float SplashIntervalMin = 0.3f;
     public float SplashIntervalMax = 0.5f;
@@ -85,4 +84,12 @@ public class WeatherSetting : ScriptableObject
     public float SplashScaleMax = 1f;
     public float SplashOpacityMin = 0.5f;
     public float SplashOpacityMax = 1f;
+
+    [Header("Wet&AccumulatedWater")]
+    [Range(0f, 1f)]
+    public float MaxWetLevel = 1f;
+    [Range(0f, 1f)]
+    public float MaxGapFloodLevel = 1f;
+    [Range(0f, 1f)]
+    public float MaxPuddleFloodLevel = 1f;
 }

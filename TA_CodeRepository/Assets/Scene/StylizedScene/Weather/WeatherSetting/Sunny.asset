@@ -453,3 +453,39 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  RainHeightmap: {fileID: 0}
+  RainShapeTexture: {fileID: 0}
+  RainSplashTex: {fileID: 0}
+  RainIntensity: 0
+  RainOpacityInAll: 0
+  RainColor: {r: 1, g: 1, b: 1, a: 1}
+  RainScale_One: {x: 1, y: 1}
+  RotateSpeed_One: 1
+  RotateAmount_One: 0.5
+  DropSpeed_One: 1
+  RainOpacity_One: 1
+  RainScale_Two: {x: 1.5, y: 1.5}
+  RotateSpeed_Two: 1
+  RotateAmount_Two: 0.5
+  DropSpeed_Two: 1
+  RainOpacity_Two: 1
+  RainScale_Three: {x: 1.7, y: 1.7}
+  RotateSpeed_Three: 1
+  RotateAmount_Three: 0.5
+  DropSpeed_Three: 1
+  RainOpacity_Three: 1
+  RainScale_Four: {x: 2, y: 2}
+  RotateSpeed_Four: 1
+  RotateAmount_Four: 0.5
+  DropSpeed_Four: 1
+  RainOpacity_Four: 1
+  SplashPlayTime: 0.2
+  SplashIntervalMin: 0.3
+  SplashIntervalMax: 0.5
+  SplashScaleMin: 0.5
+  SplashScaleMax: 1
+  SplashOpacityMin: 0.5
+  SplashOpacityMax: 1
+  MaxWetLevel: 1
+  MaxGapFloodLevel: 1
+  MaxPuddleFloodLevel: 1

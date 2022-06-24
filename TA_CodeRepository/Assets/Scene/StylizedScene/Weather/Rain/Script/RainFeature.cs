@@ -34,7 +34,7 @@ public class RainFeature : ScriptableRendererFeature
                 mMPB.Clear();
                 mMPB.SetVectorArray(id_SplashInfo_1, RainCtrl.Instance.SplashInfo_1);
                 mMPB.SetFloatArray(id_SplashInfo_2, RainCtrl.Instance.SplashInfo_2);
-                cmd.DrawMeshInstanced(rainSplashMesh, 0, RainCtrl.Instance.RainMaterial, 0, RainCtrl.Instance.SplashMatrix, RainCtrl.Instance.SplashCount, mMPB);
+                cmd.DrawMeshInstanced(rainSplashMesh, 0, RainCtrl.Instance.RainMaterial, 0, RainCtrl.Instance.SplashMatrix, RainCtrl.Instance.SplashCountMax, mMPB);
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
             }
@@ -169,7 +169,7 @@ public class RainFeature : ScriptableRendererFeature
 
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
-        if (RainCtrl.Instance == null || !RainCtrl.Instance.enabled || RainCtrl.Instance.RainMaterial == null) return;
+        if (RainCtrl.Instance == null || !RainCtrl.Instance.enabled || !RainCtrl.Instance.EnableRaindrop || RainCtrl.Instance.RainMaterial == null) return;
 
         bool mainGameCam = renderingData.cameraData.camera.cameraType == CameraType.Game && renderingData.cameraData.camera == Camera.main;
         if (mainGameCam || renderingData.cameraData.camera.cameraType == CameraType.SceneView)

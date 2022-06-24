@@ -2,38 +2,34 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class BaseOutput
+abstract public class BaseOutput
 {
     protected WeatherSetting mCurWeatherSetting;
     protected WeatherSetting mTargetWeatherSetting;
-    protected float mTranslationInitTime;
-    protected float mTranslationDurationTime;
     protected TimeCtrl mTimeCtrlCom;
     protected float mTranslationProgression;
 
-    public BaseOutput(WeatherSetting cur, TimeCtrl timeCtrl)
+    protected BaseOutput(WeatherSetting cur, TimeCtrl timeCtrl)
     {
         mCurWeatherSetting = cur;
         mTimeCtrlCom = timeCtrl;
     }
 
-    virtual public void  SetTranslation(WeatherSetting targetWeatherSetting, float translationInitTime, float translationDurationTime)
+    public void SetTranslation(WeatherSetting targetWeatherSetting)
     {
         mTargetWeatherSetting = targetWeatherSetting;
-        mTranslationInitTime = translationInitTime;
-        mTranslationDurationTime = translationDurationTime;
+        mTranslationProgression = 0f;
     }
 
-    virtual public void UpdateData()
+    public void OutputTranslation(float translationProgression)
     {
-        if (mTargetWeatherSetting != null)
+        mTranslationProgression = translationProgression;
+        if(mTranslationProgression >= 1f)
         {
-            mTranslationProgression = mTranslationDurationTime > 0f ? Mathf.Clamp01((Time.time - mTranslationInitTime) / mTranslationDurationTime) : 1f;
-            if (mTranslationProgression >= 1f)
-            {
-                mCurWeatherSetting = mTargetWeatherSetting;
-                mTargetWeatherSetting = null;
-            }
+            mCurWeatherSetting = mTargetWeatherSetting;
+            mTargetWeatherSetting = null;
         }
     }
+
+    abstract public void UpdateOutput();
 }
