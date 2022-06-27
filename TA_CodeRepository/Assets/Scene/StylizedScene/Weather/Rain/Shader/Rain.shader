@@ -13,6 +13,7 @@ Shader "Code Repository/Scene/Rain"
 
 		HLSLINCLUDE
 			#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+			#include "SceneDepth.hlsl"
 
 			half _RainIntensity;
 			half _RainOpacityInAll;
@@ -26,9 +27,6 @@ Shader "Code Repository/Scene/Rain"
 			float4 _RainDepthRange;
 			float4 _RainOpacities;
 
-			float4x4 _SceneDepthCamMatrixVP;
-			float3 _SceneDepthCamPram; //Near,Far,Height
-
 			TEXTURE2D(_RainSplashTex);
 			SAMPLER(sampler_RainSplashTex);
 
@@ -41,9 +39,6 @@ Shader "Code Repository/Scene/Rain"
 			TEXTURE2D(_CameraDepthTexture);
 			SAMPLER(sampler_CameraDepthTexture);
 
-			TEXTURE2D(_SceneDepthTex);
-			SAMPLER(sampler_SceneDepthTex);
-
 			TEXTURE2D(_RainMaskTexture);
 			SAMPLER(sampler_RainMaskTexture);
 		
@@ -53,29 +48,6 @@ Shader "Code Repository/Scene/Rain"
 				float depthTextureValue = SAMPLE_TEXTURE2D(_CameraDepthTexture, sampler_CameraDepthTexture, screenPos).r;
 				float eyeDepth = LinearEyeDepth(depthTextureValue, _ZBufferParams);
 				return eyeDepth;
-			}
-
-			float GetSceneDepth(float3 posWS)
-			{
-				float4 posCS = mul(_SceneDepthCamMatrixVP, float4(posWS, 1.0));
-				float3 posNDC = 0.5 * posCS.xyz / posCS.w + 0.5;
-				float sceneDepth = SAMPLE_TEXTURE2D_LOD(_SceneDepthTex, sampler_SceneDepthTex, posNDC.xy, 0).r;
-				#if UNITY_REVERSED_Z
-					sceneDepth = 1.0 - sceneDepth;
-				#endif
-				return _SceneDepthCamPram.z - lerp(_SceneDepthCamPram.x, _SceneDepthCamPram.y, sceneDepth);
-			}
-
-			float RainHeightDepthMapTest(float3 virtualPosWS)
-			{
-				float4 posCS = mul(_SceneDepthCamMatrixVP, float4(virtualPosWS, 1.0));
-				float3 posNDC = 0.5 * posCS.xyz / posCS.w + 0.5;
-				float sceneDepth = SAMPLE_TEXTURE2D(_SceneDepthTex, sampler_SceneDepthTex, posNDC.xy).r;
-				#if UNITY_REVERSED_Z
-					sceneDepth = 1.0 - sceneDepth;
-				#endif
-				//return step(posNDC.z, sceneDepth);
-				return smoothstep(sceneDepth, sceneDepth - 0.02, posNDC.z);
 			}
 		ENDHLSL
 
@@ -117,7 +89,7 @@ Shader "Code Repository/Scene/Rain"
 				UNITY_SETUP_INSTANCE_ID(IN);
 				UNITY_TRANSFER_INSTANCE_ID(IN, OUT);
 				float4 splashInfo_1 = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _SplashInfo_1);
-				float yPos = GetSceneDepth(float3(splashInfo_1.x, _SceneDepthCamPram.z-_SceneDepthCamPram.x, splashInfo_1.y));
+				float yPos = GetSceneDepthPosW(float3(splashInfo_1.x, _SceneDepthCamPram.z-_SceneDepthCamPram.x, splashInfo_1.y));
 				float3 posWS = float3(splashInfo_1.x, yPos, splashInfo_1.y) + TransformObjectToWorld(IN.positionOS.xyz * splashInfo_1.z);
 				OUT.positionCS = TransformWorldToHClip(posWS);
 				OUT.UV = IN.uv * 0.5 + float2(0, 0.5) + float2(splashInfo_1.w % 2, -floor(splashInfo_1.w / 2)) * 0.5;
@@ -221,10 +193,10 @@ Shader "Code Repository/Scene/Rain"
 
 				// heigth depth test
 				float4 occlusionHeight = 0;
-				occlusionHeight.x = RainHeightDepthMapTest(virtualPosition1WS);
-				occlusionHeight.y = RainHeightDepthMapTest(virtualPosition2WS);
-				occlusionHeight.z = RainHeightDepthMapTest(virtualPosition3WS);
-				occlusionHeight.w = RainHeightDepthMapTest(virtualPosition4WS);
+				occlusionHeight.x = SceneDepthTestSmmoth(virtualPosition1WS);
+				occlusionHeight.y = SceneDepthTestSmmoth(virtualPosition2WS);
+				occlusionHeight.z = SceneDepthTestSmmoth(virtualPosition3WS);
+				occlusionHeight.w = SceneDepthTestSmmoth(virtualPosition4WS);
 
 				half4 maskColor = occlusionDistance * occlusionHeight * _RainOpacities * _RainOpacityInAll;
 				return maskColor;

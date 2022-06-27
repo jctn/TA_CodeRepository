@@ -14,6 +14,7 @@ public class RainCtrl : MonoBehaviour
     public Texture2D RainHeightmap;
     public Texture2D RainShapeTexture;
     public Texture2D RainSplashTex;
+    public Texture2D RippleTexture;
 
     [Space]
     [Range(0f, 1f)]
@@ -157,6 +158,7 @@ public class RainCtrl : MonoBehaviour
     static readonly int id_SceneDepthCamPram = Shader.PropertyToID("_SceneDepthCamPram");
     static readonly int id_WetLevel = Shader.PropertyToID("_WetLevel");
     static readonly int id_FloodLevel = Shader.PropertyToID("_FloodLevel");
+    static readonly int id_RippleTexture = Shader.PropertyToID("_RippleTexture");
     #endregion
 
     static RainCtrl instance;
@@ -186,8 +188,10 @@ public class RainCtrl : MonoBehaviour
     {
         if(EnableRaindrop)
         {
+            InitMat();
             UpdateRainDrop();
             UpdateRainSplash();
+            UpdateRainRipple();
         }
         UpdateWetAndAccumulatedWater();
     }
@@ -202,24 +206,28 @@ public class RainCtrl : MonoBehaviour
         DisposeCreatedRes();
     }
 
-    void UpdateRainDrop()
+    void InitMat()
     {
-        if(mRainMat == null && RainShader != null)
+        if (mRainMat == null && RainShader != null)
         {
             mRainMat = new Material(RainShader);
             mRainMat.enableInstancing = true;
         }
-        if (mRainMat != null) 
-        {
-            if (weatherCtrl != null && weatherCtrl.WeatherOutputData != null)
-            {
-                RainOutput rainOutput = weatherCtrl.WeatherOutputData.RainOutputData;
+    }
 
+    void UpdateRainDrop()
+    {   
+        if (weatherCtrl != null && weatherCtrl.WeatherOutputData != null)
+        {
+            RainOutput rainOutput = weatherCtrl.WeatherOutputData.RainOutputData;
+
+            Shader.SetGlobalFloat(id_RainIntensity, rainOutput.RainIntensity);
+            if (mRainMat != null)
+            {
                 mRainMat.SetTexture(id_RainShapeTex, rainOutput.RainShapeTexture);
                 mRainMat.SetTexture(id_RainHeightmap, rainOutput.RainHeightmap);
                 mRainMat.SetTexture(id_RainSplashTex, rainOutput.RainSplashTex);
 
-                mRainMat.SetFloat(id_RainIntensity, rainOutput.RainIntensity);
                 mRainMat.SetFloat(id_RainOpacityInAll, rainOutput.RainOpacityInAll);
                 mRainMat.SetColor(id_RainColor, rainOutput.RainColor);
                 mRainMat.SetVector(id_RainScale_Layer12, rainOutput.RainScale_Layer12);
@@ -231,7 +239,11 @@ public class RainCtrl : MonoBehaviour
                 mRainMat.SetVector(id_RainDepthRange, new Vector4(RainDepthRange_One, RainDepthRange_Two, RainDepthRange_Three, RainDepthRange_Four));
                 mRainMat.SetVector(id_RainOpacities, rainOutput.RainOpacity);
             }
-            else
+        }
+        else
+        {
+            Shader.SetGlobalFloat(id_RainIntensity, RainIntensity);
+            if (mRainMat != null)
             {
                 mRainMat.SetTexture(id_RainShapeTex, RainShapeTexture);
                 mRainMat.SetTexture(id_RainHeightmap, RainHeightmap);
@@ -249,6 +261,7 @@ public class RainCtrl : MonoBehaviour
                 mRainMat.SetVector(id_RainDepthRange, new Vector4(RainDepthRange_One, RainDepthRange_Two, RainDepthRange_Three, RainDepthRange_Four));
                 mRainMat.SetVector(id_RainOpacities, new Vector4(RainOpacity_One, RainOpacity_Two, RainOpacity_Three, RainOpacity_Four));
             }
+
         }
     }
 
@@ -256,6 +269,19 @@ public class RainCtrl : MonoBehaviour
     {
         if(EnableRainSplash)
         {
+            if (mRainMat != null)
+            {
+                if (weatherCtrl != null && weatherCtrl.WeatherOutputData != null)
+                {
+                    RainOutput rainOutput = weatherCtrl.WeatherOutputData.RainOutputData;
+                    mRainMat.SetTexture(id_RainSplashTex, rainOutput.RainSplashTex);
+                }
+                else
+                {
+                    mRainMat.SetTexture(id_RainSplashTex, RainSplashTex);
+                }
+            }
+
             if (splashInfo_1 == null || splashInfo_1.Length != SplashCountMax)
             {     
                 if(splashInfo_1 == null)
@@ -331,6 +357,11 @@ public class RainCtrl : MonoBehaviour
                 }
             }
         }
+    }
+
+    void UpdateRainRipple()
+    {
+        Shader.SetGlobalTexture(id_RippleTexture, RippleTexture);
     }
 
     void UpdateWetAndAccumulatedWater()

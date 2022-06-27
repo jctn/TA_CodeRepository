@@ -28,8 +28,12 @@ TEXTURE2D(_ParallaxMap);        SAMPLER(sampler_ParallaxMap);
 
 half4 SampleHeight(float2 uv)
 {
+#if defined(_PARALLAXMAP)
     half4 h = SAMPLE_TEXTURE2D(_ParallaxMap, sampler_ParallaxMap, uv);
     return h;
+#else
+    return 1;
+#endif
 }
 
 void ApplyPerPixelDisplacement(half3 viewDirTS, half h, inout float2 uv)
