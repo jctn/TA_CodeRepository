@@ -93,7 +93,7 @@ public class RainCtrl : MonoBehaviour
     #endregion
 
     //const
-    const int sceneDepthTexSize = 512;
+    const int sceneDepthTexSize = 1024;
     const float sceneDepthRadius = 100f;
     const float sceneDepthHeigth = 100f;
     const float rainSplashRadius = 100f;
@@ -468,7 +468,7 @@ public class RainCtrl : MonoBehaviour
     {
         RenderTextureDescriptor desc = new RenderTextureDescriptor(w, h, RenderTextureFormat.Depth, 16, 0)
         {
-            msaaSamples = 1
+            msaaSamples = 1,
         };
         return desc;
     }
@@ -501,7 +501,9 @@ public class RainCtrl : MonoBehaviour
                     name = "_SceneDepthTex",
                     hideFlags = HideFlags.DontSave,
                     filterMode = FilterMode.Bilinear,
-                    wrapMode = TextureWrapMode.Clamp
+                    wrapMode = TextureWrapMode.Clamp,
+                    useMipMap = true,
+                    autoGenerateMips = true
                 };
                 sceneDepthCam.targetTexture = sceneDepthTex;
                 Shader.SetGlobalTexture("_SceneDepthTex", sceneDepthTex);

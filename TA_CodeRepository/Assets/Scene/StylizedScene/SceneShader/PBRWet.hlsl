@@ -29,6 +29,7 @@ half2 SingleRipple(float2 uv, half time, half weight)
 
 half3 RainRipple(float2 uv)
 {
+    //可放到cpu上
     half4 timeMul = half4(1, 0.85, 0.93, 1.13); 
     half4 timeAdd = half4(0, 0.f, 0.45, 0.7);
     half4 times = (_Time.y * timeMul + timeAdd) * 1.6;
@@ -55,7 +56,7 @@ void DoWetProcess(inout half3 diffuse, inout half gloss, half wetLevel)
 
 void GroundWet(inout half3 diffuse, inout half3 specular, inout half gloss, inout float3 normalWS, WetData wetdata)
 {
-    int occlusion = SceneDepthTest(wetdata.posWS);//0遮挡
+    float occlusion = SceneDepthTest_PCF(wetdata.posWS);//0遮挡（可用顶点色来划分遮挡区域来减小消耗）
     half3 waterNormal = RainRipple(wetdata.posWS.xz * 0.05);//可以放到低分辨率的全屏处理上计算
     waterNormal = TransformTangentToWorld(waterNormal, wetdata.tTOw);
 
